@@ -569,21 +569,7 @@ const appState = {
     roomCode: ''
 };
 
-// Built-in starter card deck
-const starterDeck = [
-    { target: "APPLE", forbidden: ["FRUIT", "RED", "IPHONE", "TREE", "EAT"] },
-    { target: "GUITAR", forbidden: ["INSTRUMENT", "MUSIC", "STRINGS", "ROCK", "PLAY"] },
-    { target: "PIZZA", forbidden: ["ITALIAN", "CHEESE", "SLICE", "PEPPERONI", "CRUST"] },
-    { target: "AIRPLANE", forbidden: ["FLY", "PILOT", "WINGS", "AIRPORT", "SKY"] },
-    { target: "FOOTBALL", forbidden: ["SPORT", "BALL", "TOUCHDOWN", "NFL", "KICK"] },
-    { target: "CHOCOLATE", forbidden: ["SWEET", "CANDY", "DARK", "MILK", "BAR"] },
-    { target: "TELESCOPE", forbidden: ["STARS", "SPACE", "PLANETS", "ASTRONOMY", "LOOK"] },
-    { target: "OCEAN", forbidden: ["WATER", "SEA", "BEACH", "WAVES", "SHARK"] },
-    { target: "CAMERA", forbidden: ["PHOTO", "PICTURE", "SNAP", "LENS", "FLASH"] },
-    { target: "BICYCLE", forbidden: ["RIDE", "WHEELS", "PEDAL", "BIKE", "HELMET"] },
-    { target: "INTERNET", forbidden: ["WEB", "ONLINE", "WIFI", "COMPUTER", "DATA"] },
-    { target: "PYRAMID", forbidden: ["EGYPT", "PHARAOH", "TRIANGLE", "DESERT", "STONE"] }
-];
+// Starter deck removed. Using hosted taboo_cards.json exclusively.
 
 window.onload = function() {
     initDatabase();
@@ -685,11 +671,7 @@ async function loadHostedDeck(fileName, isStartup = false) {
 }
 
 function seedDefaultCards() {
-    const tx = appState.db.transaction(["cards"], "readwrite");
-    const store = tx.objectStore("cards");
-    store.clear();
-    starterDeck.forEach(c => store.add(c));
-    tx.oncomplete = function() { loadCardsFromDB(); };
+    alert("Please ensure taboo_cards.json is loaded or import a custom card file.");
 }
 
 function loadCardsFromDB() {
@@ -828,8 +810,60 @@ function startGameHost() {
     document.getElementById("gameView").classList.remove("hidden");
 
     resetDeckIndices();
+    prepTurn();
+}
+
+
+function prepTurn() {
+    appState.gameState.isActive = false;
+    clearInterval(appState.gameState.timerInterval);
+    
+    // We can show a prep modal or render a prep screen view inside gameView
+    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
+    document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn (Ready)`;
+    document.getElementById("activeClueGiver").innerText = currentTeam.name;
+    document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
+    document.getElementById("cardTargetWord").innerText = "READY?";
+    
+    const list = document.getElementById("forbiddenList");
+    list.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-sm">Pass phone to ${currentTeam.name}<br>Tap 'START TURN' when ready!</div>`;
+
+    // Replace action controls temporarily with a single "BEGIN TURN" button
+    // Or we can toggle visibility of controls
+    const actionContainer = document.querySelector("#gameView .grid.grid-cols-3.gap-3");
+    if (actionContainer) {
+        actionContainer.innerHTML = `
+            <button onclick="beginActualTurn()" class="col-span-3 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-play"></i> START TURN (${currentTeam.name})
+            </button>
+        `;
+    }
+}
+
+function beginActualTurn() {
+    // Restore action buttons
+    const actionContainer = document.querySelector("#gameView .grid.grid-cols-3");
+    if (actionContainer) {
+        actionContainer.innerHTML = `
+            <button onclick="handleCardAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold rounded-2xl shadow-lg shadow-rose-600/20 flex flex-col items-center justify-center gap-1 transition">
+                <i class="fa-solid fa-ban text-xl"></i>
+                <span class="text-[10px] uppercase tracking-wider">TABOO (<span id="penaltyBtnLabel">-1</span>)</span>
+            </button>
+            <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-extrabold rounded-2xl shadow-lg shadow-amber-600/20 flex flex-col items-center justify-center gap-1 transition">
+                <i class="fa-solid fa-forward text-xl"></i>
+                <span class="text-[10px] uppercase tracking-wider">SKIP</span>
+            </button>
+            <button onclick="handleCardAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/20 flex flex-col items-center justify-center gap-1 transition">
+                <i class="fa-solid fa-check text-xl"></i>
+                <span class="text-[10px] uppercase tracking-wider">CORRECT (+1)</span>
+            </button>
+        `;
+        document.getElementById("penaltyBtnLabel").innerText = appState.config.tabooPenalty;
+    }
     startTurn();
 }
+
 
 function startTurn() {
     appState.gameState.skipsRemaining = appState.config.maxSkips;
@@ -947,7 +981,7 @@ function endTurn() {
     if (appState.gameState.currentRound > appState.config.totalRounds) {
         showGameOver();
     } else {
-        startTurn();
+        prepTurn();
     }
 }
 
