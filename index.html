@@ -1,1055 +1,887 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taboo Master - Multiplayer Sync & Offline Deck</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taboo Master</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- PeerJS CDN for Zero-Config WebRTC Sync -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        tabooRed: '#ef4444',
-                        tabooGreen: '#10b981',
-                        tabooAmber: '#f59e0b',
+                        darkBg: '#0b0f19',
+                        cardBg: '#131c31',
+                        accent: '#6366f1',
+                        accentHover: '#4f46e5'
                     }
                 }
             }
         }
     </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            background-color: #090d16;
-            color: #f8fafc;
-        }
-        .app-container {
-            max-width: 480px;
-            margin: 0 auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background: #0f172a;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        
-        .forbidden-card-item {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
-            border-left: 4px solid #ef4444;
-        }
-    </style>
+    <!-- PeerJS for Multi-Phone Local Room Connection -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen">
+<body class="bg-darkBg text-gray-100 min-h-screen font-sans flex flex-col selection:bg-accent selection:text-white">
 
-<div class="app-container overflow-hidden w-full border-x border-slate-800">
-    <!-- TOP NAVIGATION BAR -->
-    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-        <div class="flex items-center gap-2.5">
-            <div class="bg-indigo-600 text-white rounded-xl p-2 font-black text-xs uppercase flex items-center justify-center h-9 w-9 shadow-lg shadow-indigo-600/30">
-                <i class="fa-solid fa-ban text-sm"></i>
-            </div>
+    <!-- Top Navigation Bar -->
+    <header class="bg-cardBg border-b border-gray-800 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-2">
+            <button id="config-btn" class="p-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition text-gray-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
             <div>
-                <h1 class="font-black text-base text-white leading-tight tracking-wide">TABOO MASTER</h1>
-                <div class="flex items-center gap-2">
-                    <span id="roleBadge" class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/50">Host Mode</span>
-                    <span id="roomCodeBadge" class="hidden text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/50">ROOM: ----</span>
-                </div>
+                <h1 class="font-black text-lg tracking-wider text-white">TABOO MASTER</h1>
+                <span id="role-badge" class="text-xs px-2 py-0.5 bg-accent/20 text-accent font-semibold rounded-md">HOST MODE</span>
             </div>
         </div>
-
-        <div class="flex items-center gap-2">
-            <button onclick="openHelpModal()" title="Instruction & Rules Guide" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
-                <i class="fa-solid fa-circle-question text-indigo-400"></i>
+        <div class="flex items-center space-x-2">
+            <button id="help-btn" class="p-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition text-yellow-400 font-bold" title="Help & Instructions">
+                ?
             </button>
-            <button onclick="openSyncModal()" title="Connect Player Devices" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm relative border border-slate-700">
-                <i class="fa-solid fa-users text-indigo-400"></i>
-                <span id="connectedPeerCount" class="ml-1 text-xs font-bold text-white">0</span>
+            <button id="room-info-btn" class="flex items-center space-x-1.5 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-xl transition text-sm font-medium">
+                <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span id="nav-peer-count">0</span>
             </button>
-            <button onclick="openDeckModal()" title="Manage Word Database" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
-                <i class="fa-solid fa-database text-amber-400"></i>
+            <button id="db-status-btn" class="p-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition text-emerald-400" title="Database Cards Count">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
             </button>
         </div>
     </header>
 
-    <!-- MAIN APP CONTENT VIEWS -->
-    <main class="flex-1 flex flex-col p-4 overflow-y-auto" id="mainView">
-        
-        <!-- ================= VIEW 1: HOST SETUP ================= -->
-        <section id="setupView" class="space-y-5 flex-1 flex flex-col justify-between">
-            <div class="space-y-4">
-                
-                <!-- Quick Mode Switcher Banner -->
-                <div class="bg-indigo-950/40 border border-indigo-800/60 rounded-2xl p-3 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xs font-bold text-indigo-300">Device Role</h2>
-                        <p class="text-[11px] text-slate-400">Host game or join as player display</p>
-                    </div>
-                    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
-                        <button id="modeHostBtn" onclick="setRole('host')" class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow">Host</button>
-                        <button id="modePlayerBtn" onclick="setRole('player')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Player</button>
-                    </div>
-                </div>
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-xl w-full mx-auto p-4 flex flex-col justify-between">
 
-                <!-- Game Configuration Card -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-                    <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-sliders"></i> Game Parameters
+        <!-- SETUP VIEW -->
+        <div id="setup-view" class="space-y-6">
+            <!-- Role Toggle Card -->
+            <div class="bg-cardBg border border-gray-800 rounded-2xl p-4 shadow-xl">
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Device Role</label>
+                <div class="grid grid-cols-2 gap-2 bg-gray-900 p-1.5 rounded-xl border border-gray-800">
+                    <button id="role-host-tab" class="py-2.5 rounded-lg font-bold text-sm bg-accent text-white shadow-lg transition">Host</button>
+                    <button id="role-player-tab" class="py-2.5 rounded-lg font-bold text-sm text-gray-400 hover:text-white transition">Player</button>
+                </div>
+            </div>
+
+            <!-- Host Configuration Panel -->
+            <div id="host-config-panel" class="space-y-6">
+                <!-- Game Parameters -->
+                <div class="bg-cardBg border border-gray-800 rounded-2xl p-4 shadow-xl space-y-4">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-accent flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        <span>Game Parameters</span>
                     </h2>
-                    
-                    <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Total Rounds</label>
-                            <input type="number" id="cfgRounds" min="1" max="50" value="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs text-gray-400 mb-1">Total Rounds</label>
+                            <input type="number" id="input-rounds" value="3" min="1" max="10" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-accent">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Turn Time (sec)</label>
-                            <input type="number" id="cfgTimer" min="10" max="300" value="60" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs text-gray-400 mb-1">Turn Time (sec)</label>
+                            <input type="number" id="input-time" value="60" min="15" max="300" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-accent">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Skips Limit</label>
-                            <input type="number" id="cfgMaxSkips" min="0" max="10" value="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs text-gray-400 mb-1">Skips Limit</label>
+                            <input type="number" id="input-skips" value="3" min="0" max="20" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-accent">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Taboo Penalty</label>
-                            <select id="cfgTabooPenalty" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="block text-xs text-gray-400 mb-1">Taboo Penalty</label>
+                            <select id="input-penalty" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-accent">
                                 <option value="-1">-1 Point</option>
                                 <option value="-2">-2 Points</option>
-                                <option value="0">0 Points</option>
+                                <option value="0">0 (No Penalty)</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- Teams Configuration -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+                <!-- Teams Setup -->
+                <div class="bg-cardBg border border-gray-800 rounded-2xl p-4 shadow-xl space-y-4">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-users"></i> Teams Setup (<span id="teamCountDisplay">2</span>)
+                        <h2 id="teams-header-label" class="text-sm font-bold uppercase tracking-wider text-accent flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            <span>Teams Setup (2)</span>
                         </h2>
-                        <button onclick="addTeamInput()" class="text-xs bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold border border-indigo-500/40 px-3 py-1 rounded-xl transition">
-                            <i class="fa-solid fa-plus mr-1"></i> Add Team
-                        </button>
+                        <button id="add-team-btn" class="bg-accent/20 hover:bg-accent/30 text-accent font-bold text-xs px-3 py-1.5 rounded-xl transition">+ Add Team</button>
                     </div>
-
-                    <div id="teamsContainer" class="space-y-3 max-h-56 overflow-y-auto pr-1">
-                        <!-- Dynamic Team Rows -->
-                    </div>
-                </div>
-            </div>
-
-            <div class="pt-2 space-y-2">
-                <button onclick="openSyncModal()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs text-indigo-300 rounded-xl flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-qrcode text-indigo-400"></i> Get Room Code for Player Devices
-                </button>
-                <button onclick="startGameHost()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 font-extrabold text-base text-white rounded-2xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-play"></i> START TABOO MATCH
-                </button>
-            </div>
-        </section>
-
-        <!-- ================= VIEW 2: HOST ACTIVE GAME CONTROLLER ================= -->
-        <section id="gameView" class="hidden flex-1 flex flex-col justify-between space-y-4">
-            
-            <!-- Round & Score Summary Header -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-md space-y-2">
-                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-slate-800 pb-2">
-                    <span>Round <strong id="currentRoundDisplay" class="text-indigo-400">1</strong> of <span id="totalRoundsDisplay">3</span></span>
-                    <span id="turnIndicator" class="text-indigo-300 font-bold bg-indigo-950/80 px-2.5 py-0.5 rounded-lg border border-indigo-800/50">Team A's Turn</span>
-                    <span>Skips: <strong id="skipsLeftDisplay" class="text-amber-400">3</strong></span>
-                </div>
-
-                <!-- Teams Score Grid -->
-                <div id="scoreboardBar" class="grid grid-cols-2 gap-2">
-                    <!-- Dynamic team score cards -->
-                </div>
-            </div>
-
-            <!-- Timer Display -->
-            <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-2.5">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Turn Countdown</span>
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-stopwatch text-indigo-400 text-lg"></i>
-                    <span id="timerDisplay" class="text-3xl font-black text-amber-400 font-mono tracking-tight">60</span>
-                    <span class="text-xs text-slate-500 font-bold">SEC</span>
-                </div>
-            </div>
-
-            <!-- TABOO WORD CARD -->
-            <div id="tabooCard" class="flex-1 bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-5 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute -top-12 -right-12 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                <!-- Target Word -->
-                <div class="text-center py-2 border-b-2 border-slate-800/80">
-                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-1">TARGET WORD</span>
-                    <h3 id="cardTargetWord" class="text-3xl font-black text-white tracking-wide uppercase drop-shadow">INITIALIZING</h3>
-                </div>
-
-                <!-- Forbidden Words -->
-                <div class="my-auto py-2 space-y-2">
-                    <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest text-center block mb-1">
-                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> FORBIDDEN WORDS
-                    </span>
-                    <div id="forbiddenList" class="space-y-1.5">
-                        <!-- Forbidden words injected here -->
+                    <div id="teams-container" class="space-y-3">
+                        <!-- Dynamically populated teams -->
                     </div>
                 </div>
 
-                <!-- Clue Giver / Turn Footer -->
-                <div class="text-center text-xs font-medium text-slate-400 bg-slate-950/70 py-2 rounded-xl border border-slate-800/80">
-                    Active Clue Giver: <span id="activeClueGiver" class="text-white font-bold">Team 1</span>
+                <!-- Start Game & Room Code Buttons -->
+                <div class="space-y-3 pt-2">
+                    <button id="start-game-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-900/30 transition uppercase tracking-wider text-lg">
+                        Start Game
+                    </button>
+                    <button id="show-room-code-btn" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-3 rounded-2xl transition flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        <span>Get Room Code for Player Devices</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- ACTION CONTROLS -->
-            <div class="grid grid-cols-3 gap-3 pt-1">
-                <button onclick="handleCardAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold rounded-2xl shadow-lg shadow-rose-600/20 flex flex-col items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-ban text-xl"></i>
-                    <span class="text-[10px] uppercase tracking-wider">TABOO (<span id="penaltyBtnLabel">-1</span>)</span>
-                </button>
-                <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-extrabold rounded-2xl shadow-lg shadow-amber-600/20 flex flex-col items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-forward text-xl"></i>
-                    <span class="text-[10px] uppercase tracking-wider">SKIP</span>
-                </button>
-                <button onclick="handleCardAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/20 flex flex-col items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-check text-xl"></i>
-                    <span class="text-[10px] uppercase tracking-wider">CORRECT (+1)</span>
-                </button>
+            <!-- Joiner Configuration Panel -->
+            <div id="join-config-panel" class="hidden space-y-6">
+                <div class="bg-cardBg border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-accent">Join Existing Host Room</h2>
+                    <p class="text-xs text-gray-400">Enter the 4-digit code displayed on the host device to sync live cards, timers, and scores.</p>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">4-Digit Room Code</label>
+                        <input type="text" id="input-room-code" placeholder="e.g. 4829" maxlength="4" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white font-mono text-center tracking-widest text-2xl focus:outline-none focus:border-accent">
+                    </div>
+                    <button id="join-room-btn" class="w-full bg-accent hover:bg-accentHover text-white font-black py-4 rounded-2xl shadow-lg transition uppercase tracking-wider">
+                        Connect to Room
+                    </button>
+                </div>
             </div>
+        </div>
 
-            <div class="flex items-center justify-between gap-2">
-                <button onclick="pauseResumeGame()" id="pauseBtn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
-                    <i class="fa-solid fa-pause mr-1"></i> PAUSE
-                </button>
-                <button onclick="endTurnEarly()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
-                    <i class="fa-solid fa-flag-checkered mr-1"></i> END TURN
-                </button>
-            </div>
-        </section>
-
-        <!-- ================= VIEW 3: PLAYER / SPECTATOR DISPLAY ================= -->
-        <section id="playerView" class="hidden flex-1 flex flex-col justify-between space-y-4">
-            
-            <!-- Connection Status Header -->
-            <div class="bg-indigo-950/60 border border-indigo-800/60 rounded-2xl p-4 text-center space-y-1">
-                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block">CONNECTED PLAYER VIEW</span>
-                <h2 class="text-base font-bold text-white" id="playerViewTeamTurn">Waiting for Host to start match...</h2>
-                <div class="flex items-center justify-center gap-2 pt-1">
-                    <span class="text-xs text-slate-400">Timer: <strong id="playerTimerDisplay" class="text-amber-400 font-mono text-sm">60</strong>s</span>
-                    <span class="text-slate-600">•</span>
-                    <span class="text-xs text-slate-400">Round: <strong id="playerRoundDisplay" class="text-indigo-400">1</strong></span>
+        <!-- GAMEPLAY VIEW -->
+        <div id="game-view" class="hidden flex-col flex-1 justify-between space-y-4">
+            <!-- Header status: Round & Active Team -->
+            <div class="bg-cardBg border border-gray-800 rounded-2xl p-4 shadow-xl flex items-center justify-between">
+                <div>
+                    <span id="game-round-indicator" class="text-xs text-gray-400 uppercase font-semibold">Round 1 of 3</span>
+                    <h2 id="active-team-name" class="font-black text-lg text-white">Team Alpha</h2>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-gray-400 uppercase font-semibold">Timer</span>
+                    <div id="timer-display" class="font-mono text-2xl font-black text-accent">60</div>
                 </div>
             </div>
 
-            <!-- Player Mirrored Word Card -->
-            <div id="playerCardMirror" class="flex-1 bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 flex flex-col justify-between">
-                <div class="text-center py-2 border-b border-slate-800">
-                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-1">ACTIVE TARGET WORD</span>
-                    <h3 id="playerTargetWord" class="text-3xl font-black text-white tracking-wide uppercase">READY</h3>
+            <!-- Target Card Area -->
+            <div class="bg-cardBg border-2 border-accent/40 rounded-3xl p-6 shadow-2xl flex-1 flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-accent/10 px-4 py-1.5 rounded-bl-2xl text-xs font-bold text-accent uppercase">
+                    Taboo Card
                 </div>
-                <div class="my-auto py-2 space-y-2">
-                    <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest text-center block mb-1">FORBIDDEN WORDS</span>
-                    <div id="playerForbiddenList" class="space-y-1.5">
-                        <p class="text-xs text-slate-500 text-center py-4">Card data mirrors host in real-time</p>
+
+                <div class="text-center my-auto space-y-6">
+                    <div>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Target Word</span>
+                        <h3 id="card-target-word" class="text-4xl font-black text-white mt-1 uppercase tracking-wide">JAVASCRIPT</h3>
+                    </div>
+
+                    <div class="border-t border-gray-800 pt-4 max-w-xs mx-auto">
+                        <span class="text-xs font-semibold text-red-400 uppercase tracking-widest block mb-2">Forbidden Words</span>
+                        <ul id="card-forbidden-list" class="space-y-1.5 font-bold text-gray-300 text-lg">
+                            <li class="bg-red-500/10 text-red-300 py-1 rounded-lg">PROGRAMMING</li>
+                            <li class="bg-red-500/10 text-red-300 py-1 rounded-lg">CODE</li>
+                            <li class="bg-red-500/10 text-red-300 py-1 rounded-lg">WEB</li>
+                            <li class="bg-red-500/10 text-red-300 py-1 rounded-lg">SCRIPT</li>
+                            <li class="bg-red-500/10 text-red-300 py-1 rounded-lg">LANGUAGE</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="text-center text-xs font-medium text-slate-400 bg-slate-950/60 py-2 rounded-xl">
-                    Synced via PeerJS WebRTC
+
+                <!-- Skips Left Badge -->
+                <div class="flex items-center justify-between text-xs text-gray-400 border-t border-gray-800 pt-3">
+                    <span>Skips Remaining: <strong id="skips-left-val" class="text-white">3</strong></span>
+                    <span>Card ID: <strong id="card-id-val" class="text-gray-500">#102</strong></span>
                 </div>
             </div>
 
-            <!-- Live Scoreboard for Players -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">Match Leaderboard</h4>
-                <div id="playerScoreboard" class="grid grid-cols-2 gap-2"></div>
+            <!-- Host Action Controls (Visible only on Host or when Turn active) -->
+            <div id="host-controls-bar" class="grid grid-cols-3 gap-2">
+                <button id="btn-taboo" class="bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 font-bold py-4 rounded-2xl transition flex flex-col items-center justify-center space-y-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <span class="text-xs uppercase">Taboo (-1)</span>
+                </button>
+                <button id="btn-skip" class="bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-400 font-bold py-4 rounded-2xl transition flex flex-col items-center justify-center space-y-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                    <span class="text-xs uppercase">Skip</span>
+                </button>
+                <button id="btn-correct" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl shadow-lg transition flex flex-col items-center justify-center space-y-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-xs uppercase">Correct (+1)</span>
+                </button>
             </div>
-        </section>
+            <div id="joiner-waiting-notice" class="hidden text-center py-4 bg-cardBg border border-gray-800 rounded-2xl">
+                <p class="text-sm text-gray-400">You are connected as a player device. Follow the live clues and check scores!</p>
+            </div>
+        </div>
 
-        <!-- ================= VIEW 4: MATCH SUMMARY ================= -->
-        <section id="gameOverView" class="hidden flex-1 flex flex-col items-center justify-center text-center space-y-6">
-            <div class="w-20 h-20 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-full flex items-center justify-center text-4xl shadow-xl">
-                <i class="fa-solid fa-trophy"></i>
-            </div>
-            <div>
-                <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">MATCH FINISHED</span>
-                <h2 class="text-3xl font-black text-white mt-1">WINNER!</h2>
-                <p id="winnerName" class="text-2xl font-black text-amber-400 mt-1">Team Alpha</p>
+        <!-- SCOREBOARD VIEW -->
+        <div id="scoreboard-view" class="hidden space-y-6">
+            <div class="bg-cardBg border border-gray-800 rounded-2xl p-6 shadow-xl text-center space-y-2">
+                <h2 id="winner-announcement" class="text-2xl font-black text-white">ROUND OVER</h2>
+                <p class="text-xs text-gray-400">Current standings across all competing teams.</p>
             </div>
 
-            <div id="finalScoreboard" class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
-                <!-- Scores injected -->
+            <div id="final-scores-list" class="space-y-3">
+                <!-- Populated dynamically -->
             </div>
 
-            <button onclick="resetToSetup()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition">
-                <i class="fa-solid fa-rotate-right mr-2"></i> NEW MATCH
+            <button id="next-turn-btn" class="w-full bg-accent hover:bg-accentHover text-white font-black py-4 rounded-2xl shadow-lg transition uppercase tracking-wider">
+                Start Next Turn / Round
             </button>
-        </section>
-
+        </div>
     </main>
 
-    <!-- MODAL 1: DATABASE & CARDS MANAGEMENT (INDEXEDDB) -->
-    <div id="deckModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4 max-h-[90vh] flex flex-col">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base flex items-center gap-2">
-                    <i class="fa-solid fa-database text-amber-400"></i> Word Database Engine
-                </h3>
-                <button onclick="closeDeckModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <!-- MODAL: Room Code Display -->
+    <div id="modal-room" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-cardBg border border-gray-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <h3 class="text-lg font-black text-white uppercase tracking-wider">Player Connection Room Code</h3>
+            <p class="text-xs text-gray-400">Have other players open your GitHub Pages link on their phones, tap the users icon, and enter this code:</p>
+            <div id="room-code-display" class="bg-gray-900 border border-gray-800 rounded-2xl py-4 font-mono text-4xl font-black text-accent tracking-widest">
+                ----
             </div>
+            <p class="text-xs text-emerald-400 font-semibold" id="peer-connection-status">Waiting for player devices to connect...</p>
+            <button id="close-modal-room" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition">Close</button>
+        </div>
+    </div>
 
-            <div class="space-y-3 flex-1 overflow-y-auto text-xs pr-1">
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <span class="text-slate-400 block">Total Database Cards</span>
-                        <strong id="dbCountDisplay" class="text-lg font-bold text-indigo-400">0</strong>
-                    </div>
-                    <button onclick="seedDefaultCards()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700">
-                        Reload Starter Deck
-                    </button>
+    <!-- MODAL: Database & CSV Import -->
+    <div id="modal-db" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-cardBg border border-gray-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-black text-white uppercase tracking-wider">Word Database (250k Capable)</h3>
+                <button id="close-modal-db" class="text-gray-400 hover:text-white font-bold text-lg">✕</button>
+            </div>
+            <p class="text-xs text-gray-400">The app uses local IndexedDB to store and instantly randomize massive word decks offline without browser lag.</p>
+            
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Total Cards Loaded:</span>
+                    <strong id="db-card-count-val" class="text-emerald-400 font-mono">0</strong>
                 </div>
-
-                <!-- CSV / JSON Import Panel -->
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                    <label class="font-bold text-slate-300 block">Import Custom Cards File</label>
-                    <p class="text-[11px] text-slate-400">Supports up to 250,000 cards via CSV or JSON offline.</p>
-                    <input type="file" id="deckFileInput" accept=".csv,.json" class="hidden" onchange="handleFileImport(event)">
-                    <button onclick="document.getElementById('deckFileInput').click()" class="w-full py-2 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 font-bold border border-indigo-500/40 rounded-lg text-xs flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-file-csv"></i> Import CSV / JSON
-                    </button>
-                </div>
-
-                <!-- Manual Add Word Form -->
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                    <span class="font-bold text-slate-300 block">Add Single Card</span>
-                    <input type="text" id="newTarget" placeholder="Target Word" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 rounded-lg text-white text-xs">
-                    <input type="text" id="newForbidden" placeholder="5 forbidden words (comma separated)" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 rounded-lg text-white text-xs">
-                    <button onclick="addCustomCard()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-lg text-xs">
-                        Save Card
-                    </button>
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Storage Engine:</span>
+                    <strong class="text-accent font-mono">IndexedDB (Offline)</strong>
                 </div>
             </div>
 
-            <button onclick="closeDeckModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">
-                Close
+            <div class="space-y-2 pt-2">
+                <label class="block text-xs font-bold uppercase text-gray-400">Import CSV Deck (Target, Forbidden1, Forbidden2, Forbidden3, Forbidden4, Forbidden5)</label>
+                <input type="file" id="csv-file-input" accept=".csv,.txt" class="w-full text-xs text-gray-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-accent file:text-white hover:file:bg-accentHover file:cursor-pointer">
+            </div>
+
+            <button id="load-sample-deck-btn" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl text-xs transition">
+                Load Default Sample Deck (100 Cards)
             </button>
         </div>
     </div>
 
-    <!-- MODAL 2: ZERO-CONFIG PEERJS MULTIPLAYER SYNC -->
-    <div id="syncModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base flex items-center gap-2">
-                    <i class="fa-solid fa-wifi text-indigo-400"></i> PeerJS Phone Connect
+    <!-- MODAL: Instruction & Help Center -->
+    <div id="modal-help" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-cardBg border border-gray-800 rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/50">
+                <h3 class="font-black text-white uppercase tracking-wider text-sm flex items-center space-x-2">
+                    <span class="text-yellow-400">?</span>
+                    <span>Taboo Master Help Center</span>
                 </h3>
-                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button id="close-modal-help" class="text-gray-400 hover:text-white font-bold px-2 py-1 bg-gray-800 rounded-lg">✕</button>
+            </div>
+            
+            <!-- Help Tabs Navigation -->
+            <div class="grid grid-cols-4 bg-gray-900 p-1.5 border-b border-gray-800 text-center text-xs font-bold">
+                <button id="help-tab-rules" class="py-2 rounded-lg bg-accent text-white transition">Rules</button>
+                <button id="help-tab-app" class="py-2 rounded-lg text-gray-400 hover:text-white transition">App Use</button>
+                <button id="help-tab-sync" class="py-2 rounded-lg text-gray-400 hover:text-white transition">Sync</button>
+                <button id="help-tab-faq" class="py-2 rounded-lg text-gray-400 hover:text-white transition">FAQ</button>
             </div>
 
-    <!-- MODAL 3: COMPREHENSIVE HELP & INSTRUCTION MANUAL -->
-    <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 space-y-4 max-h-[85vh] flex flex-col">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base flex items-center gap-2">
-                    <i class="fa-solid fa-book-open text-indigo-400"></i> Taboo Guide & Help
-                </h3>
-                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <!-- Help Body Content -->
+            <div id="help-body-content" class="p-5 overflow-y-auto space-y-4 text-xs text-gray-300 leading-relaxed">
+                <!-- Dynamically populated or default tab content -->
             </div>
-
-            <!-- Tab Buttons -->
-            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
-                <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center">Rules</button>
-                <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">App Controls</button>
-                <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">Multi-Phone</button>
-                <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">FAQ</button>
-            </div>
-
-            <!-- Tab Contents Container -->
-            <div class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
-                
-                <!-- TAB 1: HOW TO PLAY -->
-                <div id="helpContentRules" class="space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-indigo-400"></i> Objective</h4>
-                        <p class="text-[11px] leading-relaxed text-slate-400">
-                            Get your teammates to guess the <strong class="text-white">Target Word</strong> at the top of the card before the timer runs out, without uttering the target word or any of the 5 forbidden <strong class="text-rose-400">Taboo words</strong>!
-                        </p>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Player Roles</h4>
-                        <ul class="list-disc list-inside text-[11px] space-y-1 text-slate-400">
-                            <li><strong class="text-white">Clue-Giver:</strong> Holds the phone (or views the synced display) and provides verbal clues.</li>
-                            <li><strong class="text-white">Guessers:</strong> Members of the active team who shout out answers.</li>
-                            <li><strong class="text-white">Watchdogs (Opponents):</strong> Members of the opposing team who monitor the clue-giver to ensure no Taboo words, gestures, or sound-alikes are used.</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-star text-indigo-400"></i> Scoring & Controls</h4>
-                        <ul class="list-disc list-inside text-[11px] space-y-1 text-slate-400">
-                            <li><strong class="text-emerald-400">Correct (+1):</strong> Team correctly guesses the word. Advance to next card.</li>
-                            <li><strong class="text-rose-400">Taboo Penalty (-1):</strong> Clue-giver says a forbidden word, derivative, or rhyming clue. Points are deducted!</li>
-                            <li><strong class="text-amber-400">Skip:</strong> Pass on a difficult card. Limited by the set skip quota.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- TAB 2: APP USAGE -->
-                <div id="helpContentUsage" class="hidden space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-sliders text-indigo-400"></i> Match Setup</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Before starting, set your match preferences on the setup screen:
-                        </p>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li>Set number of rounds (1 to 50 rounds).</li>
-                            <li>Adjust turn timer (10s to 300s).</li>
-                            <li>Set skip limit per turn (0 to 10 skips).</li>
-                            <li>Add unlimited teams and custom team names!</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-database text-amber-400"></i> Managing 250,000 Cards</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Tap the <i class="fa-solid fa-database text-amber-400"></i> Database icon at the top to load or import card decks.
-                        </p>
-                        <p class="text-[11px] text-slate-400">
-                            <strong class="text-white">CSV Format:</strong> Format your text/CSV file as: <br>
-                            <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1">TARGET, FORBIDDEN1, FORBIDDEN2, FORBIDDEN3, FORBIDDEN4, FORBIDDEN5</code>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- TAB 3: MULTI-PHONE CONNECT -->
-                <div id="helpContentSync" class="hidden space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen-button text-indigo-400"></i> Step-by-Step Device Sync</h4>
-                        <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1.5">
-                            <li><strong class="text-white">Host Phone:</strong> Keep role set to <span class="text-indigo-400 font-bold">Host</span>. Tap the <i class="fa-solid fa-users text-indigo-400"></i> Users icon to view your 4-digit Room Code.</li>
-                            <li><strong class="text-white">Player Phones:</strong> Open your GitHub Pages link on other phones. Tap the <i class="fa-solid fa-users text-indigo-400"></i> Users icon, switch role to <span class="text-indigo-400 font-bold">Player</span>, enter the 4-digit code, and tap <span class="text-white font-bold">JOIN</span>.</li>
-                            <li><strong class="text-white">Real-Time Sync:</strong> Connected player displays instantly reflect active target cards, timer countdown, and current scores!</li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Offline & Local Wi-Fi</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Because peer signaling uses WebRTC direct data channels, once connected, cards are stored in your device's browser memory (IndexedDB) and function seamlessly!
-                        </p>
-                    </div>
-                </div>
-
-                <!-- TAB 4: FAQ & TIPS -->
-                <div id="helpContentFaq" class="hidden space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Can I add my own language or word packs?</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Yes! Prepare a CSV file containing your custom word deck and use the Import button in the Database menu. The app uses IndexedDB which can easily store up to 250,000+ custom entries!
-                        </p>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Room Code isn't connecting?</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Make sure both devices have active network access (Wi-Fi or cellular) when initiating the initial WebRTC connection handshake.
-                        </p>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: How do we prevent card repeats?</h4>
-                        <p class="text-[11px] text-slate-400">
-                            The app automatically shuffles the database indices using the Fisher-Yates algorithm. Cards will not repeat until every single card in your deck has been played.
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Footer Close Button -->
-            <button onclick="closeHelpModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg transition">
-                Got It!
-            </button>
         </div>
     </div>
 
-</div>
-
-<!-- APP JAVASCRIPT ENGINE -->
-<script>
-/**
- * TABOO MASTER ENGINE
- * Built-in PeerJS Signaling + IndexedDB 250k Deck Engine
- */
-
-const appState = {
-    role: 'host', // 'host' or 'player'
-    db: null,
-    cards: [],
-    unplayedIndices: [],
-    currentCard: null,
-    teams: [
-        { id: 1, name: 'Team Alpha', players: 'Alice, Bob', score: 0 },
-        { id: 2, name: 'Team Beta', players: 'Charlie, Dave', score: 0 }
-    ],
-    config: {
-        totalRounds: 3,
-        turnTimerSec: 60,
-        maxSkips: 3,
-        tabooPenalty: -1,
-        correctPoint: 1
-    },
-    gameState: {
-        currentRound: 1,
-        currentTeamIndex: 0,
-        skipsRemaining: 3,
-        timerSeconds: 60,
-        timerInterval: null,
-        isPaused: false,
-        isActive: false
-    },
-    peer: null,
-    peerConnections: [],
-    roomCode: ''
-};
-
-// Built-in starter card deck
-const starterDeck = [
-    { target: "APPLE", forbidden: ["FRUIT", "RED", "IPHONE", "TREE", "EAT"] },
-    { target: "GUITAR", forbidden: ["INSTRUMENT", "MUSIC", "STRINGS", "ROCK", "PLAY"] },
-    { target: "PIZZA", forbidden: ["ITALIAN", "CHEESE", "SLICE", "PEPPERONI", "CRUST"] },
-    { target: "AIRPLANE", forbidden: ["FLY", "PILOT", "WINGS", "AIRPORT", "SKY"] },
-    { target: "FOOTBALL", forbidden: ["SPORT", "BALL", "TOUCHDOWN", "NFL", "KICK"] },
-    { target: "CHOCOLATE", forbidden: ["SWEET", "CANDY", "DARK", "MILK", "BAR"] },
-    { target: "TELESCOPE", forbidden: ["STARS", "SPACE", "PLANETS", "ASTRONOMY", "LOOK"] },
-    { target: "OCEAN", forbidden: ["WATER", "SEA", "BEACH", "WAVES", "SHARK"] },
-    { target: "CAMERA", forbidden: ["PHOTO", "PICTURE", "SNAP", "LENS", "FLASH"] },
-    { target: "BICYCLE", forbidden: ["RIDE", "WHEELS", "PEDAL", "BIKE", "HELMET"] },
-    { target: "INTERNET", forbidden: ["WEB", "ONLINE", "WIFI", "COMPUTER", "DATA"] },
-    { target: "PYRAMID", forbidden: ["EGYPT", "PHARAOH", "TRIANGLE", "DESERT", "STONE"] }
-];
-
-window.onload = function() {
-    initDatabase();
-    renderTeamInputs();
-    initPeerHost();
-};
-
-/* ----------------------------------------------------
-   1. INDEXEDDB DATABASE ENGINE (Up to 250,000 cards)
-   ---------------------------------------------------- */
-function initDatabase() {
-    const request = indexedDB.open("TabooMasterDB", 1);
-    request.onupgradeneeded = function(e) {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains("cards")) {
-            db.createObjectStore("cards", { keyPath: "id", autoIncrement: true });
-        }
-    };
-    request.onsuccess = function(e) {
-        appState.db = e.target.result;
-        checkAndSeedCards();
-    };
-}
-
-function checkAndSeedCards() {
-    const tx = appState.db.transaction(["cards"], "readonly");
-    const countReq = tx.objectStore("cards").count();
-    countReq.onsuccess = function() {
-        document.getElementById("dbCountDisplay").innerText = countReq.result;
-        if (countReq.result === 0) {
-            seedDefaultCards();
-        } else {
-            loadCardsFromDB();
-        }
-    };
-}
-
-function seedDefaultCards() {
-    const tx = appState.db.transaction(["cards"], "readwrite");
-    const store = tx.objectStore("cards");
-    store.clear();
-    starterDeck.forEach(c => store.add(c));
-    tx.oncomplete = function() { loadCardsFromDB(); };
-}
-
-function loadCardsFromDB() {
-    const tx = appState.db.transaction(["cards"], "readonly");
-    const getAll = tx.objectStore("cards").getAll();
-    getAll.onsuccess = function() {
-        appState.cards = getAll.result;
-        document.getElementById("dbCountDisplay").innerText = appState.cards.length;
-        resetDeckIndices();
-    };
-}
-
-function resetDeckIndices() {
-    appState.unplayedIndices = Array.from({ length: appState.cards.length }, (_, i) => i);
-    for (let i = appState.unplayedIndices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [appState.unplayedIndices[i], appState.unplayedIndices[j]] = [appState.unplayedIndices[j], appState.unplayedIndices[i]];
-    }
-}
-
-function handleFileImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const content = e.target.result;
-        let imported = [];
-        try {
-            if (file.name.endsWith('.json')) {
-                imported = JSON.parse(content);
-            } else {
-                const lines = content.split('\n');
-                lines.forEach(line => {
-                    const parts = line.split(',').map(p => p.trim());
-                    if (parts.length >= 6) {
-                        imported.push({ target: parts[0].toUpperCase(), forbidden: parts.slice(1, 6).map(w => w.toUpperCase()) });
-                    }
+    <!-- Application Script Engine -->
+    <script>
+        // --- IndexedDB Wrapper for 250k+ Cards ---
+        class TabooDB {
+            constructor() {
+                this.dbName = "TabooMasterDB";
+                this.storeName = "cards";
+                this.db = null;
+            }
+            init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, 1);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve(this);
+                    };
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(this.storeName)) {
+                            db.createObjectStore(this.storeName, { keyPath: "id", autoIncrement: true });
+                        }
+                    };
                 });
             }
-
-            if (imported.length > 0) {
-                const tx = appState.db.transaction(["cards"], "readwrite");
-                const store = tx.objectStore("cards");
-                imported.forEach(c => store.add(c));
-                tx.oncomplete = function() {
-                    loadCardsFromDB();
-                    alert(`Imported ${imported.length} words to database!`);
-                };
+            count() {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction(this.storeName, "readonly");
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.count();
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(0);
+                });
             }
-        } catch (err) {
-            alert("Error parsing card deck file.");
+            clear() {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(this.storeName, "readwrite");
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.clear();
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            addCard(card) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(this.storeName, "readwrite");
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.add(card);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            getRandomCards(limit = 100) {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction(this.storeName, "readonly");
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.getAll();
+                    req.onsuccess = () => {
+                        let all = req.result;
+                        // Shuffle array
+                        for (let i = all.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [all[i], all[j]] = [all[j], all[i]];
+                        }
+                        resolve(all.slice(0, limit));
+                    };
+                    req.onerror = () => resolve([]);
+                });
+            }
         }
-    };
-    reader.readAsText(file);
-}
 
-function addCustomCard() {
-    const target = document.getElementById("newTarget").value.trim().toUpperCase();
-    const rawForbidden = document.getElementById("newForbidden").value.trim().toUpperCase();
-    if (!target || !rawForbidden) return alert("Fill in target and forbidden words.");
-    
-    const forbidden = rawForbidden.split(',').map(w => w.trim()).filter(w => w.length > 0);
-    if (forbidden.length < 5) return alert("Provide 5 forbidden words.");
+        const sampleCards = [
+            ["JAVASCRIPT", "Programming", "Code", "Web", "Script", "Language"],
+            ["MOTORCYCLE", "Bike", "Ride", "Helmet", "Engine", "Wheel"],
+            ["DATABASE", "SQL", "Storage", "Table", "Query", "Server"],
+            ["GITHUB", "Repository", "Git", "Code", "Commit", "Push"],
+            ["COFFEE", "Drink", "Caffeine", "Morning", "Cup", "Espresso"],
+            ["SMARTPHONE", "Phone", "Android", "Mobile", "Screen", "App"],
+            ["GUITAR", "Music", "Strings", "Rock", "Band", "Acoustic"],
+            ["PIZZA", "Cheese", "Slice", "Italian", "Food", "Crust"],
+            ["BEACH", "Sand", "Ocean", "Waves", "Sun", "Vacation"],
+            ["MOUNTAIN", "Climb", "Peak", "Hiking", "Snow", "Range"]
+        ];
 
-    const tx = appState.db.transaction(["cards"], "readwrite");
-    tx.objectStore("cards").add({ target, forbidden: forbidden.slice(0, 5) });
-    tx.oncomplete = function() {
-        document.getElementById("newTarget").value = "";
-        document.getElementById("newForbidden").value = "";
-        loadCardsFromDB();
-        alert("Saved card to database!");
-    };
-}
+        // --- App State ---
+        const state = {
+            role: 'host', // 'host' or 'player'
+            totalRounds: 3,
+            turnTime: 60,
+            skipsLimit: 3,
+            tabooPenalty: -1,
+            teams: [
+                { name: "Team Alpha", members: "Alice, Bob", score: 0 },
+                { name: "Team Beta", members: "Charlie, Dave", score: 0 }
+            ],
+            currentRound: 1,
+            currentTeamIndex: 0,
+            deck: [],
+            currentCardIndex: 0,
+            skipsLeft: 3,
+            timerInterval: null,
+            timeRemaining: 60,
+            gameActive: false,
+            roomCode: '',
+            peer: null,
+            connections: [],
+            hostConn: null
+        };
 
-/* ----------------------------------------------------
-   2. GAMEPLAY & HOST SETUP
-   ---------------------------------------------------- */
-function renderTeamInputs() {
-    const container = document.getElementById("teamsContainer");
-    container.innerHTML = "";
-    document.getElementById("teamCountDisplay").innerText = appState.teams.length;
+        const db = new TabooDB();
 
-    appState.teams.forEach((t, idx) => {
-        const div = document.createElement("div");
-        div.className = "bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2";
-        div.innerHTML = `
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-indigo-400">Team ${idx + 1}</span>
-                ${appState.teams.length > 2 ? `<button onclick="removeTeamInput(${idx})" class="text-rose-400 text-xs px-1"><i class="fa-solid fa-trash"></i></button>` : ''}
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <input type="text" value="${t.name}" onchange="appState.teams[${idx}].name=this.value" placeholder="Team Name" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                <input type="text" value="${t.players}" onchange="appState.teams[${idx}].players=this.value" placeholder="Players" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-            </div>
-        `;
-        container.appendChild(div);
-    });
-}
+        // --- DOM Elements ---
+        const roleHostTab = document.getElementById('role-host-tab');
+        const rolePlayerTab = document.getElementById('role-player-tab');
+        const hostConfigPanel = document.getElementById('host-config-panel');
+        const joinConfigPanel = document.getElementById('join-config-panel');
+        const roleBadge = document.getElementById('role-badge');
+        const teamsContainer = document.getElementById('teams-container');
+        const addTeamBtn = document.getElementById('add-team-btn');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const showRoomCodeBtn = document.getElementById('show-room-code-btn');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const inputRoomCode = document.getElementById('input-room-code');
 
-function addTeamInput() {
-    const id = appState.teams.length + 1;
-    appState.teams.push({ id, name: `Team ${String.fromCharCode(64 + id)}`, players: 'Player 1, Player 2', score: 0 });
-    renderTeamInputs();
-}
+        const setupView = document.getElementById('setup-view');
+        const gameView = document.getElementById('game-view');
+        const scoreboardView = document.getElementById('scoreboard-view');
 
-function removeTeamInput(idx) {
-    if (appState.teams.length > 2) {
-        appState.teams.splice(idx, 1);
-        renderTeamInputs();
-    }
-}
+        const configBtn = document.getElementById('config-btn');
+        const helpBtn = document.getElementById('help-btn');
+        const dbStatusBtn = document.getElementById('db-status-btn');
+        const roomInfoBtn = document.getElementById('room-info-btn');
 
-function startGameHost() {
-    if (appState.cards.length === 0) return alert("Database is empty! Load or seed deck first.");
+        const modalRoom = document.getElementById('modal-room');
+        const closeModalRoom = document.getElementById('close-modal-room');
+        const roomCodeDisplay = document.getElementById('room-code-display');
+        const peerConnectionStatus = document.getElementById('peer-connection-status');
+        const navPeerCount = document.getElementById('nav-peer-count');
 
-    appState.config.totalRounds = parseInt(document.getElementById("cfgRounds").value) || 3;
-    appState.config.turnTimerSec = parseInt(document.getElementById("cfgTimer").value) || 60;
-    appState.config.maxSkips = parseInt(document.getElementById("cfgMaxSkips").value) || 3;
-    appState.config.tabooPenalty = parseInt(document.getElementById("cfgTabooPenalty").value);
+        const modalDb = document.getElementById('modal-db');
+        const closeModalDb = document.getElementById('close-modal-db');
+        const dbCardCountVal = document.getElementById('db-card-count-val');
+        const csvFileInput = document.getElementById('csv-file-input');
+        const loadSampleDeckBtn = document.getElementById('load-sample-deck-btn');
 
-    appState.teams.forEach(t => t.score = 0);
-    appState.gameState.currentRound = 1;
-    appState.gameState.currentTeamIndex = 0;
-    appState.gameState.isActive = true;
+        const modalHelp = document.getElementById('modal-help');
+        const closeModalHelp = document.getElementById('close-modal-help');
+        const helpBodyContent = document.getElementById('help-body-content');
+        const helpTabRules = document.getElementById('help-tab-rules');
+        const helpTabApp = document.getElementById('help-tab-app');
+        const helpTabSync = document.getElementById('help-tab-sync');
+        const helpTabFaq = document.getElementById('help-tab-faq');
 
-    document.getElementById("penaltyBtnLabel").innerText = appState.config.tabooPenalty;
-    document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
+        // Game Play Elements
+        const gameRoundIndicator = document.getElementById('game-round-indicator');
+        const activeTeamName = document.getElementById('active-team-name');
+        const timerDisplay = document.getElementById('timer-display');
+        const cardTargetWord = document.getElementById('card-target-word');
+        const cardForbiddenList = document.getElementById('card-forbidden-list');
+        const skipsLeftVal = document.getElementById('skips-left-val');
+        const cardIdVal = document.getElementById('card-id-val');
+        const hostControlsBar = document.getElementById('host-controls-bar');
+        const joinerWaitingNotice = document.getElementById('joiner-waiting-notice');
 
-    document.getElementById("setupView").classList.add("hidden");
-    document.getElementById("gameView").classList.remove("hidden");
+        const btnTaboo = document.getElementById('btn-taboo');
+        const btnSkip = document.getElementById('btn-skip');
+        const btnCorrect = document.getElementById('btn-correct');
 
-    resetDeckIndices();
-    startTurn();
-}
+        const finalScoresList = document.getElementById('final-scores-list');
+        const winnerAnnouncement = document.getElementById('winner-announcement');
+        const nextTurnBtn = document.getElementById('next-turn-btn');
 
-function startTurn() {
-    appState.gameState.skipsRemaining = appState.config.maxSkips;
-    appState.gameState.timerSeconds = appState.config.turnTimerSec;
-    appState.gameState.isPaused = false;
+        // --- Initialization ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            await db.init();
+            const count = await db.count();
+            if (count === 0) {
+                // Seed sample deck
+                for (let card of sampleCards) {
+                    await db.addCard({
+                        target: card[0],
+                        forbidden: [card[1], card[2], card[3], card[4], card[5]]
+                    });
+                }
+            }
+            updateDbCountDisplay();
+            renderTeamsSetup();
+            initPeer();
+        });
 
-    updateTurnHeader();
-    renderScoreboard();
-    drawNextCard();
-    startTimer();
-    broadcastState();
-}
-
-function drawNextCard() {
-    if (appState.unplayedIndices.length === 0) resetDeckIndices();
-    const idx = appState.unplayedIndices.pop();
-    appState.currentCard = appState.cards[idx];
-
-    document.getElementById("cardTargetWord").innerText = appState.currentCard.target;
-    const list = document.getElementById("forbiddenList");
-    list.innerHTML = "";
-    appState.currentCard.forbidden.forEach(word => {
-        const item = document.createElement("div");
-        item.className = "forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase tracking-wider";
-        item.innerText = word;
-        list.appendChild(item);
-    });
-
-    broadcastState();
-}
-
-function updateTurnHeader() {
-    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
-    document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn`;
-    document.getElementById("skipsLeftDisplay").innerText = appState.gameState.skipsRemaining;
-    document.getElementById("activeClueGiver").innerText = currentTeam.name;
-
-    const skipBtn = document.getElementById("skipBtn");
-    if (appState.gameState.skipsRemaining <= 0) {
-        skipBtn.classList.add("opacity-50", "pointer-events-none");
-    } else {
-        skipBtn.classList.remove("opacity-50", "pointer-events-none");
-    }
-}
-
-function renderScoreboard() {
-    const bar = document.getElementById("scoreboardBar");
-    bar.innerHTML = "";
-    appState.teams.forEach((t, idx) => {
-        const isCurrent = idx === appState.gameState.currentTeamIndex;
-        const div = document.createElement("div");
-        div.className = `p-2 rounded-xl flex justify-between items-center ${isCurrent ? 'bg-indigo-600/30 border border-indigo-500' : 'bg-slate-950 border border-slate-800'}`;
-        div.innerHTML = `
-            <span class="text-xs font-bold ${isCurrent ? 'text-indigo-300' : 'text-slate-400'} truncate">${t.name}</span>
-            <span class="text-xs font-black text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${t.score}</span>
-        `;
-        bar.appendChild(div);
-    });
-}
-
-function handleCardAction(action) {
-    if (!appState.gameState.isActive || appState.gameState.isPaused) return;
-    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-
-    if (action === 'correct') {
-        currentTeam.score += appState.config.correctPoint;
-        drawNextCard();
-    } else if (action === 'taboo') {
-        currentTeam.score += appState.config.tabooPenalty;
-        drawNextCard();
-    } else if (action === 'skip' && appState.gameState.skipsRemaining > 0) {
-        appState.gameState.skipsRemaining--;
-        updateTurnHeader();
-        drawNextCard();
-    }
-    renderScoreboard();
-}
-
-function startTimer() {
-    clearInterval(appState.gameState.timerInterval);
-    document.getElementById("timerDisplay").innerText = appState.gameState.timerSeconds;
-
-    appState.gameState.timerInterval = setInterval(() => {
-        if (appState.gameState.isPaused) return;
-        appState.gameState.timerSeconds--;
-        document.getElementById("timerDisplay").innerText = appState.gameState.timerSeconds;
-        broadcastState();
-
-        if (appState.gameState.timerSeconds <= 0) {
-            clearInterval(appState.gameState.timerInterval);
-            endTurn();
+        async function updateDbCountDisplay() {
+            const count = await db.count();
+            dbCardCountVal.textContent = count.toLocaleString();
         }
-    }, 1000);
-}
 
-function pauseResumeGame() {
-    appState.gameState.isPaused = !appState.gameState.isPaused;
-    document.getElementById("pauseBtn").innerHTML = appState.gameState.isPaused ? 
-        '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
-}
+        // --- Role Switching ---
+        roleHostTab.addEventListener('click', () => {
+            state.role = 'host';
+            roleHostTab.className = "py-2.5 rounded-lg font-bold text-sm bg-accent text-white shadow-lg transition";
+            rolePlayerTab.className = "py-2.5 rounded-lg font-bold text-sm text-gray-400 hover:text-white transition";
+            hostConfigPanel.classList.remove('hidden');
+            joinConfigPanel.classList.add('hidden');
+            roleBadge.textContent = "HOST MODE";
+        });
 
-function endTurnEarly() {
-    clearInterval(appState.gameState.timerInterval);
-    endTurn();
-}
+        rolePlayerTab.addEventListener('click', () => {
+            state.role = 'player';
+            rolePlayerTab.className = "py-2.5 rounded-lg font-bold text-sm bg-accent text-white shadow-lg transition";
+            roleHostTab.className = "py-2.5 rounded-lg font-bold text-sm text-gray-400 hover:text-white transition";
+            joinConfigPanel.classList.remove('hidden');
+            hostConfigPanel.classList.add('hidden');
+            roleBadge.textContent = "PLAYER MODE";
+            hostControlsBar.classList.add('hidden');
+            joinerWaitingNotice.classList.remove('hidden');
+        });
 
-function endTurn() {
-    appState.gameState.currentTeamIndex++;
-    if (appState.gameState.currentTeamIndex >= appState.teams.length) {
-        appState.gameState.currentTeamIndex = 0;
-        appState.gameState.currentRound++;
-    }
+        // --- Teams Renderer ---
+        function renderTeamsSetup() {
+            teamsContainer.innerHTML = '';
+            state.teams.forEach((team, idx) => {
+                const div = document.createElement('div');
+                div.className = "bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2";
+                div.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-gray-400 uppercase">Team ${idx + 1}</span>
+                        ${state.teams.length > 2 ? `<button onclick="removeTeam(${idx})" class="text-red-400 text-xs hover:underline">Remove</button>` : ''}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" value="${team.name}" onchange="updateTeamName(${idx}, this.value)" placeholder="Team Name" class="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-accent">
+                        <input type="text" value="${team.members}" onchange="updateTeamMembers(${idx}, this.value)" placeholder="Members (comma separated)" class="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-accent">
+                    </div>
+                `;
+                teamsContainer.appendChild(div);
+            });
+            document.getElementById('teams-header-label').querySelector('span').textContent = `Teams Setup (${state.teams.length})`;
+        }
 
-    if (appState.gameState.currentRound > appState.config.totalRounds) {
-        showGameOver();
-    } else {
-        startTurn();
-    }
-}
+        window.updateTeamName = (idx, val) => { state.teams[idx].name = val; };
+        window.updateTeamMembers = (idx, val) => { state.teams[idx].members = val; };
+        window.removeTeam = (idx) => {
+            state.teams.splice(idx, 1);
+            renderTeamsSetup();
+        };
 
-function showGameOver() {
-    appState.gameState.isActive = false;
-    document.getElementById("gameView").classList.add("hidden");
-    document.getElementById("gameOverView").classList.remove("hidden");
+        addTeamBtn.addEventListener('click', () => {
+            state.teams.push({ name: `Team ${String.fromCharCode(65 + state.teams.length)}`, members: "Player 1, Player 2", score: 0 });
+            renderTeamsSetup();
+        });
 
-    const sorted = [...appState.teams].sort((a, b) => b.score - a.score);
-    document.getElementById("winnerName").innerText = sorted[0].name;
+        // --- PeerJS Setup ---
+        function initPeer() {
+            // Generate random 4-digit code
+            const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            state.roomCode = randomCode;
+            roomCodeDisplay.textContent = randomCode;
 
-    const summary = document.getElementById("finalScoreboard");
-    summary.innerHTML = "";
-    sorted.forEach((t, idx) => {
-        const item = document.createElement("div");
-        item.className = "flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm";
-        item.innerHTML = `
-            <div class="flex items-center gap-2">
-                <span class="font-bold text-xs ${idx === 0 ? 'text-amber-400' : 'text-slate-400'}">#${idx + 1}</span>
-                <span class="font-bold text-white">${t.name}</span>
-            </div>
-            <span class="font-black text-indigo-400">${t.score} PTS</span>
-        `;
-        summary.appendChild(item);
-    });
+            // Initialize Peer with prefix
+            state.peer = new Peer('taboo-' + randomCode);
 
-    broadcastState();
-}
+            state.peer.on('open', (id) => {
+                console.log('Peer connected with ID:', id);
+            });
 
-function resetToSetup() {
-    document.getElementById("gameOverView").classList.add("hidden");
-    document.getElementById("setupView").classList.remove("hidden");
-}
+            state.peer.on('connection', (conn) => {
+                state.connections.push(conn);
+                navPeerCount.textContent = state.connections.length;
+                peerConnectionStatus.textContent = `Connected with ${state.connections.length} player device(s)!`;
 
-/* ----------------------------------------------------
-   3. ZERO-CONFIG PEERJS MULTIPLAYER SYNC
-   ---------------------------------------------------- */
-function generate4DigitCode() {
-    return Math.floor(1000 + Math.random() * 9000).toString();
-}
+                conn.on('data', (data) => {
+                    // Handle incoming data if needed
+                });
 
-function initPeerHost() {
-    appState.roomCode = generate4DigitCode();
-    const peerId = "taboo-room-" + appState.roomCode;
-    
-    appState.peer = new Peer(peerId);
-    
-    appState.peer.on('open', (id) => {
-        document.getElementById("displayRoomCode").innerText = appState.roomCode;
-        document.getElementById("roomCodeBadge").innerText = `ROOM: ${appState.roomCode}`;
-        document.getElementById("roomCodeBadge").classList.remove("hidden");
-    });
+                conn.on('close', () => {
+                    state.connections = state.connections.filter(c => c !== conn);
+                    navPeerCount.textContent = state.connections.length;
+                });
+            });
 
-    appState.peer.on('connection', (conn) => {
-        appState.peerConnections.push(conn);
-        updatePeerCountUI();
+            state.peer.on('error', (err) => {
+                console.error(err);
+            });
+        }
 
-        conn.on('open', () => {
+        function broadcastState() {
+            if (state.role !== 'host') return;
+            const payload = {
+                type: 'STATE_UPDATE',
+                state: {
+                    currentRound: state.currentRound,
+                    totalRounds: state.totalRounds,
+                    currentTeamIndex: state.currentTeamIndex,
+                    teams: state.teams,
+                    timeRemaining: state.timeRemaining,
+                    gameActive: state.gameActive,
+                    skipsLeft: state.skipsLeft,
+                    currentCard: state.deck[state.currentCardIndex] || null
+                }
+            };
+            state.connections.forEach(conn => conn.send(payload));
+        }
+
+        showRoomCodeBtn.addEventListener('click', () => modalRoom.classList.remove('hidden'));
+        closeModalRoom.addEventListener('click', () => modalRoom.classList.add('hidden'));
+
+        joinRoomBtn.addEventListener('click', () => {
+            const code = inputRoomCode.value.trim();
+            if (code.length !== 4) {
+                alert('Please enter a valid 4-digit room code.');
+                return;
+            }
+            const clientPeer = new Peer();
+            clientPeer.on('open', () => {
+                const conn = clientPeer.connect('taboo-' + code);
+                conn.on('open', () => {
+                    state.hostConn = conn;
+                    alert('Successfully connected to host room!');
+                    setupView.classList.add('hidden');
+                    gameView.classList.remove('hidden');
+                    gameView.classList.add('flex');
+                });
+                conn.on('data', (data) => {
+                    if (data.type === 'STATE_UPDATE') {
+                        applySyncedState(data.state);
+                    }
+                });
+                conn.on('error', () => {
+                    alert('Failed to connect to host room. Check code.');
+                });
+            });
+        });
+
+        function applySyncedState(s) {
+            gameRoundIndicator.textContent = `Round ${s.currentRound} of ${s.totalRounds}`;
+            activeTeamName.textContent = s.teams[s.currentTeamIndex].name;
+            timerDisplay.textContent = s.timeRemaining;
+            skipsLeftVal.textContent = s.skipsLeft;
+            if (s.currentCard) {
+                cardTargetWord.textContent = s.currentCard.target;
+                cardIdVal.textContent = `#${s.currentCard.id || 'card'}`;
+                cardForbiddenList.innerHTML = s.currentCard.forbidden.map(f => `<li class="bg-red-500/10 text-red-300 py-1 rounded-lg">${f}</li>`).join('');
+            }
+        }
+
+        // --- Database & CSV Modals ---
+        dbStatusBtn.addEventListener('click', () => {
+            updateDbCountDisplay();
+            modalDb.classList.remove('hidden');
+        });
+        closeModalDb.addEventListener('click', () => modalDb.classList.add('hidden'));
+
+        loadSampleDeckBtn.addEventListener('click', async () => {
+            for (let card of sampleCards) {
+                await db.addCard({
+                    target: card[0],
+                    forbidden: [card[1], card[2], card[3], card[4], card[5]]
+                });
+            }
+            updateDbCountDisplay();
+            alert('Loaded sample deck successfully!');
+            modalDb.classList.add('hidden');
+        });
+
+        csvFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const text = await file.text();
+            const lines = text.split('\n');
+            let added = 0;
+            for (let line of lines) {
+                const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                if (cols.length >= 6) {
+                    await db.addCard({
+                        target: cols[0],
+                        forbidden: [cols[1], cols[2], cols[3], cols[4], cols[5]]
+                    });
+                    added++;
+                }
+            }
+            updateDbCountDisplay();
+            alert(`Successfully imported ${added} cards into local IndexedDB!`);
+            modalDb.classList.add('hidden');
+        });
+
+        // --- Help Modal Logic ---
+        helpBtn.addEventListener('click', () => modalHelp.classList.remove('hidden'));
+        closeModalHelp.addEventListener('click', () => modalHelp.classList.add('hidden'));
+
+        const helpContent = {
+            rules: `
+                <h4 class="font-bold text-white uppercase text-sm mb-1">How to Play Taboo</h4>
+                <p>Taboo is a party word-guessing game where teams compete to guess as many target words as possible before the timer runs out.</p>
+                <ul class="list-disc pl-4 space-y-1 mt-2">
+                    <li><strong>Clue Giver:</strong> One player per turn views the target word and 5 forbidden words. They must get their team to guess the target word using verbal clues without saying any of the forbidden words.</li>
+                    <li><strong>Forbidden Rule:</strong> The clue giver cannot say parts of the target word, use gestures, sound effects, or rhyme.</li>
+                    <li><strong>Taboo Violation:</strong> If the clue giver says a forbidden word, tap the <strong>Taboo</strong> button to deduct points.</li>
+                    <li><strong>Skips:</strong> Teams are given a limited number of skips per turn if a word proves too difficult.</li>
+                </ul>
+            `,
+            app: `
+                <h4 class="font-bold text-white uppercase text-sm mb-1">How to Use the App</h4>
+                <p>Designed for offline and mobile play with zero server dependency.</p>
+                <ul class="list-disc pl-4 space-y-1 mt-2">
+                    <li><strong>Game Parameters:</strong> Configure total rounds, turn countdown timer duration, skip limits, and taboo point penalties on the host setup screen.</li>
+                    <li><strong>Teams:</strong> Add 2 or more competing teams, customize team names, and assign player lists.</li>
+                    <li><strong>Massive Deck Support:</strong> Use the Database button in the top bar to import CSV files containing hundreds of thousands of cards. Stored securely via local IndexedDB.</li>
+                </ul>
+            `,
+            sync: `
+                <h4 class="font-bold text-white uppercase text-sm mb-1">Connecting Multiple Phones</h4>
+                <p>Play with everyone holding their own device over local Wi-Fi or mobile data.</p>
+                <ol class="list-decimal pl-4 space-y-1 mt-2">
+                    <li><strong>Host Setup:</strong> The host sets up parameters and taps <em>"Get Room Code"</em> to view the 4-digit room PIN.</li>
+                    <li><strong>Player Join:</strong> Other players open your GitHub link, toggle role to <strong>Player</strong>, enter the 4-digit code, and tap <strong>Connect</strong>.</li>
+                    <li><strong>Live Sync:</strong> Cards, timers, and scores sync automatically in real-time across all connected devices via WebRTC.</li>
+                </ol>
+            `,
+            faq: `
+                <h4 class="font-bold text-white uppercase text-sm mb-1">Frequently Asked Questions</h4>
+                <ul class="space-y-2">
+                    <li><strong>Does this work offline?</strong> Yes! Once loaded via GitHub Pages, all 250,000+ cards are saved directly to your phone's local storage database.</li>
+                    <li><strong>Can I use custom word lists?</strong> Yes, format a CSV file with columns: Target, Forbidden1, Forbidden2, Forbidden3, Forbidden4, Forbidden5 and upload it via the Database modal.</li>
+                </ul>
+            `
+        };
+
+        function setHelpTab(tabKey, btnElement) {
+            helpBodyContent.innerHTML = helpContent[tabKey];
+            [helpTabRules, helpTabApp, helpTabSync, helpTabFaq].forEach(b => {
+                b.className = "py-2 rounded-lg text-gray-400 hover:text-white transition";
+            });
+            btnElement.className = "py-2 rounded-lg bg-accent text-white transition";
+        }
+
+        helpTabRules.addEventListener('click', () => setHelpTab('rules', helpTabRules));
+        helpTabApp.addEventListener('click', () => setHelpTab('app', helpTabApp));
+        helpTabSync.addEventListener('click', () => setHelpTab('sync', helpTabSync));
+        helpTabFaq.addEventListener('click', () => setHelpTab('faq', helpTabFaq));
+
+        // Initialize default help tab
+        setHelpTab('rules', helpTabRules);
+
+        // --- Game Engine Execution ---
+        startGameBtn.addEventListener('click', async () => {
+            state.totalRounds = parseInt(document.getElementById('input-rounds').value) || 3;
+            state.turnTime = parseInt(document.getElementById('input-time').value) || 60;
+            state.skipsLimit = parseInt(document.getElementById('input-skips').value) || 3;
+            state.tabooPenalty = parseInt(document.getElementById('input-penalty').value) || -1;
+
+            // Fetch deck from IndexedDB
+            state.deck = await db.getRandomCards(200);
+            if (state.deck.length === 0) {
+                alert('No cards found in database! Please load sample deck or import CSV.');
+                return;
+            }
+
+            state.currentRound = 1;
+            state.currentTeamIndex = 0;
+            state.currentCardIndex = 0;
+
+            setupView.classList.add('hidden');
+            gameView.classList.remove('hidden');
+            gameView.classList.add('flex');
+
+            startTurn();
+        });
+
+        function startTurn() {
+            state.skipsLeft = state.skipsLimit;
+            state.timeRemaining = state.turnTime;
+            skipsLeftVal.textContent = state.skipsLeft;
+            timerDisplay.textContent = state.timeRemaining;
+
+            gameRoundIndicator.textContent = `Round ${state.currentRound} of ${state.totalRounds}`;
+            activeTeamName.textContent = state.teams[state.currentTeamIndex].name;
+
+            loadCurrentCard();
+
+            // Start timer
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                state.timeRemaining--;
+                timerDisplay.textContent = state.timeRemaining;
+                broadcastState();
+                if (state.timeRemaining <= 0) {
+                    clearInterval(state.timerInterval);
+                    endTurn();
+                }
+            }, 1000);
+
+            broadcastState();
+        }
+
+        function loadCurrentCard() {
+            if (state.currentCardIndex >= state.deck.length) {
+                state.currentCardIndex = 0; // Loop deck if exhausted
+            }
+            const card = state.deck[state.currentCardIndex];
+            cardTargetWord.textContent = card.target;
+            cardIdVal.textContent = `#${card.id || state.currentCardIndex}`;
+            cardForbiddenList.innerHTML = card.forbidden.map(f => `<li class="bg-red-500/10 text-red-300 py-1 rounded-lg">${f}</li>`).join('');
+        }
+
+        btnCorrect.addEventListener('click', () => {
+            state.teams[state.currentTeamIndex].score += 1;
+            state.currentCardIndex++;
+            loadCurrentCard();
             broadcastState();
         });
 
-        conn.on('close', () => {
-            appState.peerConnections = appState.peerConnections.filter(c => c !== conn);
-            updatePeerCountUI();
+        btnTaboo.addEventListener('click', () => {
+            state.teams[state.currentTeamIndex].score += state.tabooPenalty;
+            state.currentCardIndex++;
+            loadCurrentCard();
+            broadcastState();
         });
-    });
 
-    appState.peer.on('error', (err) => {
-        // If room ID collision occurs, regenerate ID
-        if (err.type === 'unavailable-id') {
-            initPeerHost();
+        btnSkip.addEventListener('click', () => {
+            if (state.skipsLeft > 0) {
+                state.skipsLeft--;
+                skipsLeftVal.textContent = state.skipsLeft;
+                state.currentCardIndex++;
+                loadCurrentCard();
+                broadcastState();
+            } else {
+                alert('No skips remaining for this turn!');
+            }
+        });
+
+        function endTurn() {
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            
+            // Move to next team or round
+            state.currentTeamIndex++;
+            if (state.currentTeamIndex >= state.teams.length) {
+                state.currentTeamIndex = 0;
+                state.currentRound++;
+            }
+
+            if (state.currentRound > state.totalRounds) {
+                showScoreboard(true);
+            } else {
+                showScoreboard(false);
+            }
         }
-    });
-}
 
-function joinRoomAsPlayer() {
-    const code = document.getElementById("joinRoomCodeInput").value.trim();
-    if (code.length !== 4) return alert("Enter a valid 4-digit room code.");
+        function showScoreboard(isGameOver) {
+            gameView.classList.add('hidden');
+            gameView.classList.remove('flex');
+            scoreboardView.classList.remove('hidden');
 
-    const statusText = document.getElementById("joinStatusText");
-    statusText.innerText = "Connecting to host...";
+            if (isGameOver) {
+                winnerAnnouncement.textContent = "GAME OVER - FINAL SCORES";
+                nextTurnBtn.textContent = "Restart Game Setup";
+                nextTurnBtn.onclick = () => location.reload();
+            } else {
+                winnerAnnouncement.textContent = `END OF TURN - ROUND ${state.currentRound - 1}`;
+                nextTurnBtn.textContent = `Start Turn: ${state.teams[state.currentTeamIndex].name}`;
+                nextTurnBtn.onclick = () => {
+                    scoreboardView.classList.add('hidden');
+                    gameView.classList.remove('hidden');
+                    gameView.classList.add('flex');
+                    startTurn();
+                };
+            }
 
-    if (appState.peer) appState.peer.destroy();
-    
-    appState.peer = new Peer();
-    appState.peer.on('open', () => {
-        const hostPeerId = "taboo-room-" + code;
-        const conn = appState.peer.connect(hostPeerId);
-
-        conn.on('open', () => {
-            statusText.innerText = "Connected!";
-            closeSyncModal();
-            setRole('player');
-        });
-
-        conn.on('data', (data) => {
-            receiveSyncedGameState(data);
-        });
-
-        conn.on('error', () => {
-            statusText.innerText = "Failed to connect to room code.";
-        });
-    });
-}
-
-function updatePeerCountUI() {
-    const count = appState.peerConnections.length;
-    document.getElementById("connectedPeerCount").innerText = count;
-    document.getElementById("modalConnectedCount").innerText = count;
-}
-
-function broadcastState() {
-    if (appState.role !== 'host') return;
-    const data = {
-        card: appState.currentCard,
-        teams: appState.teams,
-        currentTeamIndex: appState.gameState.currentTeamIndex,
-        currentRound: appState.gameState.currentRound,
-        timerSeconds: appState.gameState.timerSeconds,
-        isActive: appState.gameState.isActive
-    };
-    appState.peerConnections.forEach(conn => {
-        if (conn.open) conn.send(data);
-    });
-}
-
-function receiveSyncedGameState(data) {
-    if (!data) return;
-    
-    if (data.card) {
-        document.getElementById("playerTargetWord").innerText = data.card.target;
-        const list = document.getElementById("playerForbiddenList");
-        list.innerHTML = "";
-        data.card.forbidden.forEach(word => {
-            const div = document.createElement("div");
-            div.className = "forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase tracking-wider";
-            div.innerText = word;
-            list.appendChild(div);
-        });
-    }
-
-    if (data.teams && data.teams[data.currentTeamIndex]) {
-        document.getElementById("playerViewTeamTurn").innerText = `${data.teams[data.currentTeamIndex].name}'s Turn`;
-    }
-
-    document.getElementById("playerTimerDisplay").innerText = data.timerSeconds || 60;
-    document.getElementById("playerRoundDisplay").innerText = data.currentRound || 1;
-
-    const board = document.getElementById("playerScoreboard");
-    if (board && data.teams) {
-        board.innerHTML = "";
-        data.teams.forEach(t => {
-            const el = document.createElement("div");
-            el.className = "bg-slate-950 p-2 rounded-lg border border-slate-800 text-xs flex justify-between";
-            el.innerHTML = `<span class="text-slate-300 font-bold">${t.name}</span> <span class="text-indigo-400 font-black">${t.score}</span>`;
-            board.appendChild(el);
-        });
-    }
-}
-
-function setRole(role) {
-    appState.role = role;
-    const hostBtn = document.getElementById("modeHostBtn");
-    const playerBtn = document.getElementById("modePlayerBtn");
-    const roleBadge = document.getElementById("roleBadge");
-
-    if (role === 'host') {
-        hostBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow";
-        playerBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
-        roleBadge.innerText = "Host Mode";
-        document.getElementById("hostSyncPanel").classList.remove("hidden");
-        document.getElementById("playerSyncPanel").classList.add("hidden");
-        document.getElementById("setupView").classList.remove("hidden");
-        document.getElementById("playerView").classList.add("hidden");
-    } else {
-        playerBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow";
-        hostBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
-        roleBadge.innerText = "Player Display";
-        document.getElementById("playerSyncPanel").classList.remove("hidden");
-        document.getElementById("hostSyncPanel").classList.add("hidden");
-        document.getElementById("setupView").classList.add("hidden");
-        document.getElementById("gameView").classList.add("hidden");
-        document.getElementById("playerView").classList.remove("hidden");
-    }
-}
-
-/* Modal Helpers */
-function openDeckModal() { document.getElementById("deckModal").classList.remove("hidden"); }
-function closeDeckModal() { document.getElementById("deckModal").classList.add("hidden"); }
-function openSyncModal() { document.getElementById("syncModal").classList.remove("hidden"); }
-function closeSyncModal() { document.getElementById("syncModal").classList.add("hidden"); }
-
-/* Help Modal Helpers */
-function openHelpModal() { document.getElementById("helpModal").classList.remove("hidden"); }
-function closeHelpModal() { document.getElementById("helpModal").classList.add("hidden"); }
-
-function switchHelpTab(tab) {
-    const tabs = ['rules', 'usage', 'sync', 'faq'];
-    tabs.forEach(t => {
-        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        const content = document.getElementById(`helpContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        if (t === tab) {
-            btn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center font-bold";
-            content.classList.remove("hidden");
-        } else {
-            btn.className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white text-center font-bold";
-            content.classList.add("hidden");
+            finalScoresList.innerHTML = '';
+            // Sort teams by score
+            const sortedTeams = [...state.teams].sort((a, b) => b.score - a.score);
+            sortedTeams.forEach((t, idx) => {
+                const div = document.createElement('div');
+                div.className = "bg-cardBg border border-gray-800 rounded-2xl p-4 flex items-center justify-between shadow-xl";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="font-mono font-black text-lg text-accent">#${idx + 1}</span>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                            <span class="text-xs text-gray-400">${t.members}</span>
+                        </div>
+                    </div>
+                    <span class="font-black text-2xl text-white font-mono">${t.score} pts</span>
+                `;
+                finalScoresList.appendChild(div);
+            });
+            broadcastState();
         }
-    });
-}
-</script>
+
+        configBtn.addEventListener('click', () => {
+            if (confirm('Return to configuration setup? Current game progress will reset.')) {
+                location.reload();
+            }
+        });
+    </script>
 </body>
 </html>
