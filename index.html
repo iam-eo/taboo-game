@@ -154,6 +154,9 @@
             </div>
 
             <div class="pt-2 space-y-2">
+                <button id="resumeGameBtn" onclick="confirmResumeGame()" class="hidden w-full py-3 bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-500/40 font-bold text-xs text-emerald-300 rounded-xl flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left"></i> RESUME LAST GAME
+                </button>
                 <button onclick="openSyncModal()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs text-indigo-300 rounded-xl flex items-center justify-center gap-2">
                     <i class="fa-solid fa-qrcode text-indigo-400"></i> Get Room Code for Player Devices
                 </button>
@@ -232,9 +235,12 @@
                 </button>
             </div>
 
-            <div class="flex items-center justify-between">
-                <button onclick="pauseResumeGame()" id="pauseBtn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
+            <div class="flex items-center gap-2">
+                <button onclick="pauseResumeGame()" id="pauseBtn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
                     <i class="fa-solid fa-pause mr-1"></i> PAUSE
+                </button>
+                <button onclick="confirmEndGame()" class="flex-1 py-2.5 bg-rose-600/30 hover:bg-rose-600/40 text-rose-300 rounded-xl text-xs font-bold border border-rose-500/40">
+                    <i class="fa-solid fa-power-off mr-1"></i> END GAME
                 </button>
             </div>
         </section>
@@ -323,7 +329,7 @@
                 <!-- Hosted Decks Selector Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
-                                        <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
                         <option value="taboo_cards.json">Default Deck</option>
                         <option value="decks/deck 1.json">Deck 1</option>
                         <option value="decks/deck 2.json">Deck 2</option>
@@ -531,6 +537,24 @@
         </div>
     </div>
 
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
+            <h3 id="confirmTitle" class="font-bold text-white text-base flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Confirm Action
+            </h3>
+            <p id="confirmMessage" class="text-xs text-slate-300 leading-relaxed"></p>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">
+                    Cancel
+                </button>
+                <button id="confirmYesBtn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- APP JAVASCRIPT ENGINE -->
@@ -571,12 +595,11 @@ const appState = {
     roomCode: ''
 };
 
-// Starter deck removed. Using hosted taboo_cards.json exclusively.
-
 window.onload = function() {
     initDatabase();
     renderTeamInputs();
     initPeerHost();
+    checkSavedGame();
 };
 
 /* ----------------------------------------------------
@@ -667,7 +690,6 @@ async function loadHostedDeck(fileName, isStartup = false) {
         if (!isStartup) {
             alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
         }
-        // Fallback to starter deck if fetch fails
         seedDefaultCards();
     }
 }
@@ -794,6 +816,7 @@ function removeTeamInput(idx) {
 
 function startGameHost() {
     if (appState.cards.length === 0) return alert("Database is empty! Load or seed deck first.");
+    localStorage.removeItem("taboo_saved_game");
 
     appState.config.totalRounds = parseInt(document.getElementById("cfgRounds").value) || 3;
     appState.config.turnTimerSec = parseInt(document.getElementById("cfgTimer").value) || 60;
@@ -815,12 +838,10 @@ function startGameHost() {
     prepTurn();
 }
 
-
 function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
     
-    // We can show a prep modal or render a prep screen view inside gameView
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
     document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn (Ready)`;
@@ -831,8 +852,6 @@ function prepTurn() {
     const list = document.getElementById("forbiddenList");
     list.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-sm">Pass phone to ${currentTeam.name}<br>Tap 'START TURN' when ready!</div>`;
 
-    // Replace action controls temporarily with a single "BEGIN TURN" button
-    // Or we can toggle visibility of controls
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3.gap-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
@@ -844,7 +863,6 @@ function prepTurn() {
 }
 
 function beginActualTurn() {
-    // Restore action buttons
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
@@ -865,7 +883,6 @@ function beginActualTurn() {
     }
     startTurn();
 }
-
 
 function startTurn() {
     appState.gameState.isActive = true;
@@ -931,6 +948,7 @@ function renderScoreboard() {
 function handleCardAction(action) {
     if (!appState.gameState.isActive || appState.gameState.isPaused) return;
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    saveGameState();
 
     if (action === 'correct') {
         currentTeam.score += appState.config.correctPoint;
@@ -969,10 +987,9 @@ function pauseResumeGame() {
         '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 }
 
-
-
 function endTurn() {
     appState.gameState.currentTeamIndex++;
+    saveGameState();
     if (appState.gameState.currentTeamIndex >= appState.teams.length) {
         appState.gameState.currentTeamIndex = 0;
         appState.gameState.currentRound++;
@@ -987,6 +1004,8 @@ function endTurn() {
 
 showGameOver = function() {
     appState.gameState.isActive = false;
+    localStorage.removeItem("taboo_saved_game");
+    checkSavedGame();
     document.getElementById("gameView").classList.add("hidden");
     document.getElementById("gameOverView").classList.remove("hidden");
 
@@ -1190,6 +1209,107 @@ function switchHelpTab(tab) {
             content.classList.add("hidden");
         }
     });
+}
+
+/* ----------------------------------------------------
+   4. GAME STATE PERSISTENCE & CONFIRMATION MODALS
+   ---------------------------------------------------- */
+function saveGameState() {
+    const gameStateData = {
+        teams: appState.teams,
+        config: appState.config,
+        gameState: {
+            currentRound: appState.gameState.currentRound,
+            currentTeamIndex: appState.gameState.currentTeamIndex,
+            skipsRemaining: appState.gameState.skipsRemaining,
+            timerSeconds: appState.gameState.timerSeconds
+        },
+        currentCard: appState.currentCard,
+        unplayedIndices: appState.unplayedIndices
+    };
+    localStorage.setItem("taboo_saved_game", JSON.stringify(gameStateData));
+}
+
+function checkSavedGame() {
+    const saved = localStorage.getItem("taboo_saved_game");
+    const resumeBtn = document.getElementById("resumeGameBtn");
+    if (saved && resumeBtn) {
+        resumeBtn.classList.remove("hidden");
+    } else if (resumeBtn) {
+        resumeBtn.classList.add("hidden");
+    }
+}
+
+function showConfirmModal(title, message, onYes) {
+    document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${title}`;
+    document.getElementById("confirmMessage").innerText = message;
+    const yesBtn = document.getElementById("confirmYesBtn");
+    const newYesBtn = yesBtn.cloneNode(true);
+    yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+    
+    newYesBtn.onclick = function() {
+        closeConfirmModal();
+        if (typeof onYes === 'function') onYes();
+    };
+    document.getElementById("confirmModal").classList.remove("hidden");
+}
+
+function closeConfirmModal() {
+    document.getElementById("confirmModal").classList.add("hidden");
+}
+
+function confirmEndGame() {
+    showConfirmModal(
+        "End Current Game?",
+        "Are you sure you want to end the current game? Your progress will be discarded.",
+        executeEndGame
+    );
+}
+
+function executeEndGame() {
+    clearInterval(appState.gameState.timerInterval);
+    appState.gameState.isActive = false;
+    localStorage.removeItem("taboo_saved_game");
+    checkSavedGame();
+    document.getElementById("gameView").classList.add("hidden");
+    document.getElementById("setupView").classList.remove("hidden");
+}
+
+function confirmResumeGame() {
+    showConfirmModal(
+        "Resume Last Game?",
+        "Do you want to continue your previous saved game?",
+        executeResumeGame
+    );
+}
+
+function executeResumeGame() {
+    const saved = localStorage.getItem("taboo_saved_game");
+    if (!saved) return alert("No saved game found.");
+
+    try {
+        const data = JSON.parse(saved);
+        appState.teams = data.teams;
+        appState.config = data.config;
+        appState.gameState.currentRound = data.gameState.currentRound;
+        appState.gameState.currentTeamIndex = data.gameState.currentTeamIndex;
+        appState.gameState.skipsRemaining = data.gameState.skipsRemaining;
+        appState.gameState.timerSeconds = data.gameState.timerSeconds;
+        appState.currentCard = data.currentCard;
+        appState.unplayedIndices = data.unplayedIndices;
+
+        document.getElementById("penaltyBtnLabel").innerText = appState.config.tabooPenalty;
+        document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
+
+        document.getElementById("setupView").classList.add("hidden");
+        document.getElementById("gameOverView").classList.add("hidden");
+        document.getElementById("gameView").classList.remove("hidden");
+
+        prepTurn();
+    } catch (err) {
+        console.error("Failed to parse saved game:", err);
+        alert("Error loading saved game data.");
+    }
 }
 </script>
 </body>
