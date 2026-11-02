@@ -424,8 +424,8 @@
             <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
                 <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center">Rules</button>
                 <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">App Controls</button>
-                <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center font-bold">Multi-Phone</button>
-                <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center font-bold">FAQ</button>
+                <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">Multi-Phone</button>
+                <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">FAQ</button>
             </div>
 
             <!-- Tab Contents Container -->
@@ -441,17 +441,18 @@
                     </div>
 
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Player Roles</h4>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Player Roles & Rotation</h4>
                         <ul class="list-disc list-inside text-[11px] space-y-1 text-slate-400">
-                            <li><strong class="text-white">Clue-Giver:</strong> Holds the phone (or views the synced display) and provides verbal clues.</li>
-                            <li><strong class="text-white">Guessers:</strong> Members of the active team who shout out answers.</li>
-                            <li><strong class="text-white">Watchdogs (Opponents):</strong> Members of the opposing team who monitor the clue-giver to ensure no Taboo words, gestures, or sound-alikes are used.</li>
+                            <li><strong class="text-white">Clue-Giver:</strong> Provides verbal clues to their team. When player names are entered (separated by commas), clue-givers automatically rotate each round!</li>
+                            <li><strong class="text-white">Guessers:</strong> Active teammates shouting out answers.</li>
+                            <li><strong class="text-white">Watchdogs:</strong> Opposing players monitoring for forbidden words or gestures.</li>
                         </ul>
                     </div>
 
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-star text-indigo-400"></i> Scoring & Controls</h4>
                         <ul class="list-disc list-inside text-[11px] space-y-1 text-slate-400">
+                            <li><strong class="text-indigo-400">Start Turn:</strong> Hand the device to the active clue-giver and tap 'START TURN' to reveal cards and start timer.</li>
                             <li><strong class="text-emerald-400">Correct (+1):</strong> Team correctly guesses the word. Advance to next card.</li>
                             <li><strong class="text-rose-400">Taboo Penalty (-1):</strong> Clue-giver says a forbidden word, derivative, or rhyming clue. Points are deducted!</li>
                             <li><strong class="text-amber-400">Skip:</strong> Pass on a difficult card. Limited by the set skip quota.</li>
@@ -470,17 +471,17 @@
                             <li>Set number of rounds (1 to 50 rounds).</li>
                             <li>Adjust turn timer (10s to 300s).</li>
                             <li>Set skip limit per turn (0 to 10 skips).</li>
-                            <li>Add unlimited teams and custom team names!</li>
+                            <li>Add unlimited teams, set team names, and input player names separated by commas for automatic turn rotation!</li>
                         </ul>
                     </div>
 
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-database text-amber-400"></i> Managing 250,000 Cards</h4>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-database text-amber-400"></i> Managing Decks & Cards</h4>
                         <p class="text-[11px] text-slate-400">
-                            Tap the <i class="fa-solid fa-database text-amber-400"></i> Database icon at the top to load or import card decks.
+                            Tap the <i class="fa-solid fa-database text-amber-400"></i> Database icon at the top to select from online deck presets (Default Deck, Deck 1–5) or import offline custom packs.
                         </p>
                         <p class="text-[11px] text-slate-400">
-                            <strong class="text-white">CSV Format:</strong> Format your text/CSV file as: <br>
+                            <strong class="text-white">CSV Format:</strong> Format custom CSV files as: <br>
                             <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1">TARGET, FORBIDDEN1, FORBIDDEN2, FORBIDDEN3, FORBIDDEN4, FORBIDDEN5</code>
                         </p>
                     </div>
