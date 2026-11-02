@@ -326,11 +326,8 @@
                 <!-- Hosted Decks Selector Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
-                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
-                        <option value="taboo_cards_fixed.json">Default Master Deck (Fixed)</option>
-                        <option value="decks/movies_and_tv.json">Movies & TV Series Pack</option>
-                        <option value="decks/pop_culture.json">Pop Culture Pack</option>
-                        <option value="decks/philippines_edition.csv">Philippines Edition (CSV)</option>
+                                        <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                        <option value="taboo_cards.json">Default Master Deck (taboo_cards.json)</option>
                     </select>
                 </div>
 
@@ -626,7 +623,7 @@ function checkAndSeedCards() {
 
 async function autoLoadFirstDeck() {
     const selectEl = document.getElementById("deckPresetSelect");
-    const firstDeck = selectEl ? selectEl.options[0].value : "taboo_cards_fixed.json";
+    const firstDeck = selectEl ? selectEl.options[0].value : "taboo_cards.json";
     await loadHostedDeck(firstDeck, true);
 }
 
