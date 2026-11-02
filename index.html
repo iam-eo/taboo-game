@@ -330,7 +330,7 @@
                 <!-- Hosted Decks Selector Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
-                                        <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
                         <option value="taboo_cards.json">Default Deck</option>
                         <option value="decks/deck 1.json">Deck 1</option>
                         <option value="decks/deck 2.json">Deck 2</option>
@@ -424,8 +424,8 @@
             <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
                 <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center">Rules</button>
                 <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">App Controls</button>
-                <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">Multi-Phone</button>
-                <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">FAQ</button>
+                <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center font-bold">Multi-Phone</button>
+                <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center font-bold">FAQ</button>
             </div>
 
             <!-- Tab Contents Container -->
@@ -596,8 +596,6 @@ const appState = {
     roomCode: ''
 };
 
-// Starter deck removed. Using hosted taboo_cards.json exclusively.
-
 window.onload = function() {
     initDatabase();
     renderTeamInputs();
@@ -693,7 +691,6 @@ async function loadHostedDeck(fileName, isStartup = false) {
         if (!isStartup) {
             alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
         }
-        // Fallback to starter deck if fetch fails
         seedDefaultCards();
     }
 }
@@ -805,7 +802,6 @@ function renderTeamInputs() {
     });
 }
 
-
 function getActiveClueGiverPlayer(team) {
     if (!team.players || !team.players.trim()) return team.name;
     const playerList = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
@@ -857,12 +853,11 @@ function startGameHost() {
     prepTurn();
 }
 
-
 function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
     
-    renderScoreboard(); // Ensure scoreboard is rendered on prep turn & resume
+    renderScoreboard();
     
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     const clueGiverPlayer = getActiveClueGiverPlayer(currentTeam);
@@ -886,15 +881,14 @@ function prepTurn() {
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3.gap-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
-            <button onclick="beginActualTurn()" class="col-span-3 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
-                <i class="fa-solid fa-play"></i> START TURN (${clueGiverPlayer})
+            <button onclick="beginActualTurn()" class="col-span-3 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition uppercase tracking-wider">
+                <i class="fa-solid fa-play"></i> START TURN
             </button>
         `;
     }
 }
 
 function beginActualTurn() {
-    // Restore action buttons
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
@@ -915,7 +909,6 @@ function beginActualTurn() {
     }
     startTurn();
 }
-
 
 function startTurn() {
     appState.gameState.isActive = true;
@@ -1019,8 +1012,6 @@ function pauseResumeGame() {
     document.getElementById("pauseBtn").innerHTML = appState.gameState.isPaused ? 
         '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 }
-
-
 
 function endTurn() {
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
@@ -1285,7 +1276,6 @@ function showConfirmModal(title, message, onYes) {
     document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${title}`;
     document.getElementById("confirmMessage").innerText = message;
     const yesBtn = document.getElementById("confirmYesBtn");
-    // Clone node to remove old event listeners
     const newYesBtn = yesBtn.cloneNode(true);
     yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
     
@@ -1353,7 +1343,6 @@ function executeResumeGame() {
         alert("Error loading saved game data.");
     }
 }
-
 </script>
 </body>
 </html>
