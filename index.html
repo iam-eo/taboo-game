@@ -330,7 +330,7 @@
                 <!-- Hosted Decks Selector Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
-                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                                        <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
                         <option value="taboo_cards.json">Default Deck</option>
                         <option value="decks/deck 1.json">Deck 1</option>
                         <option value="decks/deck 2.json">Deck 2</option>
@@ -380,9 +380,12 @@
             <!-- Host Sync Panel -->
             <div id="hostSyncPanel" class="space-y-3">
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-2">
-                    <span class="text-xs text-slate-400 font-semibold block">ROOM ACCESS CODE</span>
+                    <span class="text-xs text-slate-400 font-semibold block">ROOM ACCESS CODE & QR</span>
                     <div id="displayRoomCode" class="text-4xl font-black text-emerald-400 tracking-widest font-mono">----</div>
-                    <p class="text-[11px] text-slate-400">Share this code with players to sync their displays.</p>
+                    <p class="text-[11px] text-slate-400">Scan QR code to instantly join room!</p>
+                    <div class="bg-white p-2 rounded-xl inline-block mx-auto mt-2">
+                        <img id="roomQRCode" src="" alt="Scan to Join Room" class="w-32 h-32 mx-auto rounded">
+                    </div>
                 </div>
 
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
@@ -597,10 +600,27 @@ const appState = {
     roomCode: ''
 };
 
+// Starter deck removed. Using hosted taboo_cards.json exclusively.
+
 window.onload = function() {
     initDatabase();
     renderTeamInputs();
-    initPeerHost();
+    
+    // Check URL for ?room=XXXX auto-join
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room') || urlParams.get('join');
+    
+    if (roomParam && roomParam.length === 4) {
+        setRole('player');
+        document.getElementById("joinRoomCodeInput").value = roomParam;
+        // Small delay to ensure peer is initialized
+        setTimeout(() => {
+            joinRoomAsPlayer();
+        }, 500);
+    } else {
+        initPeerHost();
+    }
+    
     checkSavedGame();
 };
 
@@ -692,6 +712,7 @@ async function loadHostedDeck(fileName, isStartup = false) {
         if (!isStartup) {
             alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
         }
+        // Fallback to starter deck if fetch fails
         seedDefaultCards();
     }
 }
@@ -803,6 +824,7 @@ function renderTeamInputs() {
     });
 }
 
+
 function getActiveClueGiverPlayer(team) {
     if (!team.players || !team.players.trim()) return team.name;
     const playerList = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
@@ -854,11 +876,12 @@ function startGameHost() {
     prepTurn();
 }
 
+
 function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
     
-    renderScoreboard();
+    renderScoreboard(); // Ensure scoreboard is rendered on prep turn & resume
     
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     const clueGiverPlayer = getActiveClueGiverPlayer(currentTeam);
@@ -882,7 +905,7 @@ function prepTurn() {
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3.gap-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
-            <button onclick="beginActualTurn()" class="col-span-3 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition uppercase tracking-wider">
+            <button onclick="beginActualTurn()" class="col-span-3 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
                 <i class="fa-solid fa-play"></i> START TURN
             </button>
         `;
@@ -890,6 +913,7 @@ function prepTurn() {
 }
 
 function beginActualTurn() {
+    // Restore action buttons
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
@@ -910,6 +934,7 @@ function beginActualTurn() {
     }
     startTurn();
 }
+
 
 function startTurn() {
     appState.gameState.isActive = true;
@@ -1014,6 +1039,8 @@ function pauseResumeGame() {
         '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 }
 
+
+
 function endTurn() {
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     if (currentTeam) {
@@ -1083,6 +1110,13 @@ function initPeerHost() {
         document.getElementById("displayRoomCode").innerText = appState.roomCode;
         document.getElementById("roomCodeBadge").innerText = `ROOM: ${appState.roomCode}`;
         document.getElementById("roomCodeBadge").classList.remove("hidden");
+        
+        // Generate QR code pointing to app URL with ?room=code
+        const joinUrl = window.location.origin + window.location.pathname + '?room=' + appState.roomCode;
+        const qrImg = document.getElementById("roomQRCode");
+        if (qrImg) {
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=` + encodeURIComponent(joinUrl);
+        }
     });
 
     appState.peer.on('connection', (conn) => {
@@ -1277,6 +1311,7 @@ function showConfirmModal(title, message, onYes) {
     document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${title}`;
     document.getElementById("confirmMessage").innerText = message;
     const yesBtn = document.getElementById("confirmYesBtn");
+    // Clone node to remove old event listeners
     const newYesBtn = yesBtn.cloneNode(true);
     yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
     
@@ -1344,6 +1379,7 @@ function executeResumeGame() {
         alert("Error loading saved game data.");
     }
 }
+
 </script>
 </body>
 </html>
