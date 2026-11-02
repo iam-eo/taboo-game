@@ -232,12 +232,9 @@
                 </button>
             </div>
 
-            <div class="flex items-center justify-between gap-2">
-                <button onclick="pauseResumeGame()" id="pauseBtn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
+            <div class="flex items-center justify-between">
+                <button onclick="pauseResumeGame()" id="pauseBtn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
                     <i class="fa-solid fa-pause mr-1"></i> PAUSE
-                </button>
-                <button onclick="endTurnEarly()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
-                    <i class="fa-solid fa-flag-checkered mr-1"></i> END TURN
                 </button>
             </div>
         </section>
@@ -328,6 +325,11 @@
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
                                         <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
                         <option value="taboo_cards.json">Default Master Deck (taboo_cards.json)</option>
+                        <option value="decks/taboo_cards_fixed.json">Fixed Deck 1 (decks/taboo_cards_fixed.json)</option>
+                        <option value="decks/taboo_cards_fixed (1).json">Fixed Deck 2 (decks/taboo_cards_fixed (1).json)</option>
+                        <option value="decks/taboo_cards_fixed (2).json">Fixed Deck 3 (decks/taboo_cards_fixed (2).json)</option>
+                        <option value="decks/taboo_cards_fixed (3).json">Fixed Deck 4 (decks/taboo_cards_fixed (3).json)</option>
+                        <option value="decks/taboo_cards_fixed (4).json">Fixed Deck 5 (decks/taboo_cards_fixed (4).json)</option>
                     </select>
                 </div>
 
@@ -866,6 +868,7 @@ function beginActualTurn() {
 
 
 function startTurn() {
+    appState.gameState.isActive = true;
     appState.gameState.skipsRemaining = appState.config.maxSkips;
     appState.gameState.timerSeconds = appState.config.turnTimerSec;
     appState.gameState.isPaused = false;
@@ -966,10 +969,7 @@ function pauseResumeGame() {
         '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 }
 
-function endTurnEarly() {
-    clearInterval(appState.gameState.timerInterval);
-    endTurn();
-}
+
 
 function endTurn() {
     appState.gameState.currentTeamIndex++;
