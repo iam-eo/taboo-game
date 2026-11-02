@@ -571,8 +571,8 @@ const appState = {
     unplayedIndices: [],
     currentCard: null,
     teams: [
-        { id: 1, name: 'Team Alpha', players: 'Alice, Bob', score: 0 },
-        { id: 2, name: 'Team Beta', players: 'Charlie, Dave', score: 0 }
+        { id: 1, name: 'Team Alpha', players: 'Alice, Bob', score: 0, playerIndex: 0 },
+        { id: 2, name: 'Team Beta', players: 'Charlie, Dave', score: 0, playerIndex: 0 }
     ],
     config: {
         totalRounds: 3,
@@ -801,9 +801,17 @@ function renderTeamInputs() {
     });
 }
 
+function getActiveClueGiver(team) {
+    if (!team.players || !team.players.trim()) return team.name;
+    const playerList = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    if (playerList.length === 0) return team.name;
+    const idx = (team.playerIndex || 0) % playerList.length;
+    return `${playerList[idx]} (${team.name})`;
+}
+
 function addTeamInput() {
     const id = appState.teams.length + 1;
-    appState.teams.push({ id, name: `Team ${String.fromCharCode(64 + id)}`, players: 'Player 1, Player 2', score: 0 });
+    appState.teams.push({ id, name: `Team ${String.fromCharCode(64 + id)}`, players: 'Player 1, Player 2', score: 0, playerIndex: 0 });
     renderTeamInputs();
 }
 
@@ -823,7 +831,7 @@ function startGameHost() {
     appState.config.maxSkips = parseInt(document.getElementById("cfgMaxSkips").value) || 3;
     appState.config.tabooPenalty = parseInt(document.getElementById("cfgTabooPenalty").value);
 
-    appState.teams.forEach(t => t.score = 0);
+    appState.teams.forEach(t => { t.score = 0; t.playerIndex = 0; });
     appState.gameState.currentRound = 1;
     appState.gameState.currentTeamIndex = 0;
     appState.gameState.isActive = true;
@@ -842,23 +850,25 @@ function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
     
-    renderScoreboard(); // Ensure scoreboard is rendered on prep turn & resume
+    renderScoreboard();
     
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    const clueGiverName = getActiveClueGiver(currentTeam);
+    
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
     document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn (Ready)`;
-    document.getElementById("activeClueGiver").innerText = currentTeam.name;
+    document.getElementById("activeClueGiver").innerText = clueGiverName;
     document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
     document.getElementById("cardTargetWord").innerText = "READY?";
     
     const list = document.getElementById("forbiddenList");
-    list.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-sm">Pass phone to ${currentTeam.name}<br>Tap 'START TURN' when ready!</div>`;
+    list.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-sm">Pass phone to ${clueGiverName}<br>Tap 'START TURN' when ready!</div>`;
 
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3.gap-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
             <button onclick="beginActualTurn()" class="col-span-3 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
-                <i class="fa-solid fa-play"></i> START TURN (${currentTeam.name})
+                <i class="fa-solid fa-play"></i> START TURN (${clueGiverName})
             </button>
         `;
     }
@@ -922,7 +932,7 @@ function updateTurnHeader() {
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
     document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn`;
     document.getElementById("skipsLeftDisplay").innerText = appState.gameState.skipsRemaining;
-    document.getElementById("activeClueGiver").innerText = currentTeam.name;
+    document.getElementById("activeClueGiver").innerText = getActiveClueGiver(currentTeam);
 
     const skipBtn = document.getElementById("skipBtn");
     if (appState.gameState.skipsRemaining <= 0) {
@@ -990,6 +1000,10 @@ function pauseResumeGame() {
 }
 
 function endTurn() {
+    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    if (currentTeam) {
+        currentTeam.playerIndex = (currentTeam.playerIndex || 0) + 1;
+    }
     appState.gameState.currentTeamIndex++;
     saveGameState();
     if (appState.gameState.currentTeamIndex >= appState.teams.length) {
@@ -1144,7 +1158,9 @@ function receiveSyncedGameState(data) {
     }
 
     if (data.teams && data.teams[data.currentTeamIndex]) {
-        document.getElementById("playerViewTeamTurn").innerText = `${data.teams[data.currentTeamIndex].name}'s Turn`;
+        const team = data.teams[data.currentTeamIndex];
+        const clueGiver = getActiveClueGiver(team);
+        document.getElementById("playerViewTeamTurn").innerText = `${clueGiver}'s Turn`;
     }
 
     document.getElementById("playerTimerDisplay").innerText = data.timerSeconds || 60;
@@ -1204,10 +1220,10 @@ function switchHelpTab(tab) {
         const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const content = document.getElementById(`helpContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
         if (t === tab) {
-            btn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center font-bold";
+            btn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center";
             content.classList.remove("hidden");
         } else {
-            btn.className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white text-center font-bold";
+            btn.className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white text-center";
             content.classList.add("hidden");
         }
     });
