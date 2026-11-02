@@ -323,6 +323,17 @@
                     </button>
                 </div>
 
+                <!-- Hosted Decks Selector Panel -->
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <label class="font-bold text-slate-300 block">Select Online Deck</label>
+                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                        <option value="taboo_cards_fixed.json">Default Master Deck (Fixed)</option>
+                        <option value="decks/movies_and_tv.json">Movies & TV Series Pack</option>
+                        <option value="decks/pop_culture.json">Pop Culture Pack</option>
+                        <option value="decks/philippines_edition.csv">Philippines Edition (CSV)</option>
+                    </select>
+                </div>
+
                 <!-- CSV / JSON Import Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Import Custom Cards File</label>
@@ -606,11 +617,74 @@ function checkAndSeedCards() {
     countReq.onsuccess = function() {
         document.getElementById("dbCountDisplay").innerText = countReq.result;
         if (countReq.result === 0) {
-            seedDefaultCards();
+            autoLoadFirstDeck();
         } else {
             loadCardsFromDB();
         }
     };
+}
+
+async function autoLoadFirstDeck() {
+    const selectEl = document.getElementById("deckPresetSelect");
+    const firstDeck = selectEl ? selectEl.options[0].value : "taboo_cards_fixed.json";
+    await loadHostedDeck(firstDeck, true);
+}
+
+async function loadHostedDeck(fileName, isStartup = false) {
+    const statusDisplay = document.getElementById("dbCountDisplay");
+    if (statusDisplay) statusDisplay.innerText = "Loading...";
+
+    try {
+        const response = await fetch(`./${fileName}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const contentText = await response.text();
+        let imported = [];
+
+        if (fileName.endsWith('.json')) {
+            const rawData = JSON.parse(contentText);
+            const cardArray = Array.isArray(rawData) ? rawData : (rawData.cards || []);
+            imported = cardArray.map(c => ({
+                target: (c.target || c.word || '').toUpperCase(),
+                forbidden: (c.forbidden || c.banned || []).map(w => w.toUpperCase())
+            })).filter(c => c.target && c.forbidden.length > 0);
+        } else if (fileName.endsWith('.csv')) {
+            const lines = contentText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(',').map(p => p.trim());
+                if (parts.length >= 6) {
+                    imported.push({ 
+                        target: parts[0].toUpperCase(), 
+                        forbidden: parts.slice(1, 6).map(w => w.toUpperCase()) 
+                    });
+                }
+            });
+        }
+
+        if (imported.length > 0) {
+            const tx = appState.db.transaction(["cards"], "readwrite");
+            const store = tx.objectStore("cards");
+            store.clear();
+            imported.forEach(c => store.add(c));
+            
+            tx.oncomplete = function() {
+                loadCardsFromDB();
+                if (!isStartup) {
+                    alert(`Successfully loaded ${imported.length} cards from ${fileName}!`);
+                }
+            };
+        } else {
+            if (!isStartup) alert("No valid cards found in the selected file.");
+            loadCardsFromDB();
+        }
+    } catch (err) {
+        console.error("Failed to fetch hosted deck:", err);
+        if (!isStartup) {
+            alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
+        }
+        // Fallback to starter deck if fetch fails
+        seedDefaultCards();
+    }
 }
 
 function seedDefaultCards() {
