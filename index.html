@@ -842,6 +842,8 @@ function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
     
+    renderScoreboard(); // Ensure scoreboard is rendered on prep turn & resume
+    
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
     document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn (Ready)`;
