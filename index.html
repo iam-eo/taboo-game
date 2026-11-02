@@ -214,8 +214,9 @@
                 </div>
 
                 <!-- Clue Giver / Turn Footer -->
-                <div class="text-center text-xs font-medium text-slate-400 bg-slate-950/70 py-2 rounded-xl border border-slate-800/80">
-                    Active Clue Giver: <span id="activeClueGiver" class="text-white font-bold">Team 1</span>
+                <div class="text-center text-xs font-medium text-slate-400 bg-slate-950/70 py-2.5 rounded-xl border border-slate-800/80">
+                    <div>Active Clue Giver:</div>
+                    <span id="activeClueGiver" class="text-amber-400 font-extrabold text-sm tracking-wide block mt-0.5">Team 1</span>
                 </div>
             </div>
 
@@ -329,7 +330,7 @@
                 <!-- Hosted Decks Selector Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
-                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                                        <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
                         <option value="taboo_cards.json">Default Deck</option>
                         <option value="decks/deck 1.json">Deck 1</option>
                         <option value="decks/deck 2.json">Deck 2</option>
@@ -595,6 +596,8 @@ const appState = {
     roomCode: ''
 };
 
+// Starter deck removed. Using hosted taboo_cards.json exclusively.
+
 window.onload = function() {
     initDatabase();
     renderTeamInputs();
@@ -690,6 +693,7 @@ async function loadHostedDeck(fileName, isStartup = false) {
         if (!isStartup) {
             alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
         }
+        // Fallback to starter deck if fetch fails
         seedDefaultCards();
     }
 }
@@ -801,12 +805,19 @@ function renderTeamInputs() {
     });
 }
 
-function getActiveClueGiver(team) {
+
+function getActiveClueGiverPlayer(team) {
     if (!team.players || !team.players.trim()) return team.name;
     const playerList = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
     if (playerList.length === 0) return team.name;
     const idx = (team.playerIndex || 0) % playerList.length;
-    return `${playerList[idx]} (${team.name})`;
+    return playerList[idx];
+}
+
+function getActiveClueGiverFull(team) {
+    const player = getActiveClueGiverPlayer(team);
+    if (player === team.name) return team.name;
+    return `${player} (${team.name})`;
 }
 
 function addTeamInput() {
@@ -846,35 +857,44 @@ function startGameHost() {
     prepTurn();
 }
 
+
 function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
     
-    renderScoreboard();
+    renderScoreboard(); // Ensure scoreboard is rendered on prep turn & resume
     
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    const clueGiverName = getActiveClueGiver(currentTeam);
+    const clueGiverPlayer = getActiveClueGiverPlayer(currentTeam);
+    const clueGiverFull = getActiveClueGiverFull(currentTeam);
     
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
     document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn (Ready)`;
-    document.getElementById("activeClueGiver").innerText = clueGiverName;
+    document.getElementById("activeClueGiver").innerText = clueGiverPlayer;
     document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
     document.getElementById("cardTargetWord").innerText = "READY?";
     
     const list = document.getElementById("forbiddenList");
-    list.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-sm">Pass phone to ${clueGiverName}<br>Tap 'START TURN' when ready!</div>`;
+    list.innerHTML = `
+        <div class="p-4 text-center">
+            <span class="text-slate-300 font-bold text-sm">Pass phone to</span><br>
+            <span class="text-amber-400 font-black text-base tracking-wide">${clueGiverFull}</span><br>
+            <span class="text-xs text-slate-400 font-medium mt-1 block">Tap 'START TURN' when ready!</span>
+        </div>
+    `;
 
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3.gap-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
             <button onclick="beginActualTurn()" class="col-span-3 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
-                <i class="fa-solid fa-play"></i> START TURN (${clueGiverName})
+                <i class="fa-solid fa-play"></i> START TURN (${clueGiverPlayer})
             </button>
         `;
     }
 }
 
 function beginActualTurn() {
+    // Restore action buttons
     const actionContainer = document.querySelector("#gameView .grid.grid-cols-3");
     if (actionContainer) {
         actionContainer.innerHTML = `
@@ -895,6 +915,7 @@ function beginActualTurn() {
     }
     startTurn();
 }
+
 
 function startTurn() {
     appState.gameState.isActive = true;
@@ -932,7 +953,7 @@ function updateTurnHeader() {
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
     document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn`;
     document.getElementById("skipsLeftDisplay").innerText = appState.gameState.skipsRemaining;
-    document.getElementById("activeClueGiver").innerText = getActiveClueGiver(currentTeam);
+    document.getElementById("activeClueGiver").innerText = getActiveClueGiverPlayer(currentTeam);
 
     const skipBtn = document.getElementById("skipBtn");
     if (appState.gameState.skipsRemaining <= 0) {
@@ -998,6 +1019,8 @@ function pauseResumeGame() {
     document.getElementById("pauseBtn").innerHTML = appState.gameState.isPaused ? 
         '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 }
+
+
 
 function endTurn() {
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
@@ -1159,7 +1182,7 @@ function receiveSyncedGameState(data) {
 
     if (data.teams && data.teams[data.currentTeamIndex]) {
         const team = data.teams[data.currentTeamIndex];
-        const clueGiver = getActiveClueGiver(team);
+        const clueGiver = getActiveClueGiverFull(team);
         document.getElementById("playerViewTeamTurn").innerText = `${clueGiver}'s Turn`;
     }
 
@@ -1220,10 +1243,10 @@ function switchHelpTab(tab) {
         const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const content = document.getElementById(`helpContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
         if (t === tab) {
-            btn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center";
+            btn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center font-bold";
             content.classList.remove("hidden");
         } else {
-            btn.className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white text-center";
+            btn.className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white text-center font-bold";
             content.classList.add("hidden");
         }
     });
@@ -1262,6 +1285,7 @@ function showConfirmModal(title, message, onYes) {
     document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${title}`;
     document.getElementById("confirmMessage").innerText = message;
     const yesBtn = document.getElementById("confirmYesBtn");
+    // Clone node to remove old event listeners
     const newYesBtn = yesBtn.cloneNode(true);
     yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
     
@@ -1329,6 +1353,7 @@ function executeResumeGame() {
         alert("Error loading saved game data.");
     }
 }
+
 </script>
 </body>
 </html>
