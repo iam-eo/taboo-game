@@ -928,7 +928,7 @@ function openBuilderModal() {
 
 function closeBuilderModal() {
     document.getElementById("builderModal").classList.add("hidden");
-    openDeckModal(); // Return back to database modal
+    openDeckModal();
 }
 
 function builderRenderCategories() {
@@ -983,7 +983,7 @@ async function builderFetchModels(apiKey) {
                 .filter(name => name.includes("flash"));
         }
     } catch (e) {}
-    return ["gemini-2.0-flash", "gemini-1.5-flash"];
+    return ["gemini-3.8-flash", "gemini-1.5-flash"];
 }
 
 async function builderGenerateWithAI() {
@@ -1115,7 +1115,7 @@ function builderExportAndSave() {
     
     const tx = appState.db.transaction(["cards"], "readwrite");
     const store = tx.objectStore("cards");
-    store.clear(); // Clear database and load generated cards directly
+    store.clear();
 
     builderState.cards.forEach(c => {
         store.add({
