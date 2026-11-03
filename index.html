@@ -328,7 +328,7 @@
                 <!-- Hosted Decks Selector Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
-                                        <select id="deckPresetSelect" onchange="loadHostedDeck(this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value, false)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
                         <option value="taboo_cards.json">Default Deck</option>
                         <option value="decks/deck 1.json">Deck 1</option>
                         <option value="decks/deck 2.json">Deck 2</option>
@@ -342,6 +342,19 @@
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Import Custom Cards File</label>
                     <p class="text-[11px] text-slate-400">Supports up to 250,000 cards via CSV or JSON offline.</p>
+                    
+                    <!-- Import Mode Selection Option -->
+                    <div class="flex items-center gap-4 pt-1 pb-1 text-slate-300 text-[11px]">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="importMode" value="append" checked class="text-indigo-600 focus:ring-indigo-500">
+                            <span>Append to existing</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="importMode" value="overwrite" class="text-indigo-600 focus:ring-indigo-500">
+                            <span>Load only file cards</span>
+                        </label>
+                    </div>
+
                     <input type="file" id="deckFileInput" accept=".csv,.json" class="hidden" onchange="handleFileImport(event)">
                     <button onclick="document.getElementById('deckFileInput').click()" class="w-full py-2 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 font-bold border border-indigo-500/40 rounded-lg text-xs flex items-center justify-center gap-2">
                         <i class="fa-solid fa-file-csv"></i> Import CSV / JSON
@@ -690,9 +703,16 @@ async function loadHostedDeck(fileName, isStartup = false) {
         }
 
         if (imported.length > 0) {
+            const modeEl = document.querySelector('input[name="importMode"]:checked');
+            const importMode = modeEl ? modeEl.value : 'append';
+
             const tx = appState.db.transaction(["cards"], "readwrite");
             const store = tx.objectStore("cards");
-            store.clear();
+            
+            if (importMode === 'overwrite') {
+                store.clear();
+            }
+
             imported.forEach(c => store.add(c));
             
             tx.oncomplete = function() {
@@ -741,6 +761,9 @@ function handleFileImport(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    const modeEl = document.querySelector('input[name="importMode"]:checked');
+    const importMode = modeEl ? modeEl.value : 'append';
+
     const reader = new FileReader();
     reader.onload = function(e) {
         const content = e.target.result;
@@ -766,10 +789,15 @@ function handleFileImport(event) {
             if (imported.length > 0) {
                 const tx = appState.db.transaction(["cards"], "readwrite");
                 const store = tx.objectStore("cards");
+                
+                if (importMode === 'overwrite') {
+                    store.clear();
+                }
+
                 imported.forEach(c => store.add(c));
                 tx.oncomplete = function() {
                     loadCardsFromDB();
-                    alert(`Imported ${imported.length} words to database!`);
+                    alert(`Successfully imported ${imported.length} words to database!`);
                 };
             }
         } catch (err) {
