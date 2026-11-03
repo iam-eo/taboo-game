@@ -397,12 +397,15 @@
     <!-- MODAL 1B: AI DECK BUILDER EMBEDDED MODAL -->
     <div id="builderModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-3">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-4 space-y-3 max-h-[92vh] flex flex-col">
-            <!-- Header with Back Button -->
+            <!-- Header with Back Button & Export JSON Button -->
             <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
                 <button onclick="closeBuilderModal()" class="text-indigo-400 hover:text-white font-bold text-xs flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Database
+                    <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
                 <span class="font-black text-xs text-white uppercase tracking-wider">AI Deck Creator</span>
+                <button onclick="builderExportJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-md">
+                    <i class="fa-solid fa-download"></i> Export JSON
+                </button>
             </div>
 
             <div class="space-y-3 flex-1 overflow-y-auto pr-1 text-xs">
@@ -452,9 +455,9 @@
                 </div>
             </div>
 
-            <!-- Modal Bottom Export Button -->
-            <button onclick="builderExportAndSave()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg">
-                <i class="fa-solid fa-file-arrow-down"></i> Save & Import to Database
+            <!-- Modal Bottom Import Button -->
+            <button onclick="builderExportAndSave()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-database"></i> Save & Import to Database
             </button>
         </div>
     </div>
@@ -1004,11 +1007,11 @@ async function builderGenerateWithAI() {
     statusText.innerText = "Discovering models...";
     
     let secondsElapsed = 0;
-    elapsedText.innerText = `0s`;
+    elapsedText.innerText = `Time Elapsed: 0s`;
     clearInterval(builderTimerInterval);
     builderTimerInterval = setInterval(() => {
         secondsElapsed++;
-        elapsedText.innerText = `${secondsElapsed}s`;
+        elapsedText.innerText = `Time Elapsed: ${secondsElapsed}s`;
     }, 1000);
 
     const modelsToTry = await builderFetchModels(apiKey);
@@ -1021,7 +1024,7 @@ async function builderGenerateWithAI() {
         const existingTargets = builderState.cards.map(c => c.target);
         let exclusionClause = existingTargets.length > 0 ? `\nExclude: [${existingTargets.join(",")}]` : "";
 
-        statusText.innerText = `Generating ${catName} (${generatedForCat}/50)...`;
+        statusText.innerText = `AI Generating ${catName} (50 Cards)...`;
 
         const prompt = `Category: ${catName}
 Count: ${currentBatchSize}
@@ -1083,8 +1086,27 @@ JSON format only:
     }
 
     clearInterval(builderTimerInterval);
-    progressBox.classList.add("hidden");
-    genBtn.disabled = false;
+    builderStartCooldown(genBtn, statusText, elapsedText, progressBox);
+}
+
+function builderStartCooldown(genBtn, statusText, elapsedText, progressBox) {
+    let cooldownRemaining = 15;
+    statusText.innerText = "Generation complete!";
+    elapsedText.innerText = `Cooldown: ${cooldownRemaining}s`;
+
+    clearInterval(builderCooldownInterval);
+    builderCooldownInterval = setInterval(() => {
+        cooldownRemaining--;
+        if (cooldownRemaining > 0) {
+            elapsedText.innerText = `Cooldown: ${cooldownRemaining}s`;
+            genBtn.innerText = `PLEASE WAIT (${cooldownRemaining}s)...`;
+        } else {
+            clearInterval(builderCooldownInterval);
+            progressBox.classList.add("hidden");
+            genBtn.disabled = false;
+            genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> GENERATE AI CARDS (50)`;
+        }
+    }, 1000);
 }
 
 function builderRenderGrid() {
@@ -1092,7 +1114,7 @@ function builderRenderGrid() {
     const grid = document.getElementById("builderCardsGrid");
     grid.innerHTML = "";
 
-    builderState.cards.slice(0, 50).forEach(card => {
+    builderState.cards.slice(0, 100).forEach(card => {
         const div = document.createElement("div");
         div.className = "card-grid-item";
         div.innerHTML = `
@@ -1109,6 +1131,15 @@ function builderRenderGrid() {
 }
 
 function builderClearWorkspace() { builderState.cards = []; builderRenderGrid(); }
+
+function builderExportJSON() {
+    if (builderState.cards.length === 0) return alert("Deck is empty!");
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ cards: builderState.cards }, null, 2));
+    const a = document.createElement('a');
+    a.href = dataStr;
+    a.download = "taboo_cards.json";
+    a.click();
+}
 
 function builderExportAndSave() {
     if (builderState.cards.length === 0) return alert("No generated cards to save!");
