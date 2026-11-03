@@ -53,6 +53,13 @@
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
             border-left: 4px solid #ef4444;
         }
+        .builder-card { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+        .badge-cat { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid; transition: opacity 0.2s; cursor: pointer; }
+        .badge-active { background-color: rgba(99, 102, 241, 0.2); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.5); }
+        .badge-inactive { background-color: #090d16; color: #64748b; border-color: #1e293b; }
+        .badge-disabled { opacity: 0.4; cursor: not-allowed; }
+        .card-grid-item { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+        .forbidden-pill { background-color: #090d16; color: #cbd5e1; font-size: 9px; font-weight: bold; padding: 4px; text-align: center; border-radius: 6px; border: 1px solid #1e293b; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen">
@@ -338,6 +345,15 @@
                     </select>
                 </div>
 
+                <!-- Open AI Deck Builder Button Panel -->
+                <div class="bg-slate-950 p-3 rounded-xl border border-indigo-500/40 space-y-2">
+                    <label class="font-bold text-indigo-300 block"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AI Deck Generator</label>
+                    <p class="text-[11px] text-slate-400">Create and generate custom packs using Gemini AI.</p>
+                    <button onclick="openBuilderModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-lg text-xs shadow-md transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-robot"></i> Open AI Deck Builder
+                    </button>
+                </div>
+
                 <!-- CSV / JSON Import Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Import Custom Cards File</label>
@@ -374,6 +390,71 @@
 
             <button onclick="closeDeckModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">
                 Close
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 1B: AI DECK BUILDER EMBEDDED MODAL -->
+    <div id="builderModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-4 space-y-3 max-h-[92vh] flex flex-col">
+            <!-- Header with Back Button -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <button onclick="closeBuilderModal()" class="text-indigo-400 hover:text-white font-bold text-xs flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Database
+                </button>
+                <span class="font-black text-xs text-white uppercase tracking-wider">AI Deck Creator</span>
+            </div>
+
+            <div class="space-y-3 flex-1 overflow-y-auto pr-1 text-xs">
+                <!-- API Key & Config -->
+                <div class="builder-card space-y-2">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Gemini API Key:</label>
+                        <input type="password" id="builderApiKeyInput" placeholder="Paste your API Key here..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+                        <p style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
+                            Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-indigo-400">Google AI Studio</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Category Manager -->
+                <div class="builder-card space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span style="font-weight: bold; color: #818cf8; text-transform: uppercase;">Categories (Max 1)</span>
+                        <button onclick="builderClearAllCats()" class="text-slate-400 hover:text-white">Clear</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="builderNewCatInput" placeholder="Add custom category..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+                        <button onclick="builderAddCategory()" class="bg-indigo-600 px-3 py-2 font-bold text-white rounded-xl">+ Add</button>
+                    </div>
+                    <div id="builderCategoryContainer" class="flex flex-wrap gap-1.5 pt-1"></div>
+                    
+                    <button onclick="builderGenerateWithAI()" id="builderGenBtn" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold uppercase rounded-xl shadow-lg mt-2">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate AI Cards (50)
+                    </button>
+                </div>
+
+                <!-- Timer / Progress Box -->
+                <div id="builderProgressBox" class="builder-card hidden">
+                    <div class="flex justify-between items-center font-bold text-indigo-300 text-xs">
+                        <span id="builderStatusText">Generating...</span>
+                        <span id="builderElapsedText" class="text-purple-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">0s</span>
+                    </div>
+                </div>
+
+                <!-- Deck Preview -->
+                <div>
+                    <div class="flex justify-between items-center px-1 mb-2">
+                        <span class="font-bold text-slate-400">Generated Cards: <strong id="builderTotalBadge" class="text-white">0</strong></span>
+                        <button onclick="builderClearWorkspace()" class="text-rose-400 font-bold">Clear</button>
+                    </div>
+                    <div id="builderCardsGrid" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Modal Bottom Export Button -->
+            <button onclick="builderExportAndSave()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-file-arrow-down"></i> Save & Import to Database
             </button>
         </div>
     </div>
@@ -611,11 +692,10 @@ const appState = {
     roomCode: ''
 };
 
-// Starter deck removed. Using hosted taboo_cards.json exclusively.
-
 window.onload = function() {
     initDatabase();
     renderTeamInputs();
+    builderRenderCategories();
     
     // Check URL for ?room=XXXX auto-join
     const urlParams = new URLSearchParams(window.location.search);
@@ -624,7 +704,6 @@ window.onload = function() {
     if (roomParam && roomParam.length === 4) {
         setRole('player');
         document.getElementById("joinRoomCodeInput").value = roomParam;
-        // Small delay to ensure peer is initialized
         setTimeout(() => {
             joinRoomAsPlayer();
         }, 500);
@@ -730,13 +809,7 @@ async function loadHostedDeck(fileName, isStartup = false) {
         if (!isStartup) {
             alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
         }
-        // Fallback to starter deck if fetch fails
-        seedDefaultCards();
     }
-}
-
-function seedDefaultCards() {
-    alert("Please ensure taboo_cards.json is loaded or import a custom card file.");
 }
 
 function loadCardsFromDB() {
@@ -826,7 +899,240 @@ function addCustomCard() {
 }
 
 /* ----------------------------------------------------
-   2. GAMEPLAY & HOST SETUP
+   2. EMBEDDED AI DECK BUILDER LOGIC
+   ---------------------------------------------------- */
+const builderState = {
+    categories: [
+        { name: "General", selected: true },
+        { name: "Places", selected: false },
+        { name: "Food", selected: false },
+        { name: "Pop Culture", selected: false },
+        { name: "Music", selected: false },
+        { name: "History", selected: false },
+        { name: "Science", selected: false },
+        { name: "Entertainment", selected: false },
+        { name: "Jobs & Occupation", selected: false },
+        { name: "Technology", selected: false }
+    ],
+    cards: []
+};
+
+let builderTimerInterval = null;
+let builderCooldownInterval = null;
+
+function openBuilderModal() {
+    closeDeckModal();
+    document.getElementById("builderModal").classList.remove("hidden");
+    builderRenderCategories();
+}
+
+function closeBuilderModal() {
+    document.getElementById("builderModal").classList.add("hidden");
+    openDeckModal(); // Return back to database modal
+}
+
+function builderRenderCategories() {
+    const box = document.getElementById("builderCategoryContainer");
+    if (!box) return;
+    box.innerHTML = "";
+    
+    const selectedCount = builderState.categories.filter(c => c.selected).length;
+
+    builderState.categories.forEach((cat, idx) => {
+        const tag = document.createElement("div");
+        const isDisabled = selectedCount >= 1 && !cat.selected;
+        
+        tag.className = `badge-cat ${cat.selected ? 'badge-active' : 'badge-inactive'} ${isDisabled ? 'badge-disabled' : ''}`;
+        tag.innerHTML = `
+            <span onclick="builderToggleCat(${idx})" style="cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">${cat.name}</span>
+            <button onclick="builderRemoveCat(${idx})" style="background: none; color: inherit; padding: 0; font-weight: 900;">×</button>
+        `;
+        box.appendChild(tag);
+    });
+}
+
+function builderToggleCat(i) { 
+    const selectedCount = builderState.categories.filter(c => c.selected).length;
+    if (!builderState.categories[i].selected && selectedCount >= 1) {
+        builderState.categories.forEach(c => c.selected = false);
+    }
+    builderState.categories[i].selected = !builderState.categories[i].selected; 
+    builderRenderCategories(); 
+}
+
+function builderRemoveCat(i) { builderState.categories.splice(i, 1); builderRenderCategories(); }
+function builderClearAllCats() { builderState.categories.forEach(c => c.selected = false); builderRenderCategories(); }
+
+function builderAddCategory() {
+    const val = document.getElementById("builderNewCatInput").value.trim();
+    if (val && !builderState.categories.some(c => c.name.toLowerCase() === val.toLowerCase())) {
+        builderState.categories.push({ name: val, selected: false });
+        document.getElementById("builderNewCatInput").value = "";
+        builderRenderCategories();
+    }
+}
+
+async function builderFetchModels(apiKey) {
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const data = await res.json();
+        if (data.models && Array.isArray(data.models)) {
+            return data.models
+                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"))
+                .map(m => m.name.replace("models/", ""))
+                .filter(name => name.includes("flash"));
+        }
+    } catch (e) {}
+    return ["gemini-2.0-flash", "gemini-1.5-flash"];
+}
+
+async function builderGenerateWithAI() {
+    const apiKey = document.getElementById("builderApiKeyInput").value.trim();
+    if (!apiKey) return alert("Please enter your Gemini API key.");
+
+    const selectedCats = builderState.categories.filter(c => c.selected);
+    if (selectedCats.length === 0) return alert("Select a category.");
+
+    const genBtn = document.getElementById("builderGenBtn");
+    genBtn.disabled = true;
+
+    const progressBox = document.getElementById("builderProgressBox");
+    const statusText = document.getElementById("builderStatusText");
+    const elapsedText = document.getElementById("builderElapsedText");
+
+    progressBox.classList.remove("hidden");
+    statusText.innerText = "Discovering models...";
+    
+    let secondsElapsed = 0;
+    elapsedText.innerText = `0s`;
+    clearInterval(builderTimerInterval);
+    builderTimerInterval = setInterval(() => {
+        secondsElapsed++;
+        elapsedText.innerText = `${secondsElapsed}s`;
+    }, 1000);
+
+    const modelsToTry = await builderFetchModels(apiKey);
+    const catName = selectedCats[0].name;
+    let generatedForCat = 0;
+    const totalTarget = 50;
+
+    while (generatedForCat < totalTarget) {
+        const currentBatchSize = Math.min(50, totalTarget - generatedForCat);
+        const existingTargets = builderState.cards.map(c => c.target);
+        let exclusionClause = existingTargets.length > 0 ? `\nExclude: [${existingTargets.join(",")}]` : "";
+
+        statusText.innerText = `Generating ${catName} (${generatedForCat}/50)...`;
+
+        const prompt = `Category: ${catName}
+Count: ${currentBatchSize}
+Rules: Unique real-world Taboo cards.${exclusionClause}
+JSON format only:
+{
+  "cards": [
+    {
+      "category": "${catName.toUpperCase()}",
+      "target": "WORD",
+      "forbidden": ["F1", "F2", "F3", "F4", "F5"]
+    }
+  ]
+}`;
+
+        let success = false;
+        let lastError = "";
+
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            for (const modelName of modelsToTry) {
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            generationConfig: { responseMimeType: "application/json" }
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (data.error) { lastError = data.error.message; continue; }
+                    if (!data.candidates?.[0]?.content) { lastError = "Empty response"; continue; }
+
+                    let textResponse = data.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const parsed = JSON.parse(textResponse);
+                    
+                    if (parsed.cards && Array.isArray(parsed.cards)) {
+                        const newCards = parsed.cards.filter(nc => !builderState.cards.some(ec => ec.target.toLowerCase() === nc.target.toLowerCase()));
+                        builderState.cards.unshift(...newCards);
+                        generatedForCat += newCards.length;
+                        builderRenderGrid();
+                        success = true;
+                        break;
+                    }
+                } catch (e) { lastError = e.message; }
+            }
+            if (success) break;
+            await new Promise(r => setTimeout(r, 800));
+        }
+
+        if (!success) {
+            clearInterval(builderTimerInterval);
+            alert(`Error generating cards: ${lastError}`);
+            progressBox.classList.add("hidden");
+            genBtn.disabled = false;
+            return;
+        }
+    }
+
+    clearInterval(builderTimerInterval);
+    progressBox.classList.add("hidden");
+    genBtn.disabled = false;
+}
+
+function builderRenderGrid() {
+    document.getElementById("builderTotalBadge").innerText = builderState.cards.length;
+    const grid = document.getElementById("builderCardsGrid");
+    grid.innerHTML = "";
+
+    builderState.cards.slice(0, 50).forEach(card => {
+        const div = document.createElement("div");
+        div.className = "card-grid-item";
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+                <span style="font-size: 9px; font-weight: bold; color: #818cf8; background-color: #1e1b4b; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">${card.category}</span>
+                <span style="font-size: 11px; font-weight: 900; color: white; text-transform: uppercase;">${card.target}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
+                ${card.forbidden.map(f => `<div class="forbidden-pill">${f}</div>`).join('')}
+            </div>
+        `;
+        grid.appendChild(div);
+    });
+}
+
+function builderClearWorkspace() { builderState.cards = []; builderRenderGrid(); }
+
+function builderExportAndSave() {
+    if (builderState.cards.length === 0) return alert("No generated cards to save!");
+    
+    const tx = appState.db.transaction(["cards"], "readwrite");
+    const store = tx.objectStore("cards");
+    store.clear(); // Clear database and load generated cards directly
+
+    builderState.cards.forEach(c => {
+        store.add({
+            target: c.target.toUpperCase(),
+            forbidden: c.forbidden.map(w => w.toUpperCase())
+        });
+    });
+
+    tx.oncomplete = function() {
+        loadCardsFromDB();
+        alert(`Successfully saved ${builderState.cards.length} AI generated cards to database!`);
+        closeBuilderModal();
+    };
+}
+
+/* ----------------------------------------------------
+   3. GAMEPLAY & HOST SETUP
    ---------------------------------------------------- */
 function renderTeamInputs() {
     const container = document.getElementById("teamsContainer");
@@ -849,7 +1155,6 @@ function renderTeamInputs() {
         container.appendChild(div);
     });
 }
-
 
 function getActiveClueGiverPlayer(team) {
     if (!team.players || !team.players.trim()) return team.name;
@@ -902,12 +1207,10 @@ function startGameHost() {
     prepTurn();
 }
 
-
 function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
-    
-    renderScoreboard(); // Ensure scoreboard is rendered on prep turn & resume
+    renderScoreboard();
     
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     const clueGiverPlayer = getActiveClueGiverPlayer(currentTeam);
@@ -961,7 +1264,6 @@ function beginActualTurn() {
     }
     startTurn();
 }
-
 
 function startTurn() {
     appState.gameState.isActive = true;
@@ -1066,8 +1368,6 @@ function pauseResumeGame() {
         '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 }
 
-
-
 function endTurn() {
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     if (currentTeam) {
@@ -1121,7 +1421,7 @@ function resetToSetup() {
 }
 
 /* ----------------------------------------------------
-   3. ZERO-CONFIG PEERJS MULTIPLAYER SYNC
+   4. ZERO-CONFIG PEERJS MULTIPLAYER SYNC
    ---------------------------------------------------- */
 function generate4DigitCode() {
     return Math.floor(1000 + Math.random() * 9000).toString();
@@ -1138,7 +1438,6 @@ function initPeerHost() {
         document.getElementById("roomCodeBadge").innerText = `ROOM: ${appState.roomCode}`;
         document.getElementById("roomCodeBadge").classList.remove("hidden");
         
-        // Generate QR code pointing to app URL with ?room=code
         const joinUrl = window.location.origin + window.location.pathname + '?room=' + appState.roomCode;
         const qrImg = document.getElementById("roomQRCode");
         if (qrImg) {
@@ -1150,10 +1449,7 @@ function initPeerHost() {
         appState.peerConnections.push(conn);
         updatePeerCountUI();
 
-        conn.on('open', () => {
-            broadcastState();
-        });
-
+        conn.on('open', () => { broadcastState(); });
         conn.on('close', () => {
             appState.peerConnections = appState.peerConnections.filter(c => c !== conn);
             updatePeerCountUI();
@@ -1161,9 +1457,7 @@ function initPeerHost() {
     });
 
     appState.peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-            initPeerHost();
-        }
+        if (err.type === 'unavailable-id') { initPeerHost(); }
     });
 }
 
@@ -1187,13 +1481,8 @@ function joinRoomAsPlayer() {
             setRole('player');
         });
 
-        conn.on('data', (data) => {
-            receiveSyncedGameState(data);
-        });
-
-        conn.on('error', () => {
-            statusText.innerText = "Failed to connect to room code.";
-        });
+        conn.on('data', (data) => { receiveSyncedGameState(data); });
+        conn.on('error', () => { statusText.innerText = "Failed to connect to room code."; });
     });
 }
 
@@ -1285,8 +1574,6 @@ function openDeckModal() { document.getElementById("deckModal").classList.remove
 function closeDeckModal() { document.getElementById("deckModal").classList.add("hidden"); }
 function openSyncModal() { document.getElementById("syncModal").classList.remove("hidden"); }
 function closeSyncModal() { document.getElementById("syncModal").classList.add("hidden"); }
-
-/* Help Modal Helpers */
 function openHelpModal() { document.getElementById("helpModal").classList.remove("hidden"); }
 function closeHelpModal() { document.getElementById("helpModal").classList.add("hidden"); }
 
@@ -1305,9 +1592,6 @@ function switchHelpTab(tab) {
     });
 }
 
-/* ----------------------------------------------------
-   4. GAME STATE PERSISTENCE & CONFIRMATION MODALS
-   ---------------------------------------------------- */
 function saveGameState() {
     const gameStateData = {
         teams: appState.teams,
@@ -1338,7 +1622,6 @@ function showConfirmModal(title, message, onYes) {
     document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${title}`;
     document.getElementById("confirmMessage").innerText = message;
     const yesBtn = document.getElementById("confirmYesBtn");
-    // Clone node to remove old event listeners
     const newYesBtn = yesBtn.cloneNode(true);
     yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
     
@@ -1349,39 +1632,12 @@ function showConfirmModal(title, message, onYes) {
     document.getElementById("confirmModal").classList.remove("hidden");
 }
 
-function closeConfirmModal() {
-    document.getElementById("confirmModal").classList.add("hidden");
-}
-
-function confirmEndGame() {
-    showConfirmModal(
-        "End Current Game?",
-        "Are you sure you want to end the current game? Your progress will be discarded.",
-        executeEndGame
-    );
-}
-
-function executeEndGame() {
-    clearInterval(appState.gameState.timerInterval);
-    appState.gameState.isActive = false;
-    localStorage.removeItem("taboo_saved_game");
-    checkSavedGame();
-    document.getElementById("gameView").classList.add("hidden");
-    document.getElementById("setupView").classList.remove("hidden");
-}
-
-function confirmResumeGame() {
-    showConfirmModal(
-        "Resume Last Game?",
-        "Do you want to continue your previous saved game?",
-        executeResumeGame
-    );
-}
+function closeConfirmModal() { document.getElementById("confirmModal").classList.add("hidden"); }
+function confirmResumeGame() { showConfirmModal("Resume Last Game?", "Do you want to continue your previous saved game?", executeResumeGame); }
 
 function executeResumeGame() {
     const saved = localStorage.getItem("taboo_saved_game");
     if (!saved) return alert("No saved game found.");
-
     try {
         const data = JSON.parse(saved);
         appState.teams = data.teams;
@@ -1395,18 +1651,14 @@ function executeResumeGame() {
 
         document.getElementById("penaltyBtnLabel").innerText = appState.config.tabooPenalty;
         document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
-
         document.getElementById("setupView").classList.add("hidden");
         document.getElementById("gameOverView").classList.add("hidden");
         document.getElementById("gameView").classList.remove("hidden");
-
         prepTurn();
     } catch (err) {
-        console.error("Failed to parse saved game:", err);
         alert("Error loading saved game data.");
     }
 }
-
 </script>
 </body>
 </html>
