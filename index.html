@@ -30,6 +30,7 @@
         .hidden-card { background:repeating-linear-gradient(45deg,#0f172a,#0f172a 12px,#111a2e 12px,#111a2e 24px); }
         @keyframes pulse-soft { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
         .pulse-soft { animation:pulse-soft 1.5s ease-in-out infinite; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen">
@@ -71,7 +72,6 @@
         <!-- ===== SETUP VIEW ===== -->
         <section id="setupView" class="space-y-5 flex-1 flex flex-col justify-between">
             <div class="space-y-4">
-
                 <!-- Role selector -->
                 <div class="bg-indigo-950/40 border border-indigo-800/60 rounded-2xl p-3 flex items-center justify-between">
                     <div>
@@ -434,6 +434,8 @@
                 </h3>
                 <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
+            
+            <!-- HOST SYNC PANEL -->
             <div id="hostSyncPanel" class="space-y-3">
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-2">
                     <span class="text-xs text-slate-400 font-semibold block">ROOM CODE</span>
@@ -451,26 +453,44 @@
                     <p class="text-slate-500 text-center py-2">No players yet</p>
                 </div>
             </div>
+
+            <!-- PLAYER SYNC PANEL (NEW LOOKUP LOGIC) -->
             <div id="playerSyncPanel" class="hidden space-y-3">
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
                     <label class="text-xs text-slate-400 font-semibold block text-center">ENTER HOST 4-DIGIT CODE</label>
-                    <input type="text" id="joinRoomCodeInput" maxlength="4" placeholder="1234" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-center text-2xl font-mono font-bold text-emerald-400 uppercase tracking-widest focus:outline-none focus:border-indigo-500">
-                    <input type="text" id="joinNameInput" placeholder="Your name" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    <div class="flex gap-2">
+                        <input type="text" id="joinRoomCodeInput" maxlength="4" placeholder="1234"
+                               class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-center text-2xl font-mono font-bold text-emerald-400 uppercase tracking-widest focus:outline-none focus:border-indigo-500"
+                               oninput="onRoomCodeChanged()">
+                        <button onclick="lookupRoomTeams()" id="lookupBtn"
+                                class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-white font-bold rounded-xl text-xs whitespace-nowrap">
+                            <i class="fa-solid fa-magnifying-glass mr-1"></i> Lookup
+                        </button>
+                    </div>
+                    <div id="lookupStatus" class="text-[11px] text-slate-400 text-center min-h-[16px]"></div>
+
+                    <input type="text" id="joinNameInput" placeholder="Your name"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    
                     <label class="text-xs text-slate-400 font-semibold block">YOUR TEAM</label>
-                    <select id="joinTeamSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
-                        <option value="">— enter code first to load teams —</option>
+                    <select id="joinTeamSelect" disabled
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white disabled:opacity-60">
+                        <option value="">— enter code & tap Lookup —</option>
                     </select>
-                    <button onclick="joinRoomAsPlayer()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg">
+                    
+                    <button onclick="joinRoomAsPlayer()" id="joinBtn" disabled
+                            class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                         JOIN GAME ROOM
                     </button>
                     <p id="joinStatusText" class="text-[11px] text-slate-400 text-center"></p>
                 </div>
             </div>
+            
             <button onclick="closeSyncModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Done</button>
         </div>
     </div>
 
-    <!-- ===== HELP MODAL (5 tabs) ===== -->
+    <!-- ===== HELP MODAL ===== -->
     <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 space-y-4 max-h-[85vh] flex flex-col">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -488,155 +508,56 @@
             </div>
             <div class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
 
-                <!-- Quick Start Card -->
                 <div class="bg-gradient-to-br from-indigo-950/80 to-purple-950/60 border border-indigo-500/40 rounded-xl p-3 space-y-1.5">
-                    <h4 class="font-bold text-indigo-200 flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Quick Start (5 teams, 1 phone each)</h4>
+                    <h4 class="font-bold text-indigo-200 flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Quick Start</h4>
                     <ol class="list-decimal list-inside text-[11px] text-slate-300 space-y-1">
-                        <li>Host phone: set teams, name them, tap START MATCH.</li>
-                        <li>Each team's phone: open URL → Player role → enter code + name + team.</li>
-                        <li>Clue-giver's phone shows the card + SKIP.</li>
-                        <li>Opposing team's phones show the card + TABOO/CORRECT.</li>
-                        <li>All other players just watch the timer.</li>
+                        <li>Host phone: set teams, tap START MATCH.</li>
+                        <li>Each player: open URL → Player role → enter code → Lookup → pick team → Join.</li>
+                        <li>Clue-giver sees card + SKIP.</li>
+                        <li>Opposing team sees card + TABOO/CORRECT.</li>
                     </ol>
                 </div>
 
-                <!-- TAB 1: RULES -->
                 <div id="helpContentRules" class="space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-indigo-400"></i> Objective</h4>
-                        <p class="text-[11px] text-slate-400">Get teammates to guess the target word before time runs out, without saying the target or forbidden words.</p>
+                        <p class="text-[11px] text-slate-400">Get teammates to guess the target word before time runs out, without saying forbidden words.</p>
                     </div>
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Roles per turn</h4>
                         <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li><strong class="text-white">Clue-Giver</strong> — sees the card, controls START & SKIP.</li>
-                            <li><strong class="text-white">Their Teammates</strong> — cannot see the card; shout guesses.</li>
-                            <li><strong class="text-white">Opposing Team</strong> — sees the card; controls TABOO & CORRECT (judging).</li>
-                            <li><strong class="text-white">Referee</strong> (if host not playing) — sees card, taps nothing.</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-star text-indigo-400"></i> Scoring</h4>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li><span class="text-emerald-400 font-bold">CORRECT (+1):</span> New card, points to clue-giver's team.</li>
-                            <li><span class="text-rose-400 font-bold">TABOO (penalty):</span> New card, points deducted, timer continues.</li>
-                            <li><span class="text-amber-400 font-bold">SKIP:</span> New card, limited by quota, no points.</li>
+                            <li><strong class="text-white">Clue-Giver</strong> — sees card, controls START & SKIP.</li>
+                            <li><strong class="text-white">Teammates</strong> — cannot see card, shout guesses.</li>
+                            <li><strong class="text-white">Opposing Team</strong> — sees card, controls TABOO & CORRECT.</li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- TAB 2: CONTROLS -->
                 <div id="helpContentUsage" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-tie text-indigo-400"></i> Host Setup</h4>
-                        <p class="text-[11px] text-slate-400">Configure rounds, timer, skips, penalty. Toggle Host Participation between <strong class="text-white">Referee</strong> (observe only) and <strong class="text-white">Join as player</strong> (enter your name + team).</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen text-emerald-400"></i> Player Setup</h4>
-                        <p class="text-[11px] text-slate-400">Enter room code → name → team. Each phone is bound to one team. Duplicate names within the same team are rejected.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-database text-amber-400"></i> Card Import Formats</h4>
-                        <p class="text-[11px] text-slate-400">
-                            <strong class="text-white">CSV:</strong><br>
-                            <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1 text-[10px]">TARGET,F1,F2,F3,F4,F5</code>
-                            <strong class="text-white mt-2 block">JSON:</strong><br>
-                            <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1 text-[10px]">{"cards":[{"target":"CAT","forbidden":["DOG","PET","MEOW","FUR","PAW"]}]}</code>
-                        </p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-volume-high text-emerald-400"></i> Sound & Colors</h4>
-                        <p class="text-[11px] text-slate-400">Tap the speaker icon to mute. Each team gets its own color (Indigo, Emerald, Rose, Amber, Cyan, Fuchsia, Lime, Orange).</p>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-gear"></i> Joining</h4>
+                        <p class="text-[11px] text-slate-400">Type the host's 4-digit code and tap <strong>Lookup</strong> to fetch active teams. Then enter your name, pick a team, and tap Join.</p>
                     </div>
                 </div>
 
-                <!-- TAB 3: MULTI-PHONE -->
                 <div id="helpContentSync" class="hidden space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen-button text-indigo-400"></i> Step-by-Step Sync</h4>
-                        <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1.5">
-                            <li>Host tap users icon → note 4-digit code.</li>
-                            <li>Player opens same URL → users icon → Player role.</li>
-                            <li>Enter code → name → team → JOIN.</li>
-                            <li>QR code auto-fills the code on the player's phone.</li>
-                        </ol>
-                    </div>
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-eye text-emerald-400"></i> What Each Role Sees</h4>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li><strong class="text-white">Clue-giver:</strong> Full card + START + SKIP.</li>
-                            <li><strong class="text-white">Teammate:</strong> Hidden card + waiting screen.</li>
-                            <li><strong class="text-white">Opposing:</strong> Full card + TABOO + CORRECT.</li>
-                            <li><strong class="text-white">Referee:</strong> Full card, no buttons.</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Troubleshooting</h4>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li>Both devices need network for initial handshake.</li>
-                            <li>Host must stay on tab; closing kills the room.</li>
-                            <li>Refreshing a phone: re-enter name/team; same-name replaces dead connection.</li>
-                        </ul>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen"></i> Sync</h4>
+                        <p class="text-[11px] text-slate-400">Host taps the users icon to see the room code. Players use the lookup flow on their own phones.</p>
                     </div>
                 </div>
 
-                <!-- TAB 4: AI BUILDER -->
                 <div id="helpContentAi" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-robot text-indigo-400"></i> What it does</h4>
-                        <p class="text-[11px] text-slate-400">Generates 50 fresh Taboo cards per category using Gemini AI. Uses your own free API key.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-key text-amber-400"></i> Get a free API key</h4>
-                        <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1">
-                            <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-indigo-400">Google AI Studio</a>.</li>
-                            <li>Create API Key → copy (starts with <code class="text-amber-300">AIza…</code>).</li>
-                            <li>Paste into the AI Builder field.</li>
-                        </ol>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-tags text-emerald-400"></i> Generate cards</h4>
-                        <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1">
-                            <li>Pick one category (or add custom, e.g. "Filipino Food").</li>
-                            <li>Tap Generate (50). Progress shows elapsed time.</li>
-                            <li>Save & Import to DB or Export JSON.</li>
-                        </ol>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tips</h4>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li>Free tier allows ~15 req/min; one run = 1 request.</li>
-                            <li>15s cooldown protects your quota.</li>
-                            <li>Review cards before saving — AI output varies.</li>
-                        </ul>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-robot"></i> AI Builder</h4>
+                        <p class="text-[11px] text-slate-400">Generate 50 fresh cards per category using a Gemini API key. Review and save to DB.</p>
                     </div>
                 </div>
 
-                <!-- TAB 5: FAQ -->
                 <div id="helpContentFaq" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Can players tap TABOO/CORRECT?</h4>
-                        <p class="text-[11px] text-slate-400">Only the opposing team's phones. The clue-giver and their teammates cannot — they're on the guessing side.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Who can tap SKIP?</h4>
-                        <p class="text-[11px] text-slate-400">Only the clue-giver's phone, since they're the one seeing the card and deciding.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Does it work offline?</h4>
-                        <p class="text-[11px] text-slate-400">Yes — cards live in IndexedDB. Multi-phone sync needs internet only for the initial WebRTC handshake.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300">Q: What if my phone refreshes?</h4>
-                        <p class="text-[11px] text-slate-400">Re-enter code + name + team. If a dead connection has the same name, it's replaced automatically.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: How do double-taps behave?</h4>
-                        <p class="text-[11px] text-slate-400">Duplicate actions within 200ms from the same player are ignored, so two people tapping CORRECT simultaneously only counts once.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Is my data sent anywhere?</h4>
-                        <p class="text-[11px] text-slate-400">No. Everything stays local except AI Builder calls to Google (only when you trigger them).</p>
+                        <p class="text-[11px] text-slate-400">Re-enter code, tap Lookup, and join with the same name/team. It will replace the dead connection.</p>
                     </div>
                 </div>
             </div>
@@ -661,7 +582,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — v2 (team-bound multiplayer)
+   TABOO MASTER ENGINE — v3 (fixed team lookup)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -727,21 +648,17 @@ function escapeHtml(s) {
 
 /* ---------- STATE ---------- */
 const appState = {
-    role: 'host',                 // 'host' | 'player'
+    role: 'host',
     db: null,
     cards: [],
     unplayedIndices: [],
     currentCard: null,
-
     teams: [
         { name:'Team Alpha', score:0 },
         { name:'Team Beta',  score:0 }
     ],
-    // Players: { id, name, teamIndex, isHost, conn }
     players: [],
-    // The player id whose turn it is to give clues this turn
     currentClueGiverId: null,
-
     config: { totalRounds:3, turnTimerSec:60, maxSkips:3, tabooPenalty:-1, correctPoint:1 },
     gameState: {
         currentRound:1,
@@ -754,16 +671,12 @@ const appState = {
         turnStartTime:0,
         recentActions:{}
     },
-
     hostIsPlaying:false,
     hostPlayer: { name:'', teamIndex:0 },
-
     peer:null,
-    peerConnections: [],   // [{ conn, playerId }]
+    peerConnections: [],
     roomCode:'',
     hostRetryCount:0,
-
-    // my player id (host-as-player OR player device)
     myPlayerId: null,
     myPlayerName: '',
     myTeamIndex: 0
@@ -782,7 +695,8 @@ window.onload = function() {
     if (roomParam && roomParam.length === 4) {
         setRole('player');
         document.getElementById('joinRoomCodeInput').value = roomParam;
-        // Fetch teams from host after join screen appears
+        // Auto lookup if param exists
+        setTimeout(() => lookupRoomTeams(), 800);
     } else {
         initPeerHost();
     }
@@ -920,7 +834,7 @@ function addCustomCard() {
 }
 
 /* ============================================================
-   AI BUILDER (unchanged logic, minor polish)
+   AI BUILDER
    ============================================================ */
 const builderState = {
     categories: [
@@ -1107,7 +1021,7 @@ function renderTeamInputs() {
         const input = document.createElement("input");
         input.type = "text"; input.value = t.name;
         input.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white w-full";
-        input.onchange = () => { appState.teams[i].name = this.value; renderHostTeamSelect(); renderTeamInputs(); };
+        input.onchange = () => { appState.teams[i].name = input.value; renderHostTeamSelect(); renderTeamInputs(); };
         div.appendChild(input);
         c.appendChild(div);
     });
@@ -1163,7 +1077,6 @@ function startGameHost() {
     appState.gameState.currentRound = 1;
     appState.gameState.currentTeamIndex = 0;
 
-    // Register host as player if joining
     if (appState.hostIsPlaying) {
         appState.myPlayerId = 'HOST_' + Date.now();
         appState.myPlayerName = appState.hostPlayer.name;
@@ -1182,7 +1095,6 @@ function startGameHost() {
     document.getElementById("gameOverView").classList.add("hidden");
 
     if (appState.hostIsPlaying) {
-        // Host joins as player → uses player view based on role
         document.getElementById("gameView").classList.add("hidden");
         document.getElementById("playerView").classList.remove("hidden");
     } else {
@@ -1200,20 +1112,16 @@ function prepTurn() {
     renderScoreboard();
 
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    // Pick next clue-giver on this team
     const teamPlayers = appState.players.filter(p => p.teamIndex === appState.gameState.currentTeamIndex);
     if (teamPlayers.length === 0) {
-        // No one from this team connected: cycle back
         appState.gameState.currentClueGiverId = null;
     } else {
-        // Round-robin: use currentRound to pick
         const idx = (appState.gameState.currentRound - 1) % teamPlayers.length;
         appState.gameState.currentClueGiverId = teamPlayers[idx].id;
     }
     appState.gameState.skipsRemaining = appState.config.maxSkips;
     appState.gameState.timerSeconds = appState.config.turnTimerSec;
 
-    // Host controller UI (referee only)
     if (!appState.hostIsPlaying && appState.role === 'host') {
         document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
         const turnEl = document.getElementById("turnIndicator");
@@ -1258,7 +1166,6 @@ function beginTurn() {
     renderScoreboard();
     broadcastState();
 
-    // Referee host UI: reveal card + control buttons
     if (!appState.hostIsPlaying && appState.role === 'host') {
         const ac = document.getElementById("actionContainer");
         ac.className = "grid grid-cols-3 gap-3 pt-1";
@@ -1322,7 +1229,6 @@ function hostAction(action) {
 
 function applyAction(action, byPlayerId) {
     if (!appState.gameState.isActive || appState.gameState.isPaused) return;
-    // Dedupe
     const key = `${byPlayerId}_${action}`;
     const now = Date.now();
     if (appState.gameState.recentActions[key] && now - appState.gameState.recentActions[key] < 200) return;
@@ -1392,7 +1298,6 @@ function showGameOver() {
     checkSavedGame();
     soundEngine.play('gameOver');
     const sorted = [...appState.teams].sort((a, b) => b.score - a.score);
-    // Show on both host controller and player view
     document.getElementById("gameView").classList.add("hidden");
     document.getElementById("playerView").classList.add("hidden");
     document.getElementById("gameOverView").classList.remove("hidden");
@@ -1437,7 +1342,6 @@ function renderScoreboard() {
             bar.appendChild(div);
         });
     }
-    // Player scoreboard
     const p = document.getElementById("playerScoreboard");
     if (p) {
         p.innerHTML = "";
@@ -1456,7 +1360,7 @@ function renderScoreboard() {
 }
 
 /* ============================================================
-   PEERJS
+   PEERJS & LOOKUP
    ============================================================ */
 function generate4DigitCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
 function destroyPeer() {
@@ -1484,9 +1388,7 @@ function initPeerHost() {
     });
     appState.peer.on('connection', conn => {
         conn.on('data', data => handleIncomingPlayerMessage(conn, data));
-        conn.on('open', () => {
-            // Just wait for join message
-        });
+        conn.on('open', () => {});
         conn.on('close', () => {
             appState.peerConnections = appState.peerConnections.filter(x => x.conn !== conn);
             const removed = appState.players.find(p => p.conn === conn);
@@ -1506,8 +1408,13 @@ function initPeerHost() {
 
 function handleIncomingPlayerMessage(conn, data) {
     if (!data || !data.type) return;
+
+    if (data.type === 'requestTeams') {
+        conn.send({ type: 'teamsList', teams: appState.teams.map(t => t.name) });
+        return;
+    }
+
     if (data.type === 'join') {
-        // Validate
         const teamIdx = parseInt(data.teamIndex);
         if (isNaN(teamIdx) || teamIdx < 0 || teamIdx >= appState.teams.length) {
             conn.send({ type:'joinError', message:'Team no longer exists. Please rejoin.' });
@@ -1516,14 +1423,12 @@ function handleIncomingPlayerMessage(conn, data) {
         const name = String(data.name || '').trim().slice(0, 20);
         if (!name) { conn.send({ type:'joinError', message:'Name is required.' }); return; }
 
-        // Replace disconnected player with same name/team
         const existing = appState.players.find(p => p.name === name && p.teamIndex === teamIdx && !p.isHost);
         if (existing && existing.conn && existing.conn.open) {
             conn.send({ type:'joinError', message:`${name} is already playing on ${appState.teams[teamIdx].name}. Pick another name.` });
             return;
         }
         if (existing) {
-            // Replace dead connection
             existing.conn = conn;
             existing.id = 'P_' + Date.now();
             appState.peerConnections = appState.peerConnections.filter(x => x.conn !== conn);
@@ -1540,12 +1445,101 @@ function handleIncomingPlayerMessage(conn, data) {
         return;
     }
 
-    // Action from player
     if (data.type === 'action' && data.action) {
         const player = appState.players.find(p => p.conn === conn);
         if (!player) return;
         applyAction(data.action, player.id);
     }
+}
+
+/* ---------- LOOKUP / JOIN (NEW) ---------- */
+let lookupPeer = null;
+let lookupConn = null;
+let discoveredTeams = [];
+let discoveredRoomCode = '';
+
+function onRoomCodeChanged() {
+    const code = document.getElementById("joinRoomCodeInput").value.trim();
+    if (code !== discoveredRoomCode) {
+        discoveredTeams = [];
+        document.getElementById("joinTeamSelect").disabled = true;
+        document.getElementById("joinTeamSelect").innerHTML = `<option value="">— enter code & tap Lookup —</option>`;
+        document.getElementById("joinBtn").disabled = true;
+        document.getElementById("lookupStatus").innerText = "";
+    }
+    const btn = document.getElementById("lookupBtn");
+    if (btn) btn.disabled = code.length !== 4;
+}
+
+function lookupRoomTeams() {
+    const code = document.getElementById("joinRoomCodeInput").value.trim();
+    if (code.length !== 4) {
+        document.getElementById("lookupStatus").innerText = "Enter 4-digit code first.";
+        return;
+    }
+    const status = document.getElementById("lookupStatus");
+    status.innerText = "Connecting to room " + code + "…";
+    status.className = "text-[11px] text-amber-400 text-center min-h-[16px]";
+
+    if (lookupPeer) { try { lookupPeer.destroy(); } catch(e) {} lookupPeer = null; }
+    lookupPeer = new Peer();
+    const myPeer = lookupPeer;
+
+    myPeer.on('open', () => {
+        const conn = myPeer.connect("taboo-room-" + code);
+        lookupConn = conn;
+        let timeout = setTimeout(() => {
+            status.innerText = "❌ Host not responding. Check code and try again.";
+            status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
+            try { conn.close(); } catch(e) {}
+        }, 5000);
+
+        conn.on('open', () => {
+            conn.send({ type: 'requestTeams' });
+        });
+
+        conn.on('data', data => {
+            clearTimeout(timeout);
+            if (data.type === 'teamsList') {
+                discoveredTeams = data.teams || [];
+                discoveredRoomCode = code;
+                status.innerText = `✅ Room found — ${discoveredTeams.length} team(s) available.`;
+                status.className = "text-[11px] text-emerald-400 text-center min-h-[16px]";
+
+                const sel = document.getElementById("joinTeamSelect");
+                sel.innerHTML = discoveredTeams.map((name, i) =>
+                    `<option value="${i}">${escapeHtml(name)}</option>`
+                ).join('');
+                sel.disabled = false;
+
+                const nameInput = document.getElementById("joinNameInput");
+                nameInput.focus();
+                const updateJoinBtn = () => {
+                    document.getElementById("joinBtn").disabled = nameInput.value.trim().length === 0;
+                };
+                nameInput.oninput = updateJoinBtn;
+                updateJoinBtn();
+            } else if (data.type === 'joinError') {
+                status.innerText = "❌ " + (data.message || 'Join failed');
+                status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
+            }
+        });
+
+        conn.on('error', () => {
+            clearTimeout(timeout);
+            status.innerText = "❌ Connection error.";
+            status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
+        });
+    });
+
+    myPeer.on('error', err => {
+        if (err.type === 'peer-unavailable') {
+            status.innerText = "❌ Room not found. Check the code.";
+        } else {
+            status.innerText = "❌ " + (err.type || 'Error');
+        }
+        status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
+    });
 }
 
 function joinRoomAsPlayer() {
@@ -1555,38 +1549,31 @@ function joinRoomAsPlayer() {
     if (code.length !== 4) return alert("Enter 4-digit code.");
     if (!name) return alert("Enter your name.");
     if (isNaN(teamIdx)) return alert("Select a team.");
+    if (!lookupConn || !lookupConn.open) {
+        return alert("Please tap Lookup first to load teams.");
+    }
 
     const status = document.getElementById("joinStatusText");
-    status.innerText = "Connecting...";
-    destroyPeer();
+    status.innerText = "Sending join request…";
 
-    try { appState.peer = new Peer(); } catch(e) { status.innerText = "PeerJS error."; return; }
-    appState.peer.on('open', () => {
-        const conn = appState.peer.connect("taboo-room-" + code);
-        conn.on('open', () => {
-            status.innerText = "Sending join request…";
-            conn.send({ type:'join', name, teamIndex:teamIdx });
-        });
-        conn.on('data', data => {
-            if (data.type === 'joinAccepted') {
-                status.innerText = "Connected!";
-                appState.myPlayerName = name;
-                appState.myTeamIndex = teamIdx;
-                appState.myPlayerId = 'P_' + Date.now();
-                closeSyncModal();
-                setRole('player');
-                appState.peerConnections = [{ conn, playerId: appState.myPlayerId }];
-                conn.on('data', msg => receiveSyncedState(msg));
-            } else if (data.type === 'joinError') {
-                status.innerText = "❌ " + data.message;
-            } else {
-                receiveSyncedState(data);
-            }
-        });
-        conn.on('close', () => { status.innerText = "Disconnected."; });
-        conn.on('error', () => { status.innerText = "Connection error."; });
+    lookupConn.send({ type: 'join', name, teamIndex: teamIdx });
+
+    lookupConn.on('data', data => {
+        if (data.type === 'joinAccepted') {
+            status.innerText = "Connected!";
+            appState.myPlayerName = name;
+            appState.myTeamIndex = teamIdx;
+            appState.myPlayerId = 'P_' + Date.now();
+            appState.peer = lookupPeer;
+            appState.peerConnections = [{ conn: lookupConn, playerId: appState.myPlayerId }];
+            closeSyncModal();
+            setRole('player');
+            lookupConn.on('data', msg => receiveSyncedState(msg));
+        } else if (data.type === 'joinError') {
+            status.innerText = "❌ " + (data.message || 'Join failed');
+            status.className = "text-[11px] text-rose-400 text-center";
+        }
     });
-    appState.peer.on('error', err => { status.innerText = "Error: " + (err.type || 'unknown'); });
 }
 
 function updatePeerCountUI() {
@@ -1615,14 +1602,12 @@ function receiveSyncedState(data) {
     if (!data) return;
     if (data.type === 'joinAccepted') return;
 
-    // Role determination for current player
     const myId = appState.myPlayerId;
     const myTeam = appState.myTeamIndex;
     const myRole = data.gameOver ? 'gameover' :
         (data.currentClueGiverId === myId ? 'cluegiver' :
         (myTeam === data.currentTeamIndex ? 'teammate' : 'opposing'));
 
-    // Header
     const currentTeamName = data.teams?.[data.currentTeamIndex]?.name || '—';
     document.getElementById("playerRoleLabel").innerText =
         myRole === 'cluegiver' ? '🎯 YOUR TURN — CLUE-GIVER' :
@@ -1631,23 +1616,18 @@ function receiveSyncedState(data) {
         myRole === 'gameover' ? 'MATCH FINISHED' : 'WAITING';
     document.getElementById("playerTurnLine").innerText = `${currentTeamName}'s Turn`;
 
-    // Timer
     const baseSeconds = data.timerSeconds ?? 60;
     const drift = data.hostTimestamp ? Math.floor((Date.now() - data.hostTimestamp) / 1000) : 0;
     document.getElementById("playerTimerDisplay").innerText = Math.max(0, baseSeconds - drift);
     document.getElementById("playerRoundDisplay").innerText = data.currentRound || 1;
 
-    // Card visibility by role
     const cardTarget = document.getElementById("clueTargetWord");
     const cardForbidden = document.getElementById("clueForbiddenList");
-    const teamCard = document.getElementById("teammateCard");
     const oppTarget = document.getElementById("opposingTargetWord");
     const oppForbidden = document.getElementById("opposingForbiddenList");
-    const refCard = document.getElementById("refereeCard");
-    const refForbidden = document.getElementById("refereeForbiddenList");
     const refSummary = document.getElementById("refereeCardSummary");
+    const refForbidden = document.getElementById("refereeForbiddenList");
 
-    // Hide all role cards
     ['clueGiverCard','teammateCard','opposingCard','refereeCard'].forEach(id => {
         const el = document.getElementById(id); if (el) el.classList.add("hidden");
     });
@@ -1683,7 +1663,6 @@ function receiveSyncedState(data) {
             oppForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Waiting for turn to start…</p>`;
         }
     } else if (myRole === 'gameover' && myTeam === undefined) {
-        // Referee / observer
         document.getElementById("refereeCard").classList.remove("hidden");
         if (data.card) {
             document.getElementById("refereeCardSummary").classList.remove("hidden");
@@ -1693,7 +1672,6 @@ function receiveSyncedState(data) {
         }
     }
 
-    // Scoreboard
     const sb = document.getElementById("playerScoreboard");
     if (sb && data.teams) {
         sb.innerHTML = "";
@@ -1709,7 +1687,6 @@ function receiveSyncedState(data) {
         });
     }
 
-    // Game over
     const panel = document.getElementById("playerGameOverPanel");
     if (data.gameOver) {
         panel.classList.remove("hidden");
