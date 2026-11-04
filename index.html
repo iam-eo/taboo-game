@@ -150,7 +150,8 @@
                     <span id="turnIndicator" class="text-indigo-300 font-bold bg-indigo-950/80 px-2.5 py-0.5 rounded-lg border border-indigo-800/50">—</span>
                     <span>Skips: <strong id="skipsLeftDisplay" class="text-amber-400">3</strong></span>
                 </div>
-                <div id="scoreboardBar" class="grid grid-cols-2 gap-2 md:gap-3"></div>
+                <!-- FIX: Added max-h and scrollability for many teams -->
+                <div id="scoreboardBar" class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 max-h-32 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- Timer -->
@@ -442,7 +443,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — Pass & Play (Final Bulletproof)
+   TABOO MASTER ENGINE — Pass & Play (Final)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -1027,6 +1028,12 @@ function startGameHost() {
 
 function prepTurn() {
     appState.gameState.isActive = false;
+    appState.gameState.isPaused = false; // FIX: Reset pause state
+    
+    // FIX: Reset pause button text
+    const pBtn = document.getElementById("pauseBtn");
+    if (pBtn) pBtn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
+
     clearInterval(appState.gameState.timerInterval);
     renderScoreboard();
 
@@ -1154,7 +1161,7 @@ function handleCardAction(action) {
         drawNextCard();
     } else if (action === 'skip' && appState.gameState.skipsRemaining > 0) {
         soundEngine.play('skip');
-        appState.gameState.skipsRemaining--;
+        appState.gameState.skipsRemaining = Math.max(0, appState.gameState.skipsRemaining - 1); // FIX: Prevent negative
         updateTurnHeader();
         drawNextCard();
     }
