@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taboo Master - Multiplayer Teams</title>
+    <title>Taboo Master - Pass & Play</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         tailwind.config = {
             theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] },
@@ -27,10 +26,6 @@
         .badge-disabled { opacity:0.4; cursor:not-allowed; }
         .card-grid-item { background-color:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:12px; margin-bottom:8px; }
         .forbidden-pill { background-color:#090d16; color:#cbd5e1; font-size:9px; font-weight:bold; padding:4px; text-align:center; border-radius:6px; border:1px solid #1e293b; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .hidden-card { background:repeating-linear-gradient(45deg,#0f172a,#0f172a 12px,#111a2e 12px,#111a2e 24px); }
-        @keyframes pulse-soft { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
-        .pulse-soft { animation:pulse-soft 1.5s ease-in-out infinite; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen">
@@ -45,8 +40,7 @@
             <div>
                 <h1 class="font-black text-base text-white leading-tight tracking-wide">TABOO MASTER</h1>
                 <div class="flex items-center gap-2">
-                    <span id="roleBadge" class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/50">Host</span>
-                    <span id="roomCodeBadge" class="hidden text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/50">ROOM: ----</span>
+                    <span id="roleBadge" class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/50">Pass & Play</span>
                 </div>
             </div>
         </div>
@@ -56,10 +50,6 @@
             </button>
             <button onclick="openHelpModal()" title="Help & Rules" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
                 <i class="fa-solid fa-circle-question text-indigo-400"></i>
-            </button>
-            <button onclick="openSyncModal()" title="Connect Devices" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm relative border border-slate-700">
-                <i class="fa-solid fa-users text-indigo-400"></i>
-                <span id="connectedPeerCount" class="ml-1 text-xs font-bold text-white">0</span>
             </button>
             <button onclick="openDeckModal()" title="Word Database" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
                 <i class="fa-solid fa-database text-amber-400"></i>
@@ -72,35 +62,6 @@
         <!-- ===== SETUP VIEW ===== -->
         <section id="setupView" class="space-y-5 flex-1 flex flex-col justify-between">
             <div class="space-y-4">
-                <!-- Role selector -->
-                <div class="bg-indigo-950/40 border border-indigo-800/60 rounded-2xl p-3 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xs font-bold text-indigo-300">Device Role</h2>
-                        <p class="text-[11px] text-slate-400">Host a match, or join as a player on this device</p>
-                    </div>
-                    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
-                        <button id="modeHostBtn" onclick="setRole('host')" class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow">Host</button>
-                        <button id="modePlayerBtn" onclick="setRole('player')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Player</button>
-                    </div>
-                </div>
-
-                <!-- Host-as-player toggle -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-user-tie"></i> Host Participation
-                            </h2>
-                            <p class="text-[11px] text-slate-400 mt-1">Referee only, or also play on this device?</p>
-                        </div>
-                        <button id="hostPlayToggle" onclick="toggleHostPlaying()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">Referee</button>
-                    </div>
-                    <div id="hostPlayerFields" class="hidden grid grid-cols-2 gap-2">
-                        <input type="text" id="hostPlayerName" placeholder="Your name" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                        <select id="hostPlayerTeam" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"></select>
-                    </div>
-                </div>
-
                 <!-- Game parameters -->
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
                     <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
@@ -140,6 +101,7 @@
                             <i class="fa-solid fa-plus mr-1"></i> Add Team
                         </button>
                     </div>
+                    <p class="text-[10px] text-slate-400">Enter player names separated by commas (e.g. Alice, Bob). They will rotate as the clue-giver.</p>
                     <div id="teamsContainer" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
                 </div>
             </div>
@@ -148,17 +110,16 @@
                 <button id="resumeGameBtn" onclick="confirmResumeGame()" class="hidden w-full py-3 bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-500/40 font-bold text-xs text-emerald-300 rounded-xl flex items-center justify-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left"></i> RESUME LAST GAME
                 </button>
-                <button onclick="openSyncModal()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs text-indigo-300 rounded-xl flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-qrcode text-indigo-400"></i> Get Room Code & Invite Players
-                </button>
                 <button onclick="startGameHost()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 font-extrabold text-base text-white rounded-2xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-play"></i> START TABOO MATCH
+                    <i class="fa-solid fa-play"></i> START MATCH
                 </button>
             </div>
         </section>
 
-        <!-- ===== GAME VIEW (HOST CONTROLLER) ===== -->
+        <!-- ===== GAME VIEW ===== -->
         <section id="gameView" class="hidden flex-1 flex flex-col justify-between space-y-4">
+            
+            <!-- Score & Round Header -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-md space-y-2">
                 <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-slate-800 pb-2">
                     <span>Round <strong id="currentRoundDisplay" class="text-indigo-400">1</strong>/<span id="totalRoundsDisplay">3</span></span>
@@ -168,6 +129,7 @@
                 <div id="scoreboardBar" class="grid grid-cols-2 gap-2"></div>
             </div>
 
+            <!-- Timer -->
             <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-2.5">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Turn Countdown</span>
                 <div class="flex items-center gap-2">
@@ -177,6 +139,7 @@
                 </div>
             </div>
 
+            <!-- Word Card -->
             <div id="tabooCard" class="flex-1 bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-5 shadow-2xl flex flex-col justify-between relative overflow-hidden">
                 <div class="absolute -top-12 -right-12 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
                 <div class="text-center py-2 border-b-2 border-slate-800/80">
@@ -196,103 +159,16 @@
                 </div>
             </div>
 
+            <!-- Action Buttons -->
             <div id="actionContainer" class="grid grid-cols-1 gap-3 pt-1">
-                <button onclick="hostStartTurn()" id="hostStartBtn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-play"></i> START TURN
-                </button>
+                <!-- Dynamically rendered -->
             </div>
+
+            <!-- Pause -->
             <div class="flex items-center gap-2">
                 <button onclick="pauseResumeGame()" id="pauseBtn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
                     <i class="fa-solid fa-pause mr-1"></i> PAUSE
                 </button>
-            </div>
-        </section>
-
-        <!-- ===== PLAYER VIEW ===== -->
-        <section id="playerView" class="hidden flex-1 flex flex-col justify-between space-y-3">
-
-            <div class="bg-indigo-950/60 border border-indigo-800/60 rounded-2xl p-3 text-center space-y-1">
-                <span id="playerRoleLabel" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block">CONNECTING…</span>
-                <h2 id="playerTurnLine" class="text-base font-bold text-white">Waiting…</h2>
-                <div class="flex items-center justify-center gap-2 pt-1">
-                    <span class="text-xs text-slate-400">Timer: <strong id="playerTimerDisplay" class="text-amber-400 font-mono text-sm">60</strong>s</span>
-                    <span class="text-slate-600">•</span>
-                    <span class="text-xs text-slate-400">Round: <strong id="playerRoundDisplay" class="text-indigo-400">1</strong></span>
-                </div>
-            </div>
-
-            <!-- CLUE-GIVER CARD -->
-            <div id="clueGiverCard" class="hidden flex-1 bg-slate-900 border-2 border-indigo-500 rounded-3xl p-4 flex flex-col justify-between">
-                <div class="text-center py-2 border-b border-slate-800">
-                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-1">YOU ARE THE CLUE-GIVER</span>
-                    <h3 id="clueTargetWord" class="text-3xl font-black text-white tracking-wide uppercase">—</h3>
-                </div>
-                <div class="my-auto py-2 space-y-2">
-                    <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest text-center block mb-1">FORBIDDEN</span>
-                    <div id="clueForbiddenList" class="space-y-1.5"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="playerStartBtn" onclick="playerSendAction('startTurn')" class="py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl text-xs">
-                        <i class="fa-solid fa-play mr-1"></i> START
-                    </button>
-                    <button id="playerSkipBtn" onclick="playerSendAction('skip')" class="py-3 bg-amber-600 hover:bg-amber-500 text-white font-extrabold rounded-xl text-xs">
-                        <i class="fa-solid fa-forward mr-1"></i> SKIP (<span id="playerSkipCount">3</span>)
-                    </button>
-                </div>
-            </div>
-
-            <!-- TEAMMATE HIDDEN CARD -->
-            <div id="teammateCard" class="hidden flex-1 bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 flex flex-col justify-center items-center text-center space-y-3">
-                <div class="w-20 h-20 rounded-full bg-indigo-600/20 border-2 border-indigo-500/50 flex items-center justify-center">
-                    <i class="fa-solid fa-ear-listen text-4xl text-indigo-400 pulse-soft"></i>
-                </div>
-                <div>
-                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">YOUR TEAMMATE IS GIVING CLUES</p>
-                    <h3 id="clueGiverNameHidden" class="text-xl font-black text-white mt-1">—</h3>
-                </div>
-                <p id="teammateHintText" class="text-[11px] text-slate-400 max-w-[220px]">The card is hidden from you. Listen and shout your guesses!</p>
-            </div>
-
-            <!-- OPPOSING TEAM CARD -->
-            <div id="opposingCard" class="hidden flex-1 bg-slate-900 border-2 border-rose-500/50 rounded-3xl p-4 flex flex-col justify-between">
-                <div class="text-center py-2 border-b border-slate-800">
-                    <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest block mb-1">JUDGE MODE — OPPOSING TEAM</span>
-                    <h3 id="opposingTargetWord" class="text-2xl font-black text-white tracking-wide uppercase">—</h3>
-                </div>
-                <div class="my-auto py-2 space-y-2">
-                    <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest text-center block mb-1">FORBIDDEN</span>
-                    <div id="opposingForbiddenList" class="space-y-1.5"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="opposingTabooBtn" onclick="playerSendAction('taboo')" class="py-3 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs">
-                        <i class="fa-solid fa-ban mr-1"></i> TABOO
-                    </button>
-                    <button id="opposingCorrectBtn" onclick="playerSendAction('correct')" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs">
-                        <i class="fa-solid fa-check mr-1"></i> CORRECT
-                    </button>
-                </div>
-            </div>
-
-            <!-- REFEREE WAITING CARD -->
-            <div id="refereeCard" class="hidden flex-1 bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 flex flex-col justify-center items-center text-center space-y-3">
-                <div class="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center">
-                    <i class="fa-solid fa-eye text-2xl text-slate-400"></i>
-                </div>
-                <p class="text-[11px] text-slate-400">Referee mode — observing.</p>
-                <div id="refereeCardSummary" class="hidden w-full bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-left">
-                    <div class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1">FORBIDDEN</div>
-                    <div id="refereeForbiddenList" class="space-y-1"></div>
-                </div>
-            </div>
-
-            <div id="playerGameOverPanel" class="hidden bg-amber-950/40 border border-amber-700/60 rounded-2xl p-4 text-center space-y-1">
-                <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">MATCH FINISHED</span>
-                <div class="text-2xl font-black text-amber-300" id="playerWinnerName">—</div>
-                <div id="playerFinalScores" class="text-xs text-slate-300 space-y-1 pt-1"></div>
-            </div>
-
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-2">
-                <div id="playerScoreboard" class="grid grid-cols-2 gap-2"></div>
             </div>
         </section>
 
@@ -425,71 +301,6 @@
         </div>
     </div>
 
-    <!-- ===== SYNC MODAL ===== -->
-    <div id="syncModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base flex items-center gap-2">
-                    <i class="fa-solid fa-wifi text-indigo-400"></i> Connect Devices
-                </h3>
-                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            
-            <!-- HOST SYNC PANEL -->
-            <div id="hostSyncPanel" class="space-y-3">
-                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-2">
-                    <span class="text-xs text-slate-400 font-semibold block">ROOM CODE</span>
-                    <div id="displayRoomCode" class="text-4xl font-black text-emerald-400 tracking-widest font-mono">----</div>
-                    <p class="text-[11px] text-slate-400">Scan QR to join instantly!</p>
-                    <div class="bg-white p-2 rounded-xl inline-block mx-auto mt-2">
-                        <img id="roomQRCode" src="" alt="Scan to Join" class="w-32 h-32 mx-auto rounded">
-                    </div>
-                </div>
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                    <span class="text-slate-400">Connected Players:</span>
-                    <strong id="modalConnectedCount" class="text-indigo-400 font-bold text-sm">0</strong>
-                </div>
-                <div id="connectedPlayersList" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1 max-h-32 overflow-y-auto">
-                    <p class="text-slate-500 text-center py-2">No players yet</p>
-                </div>
-            </div>
-
-            <!-- PLAYER SYNC PANEL -->
-            <div id="playerSyncPanel" class="hidden space-y-3">
-                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                    <label class="text-xs text-slate-400 font-semibold block text-center">ENTER HOST 4-DIGIT CODE</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="joinRoomCodeInput" maxlength="4" placeholder="1234"
-                               class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-center text-2xl font-mono font-bold text-emerald-400 uppercase tracking-widest focus:outline-none focus:border-indigo-500"
-                               oninput="onRoomCodeChanged()">
-                        <button onclick="lookupRoomTeams()" id="lookupBtn"
-                                class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-white font-bold rounded-xl text-xs whitespace-nowrap">
-                            <i class="fa-solid fa-magnifying-glass mr-1"></i> Lookup
-                        </button>
-                    </div>
-                    <div id="lookupStatus" class="text-[11px] text-slate-400 text-center min-h-[16px]"></div>
-
-                    <input type="text" id="joinNameInput" placeholder="Your name"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
-                    
-                    <label class="text-xs text-slate-400 font-semibold block">YOUR TEAM</label>
-                    <select id="joinTeamSelect" disabled
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white disabled:opacity-60">
-                        <option value="">— enter code & tap Lookup —</option>
-                    </select>
-                    
-                    <button onclick="joinRoomAsPlayer()" id="joinBtn" disabled
-                            class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                        JOIN GAME ROOM
-                    </button>
-                    <p id="joinStatusText" class="text-[11px] text-slate-400 text-center"></p>
-                </div>
-            </div>
-            
-            <button onclick="closeSyncModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Done</button>
-        </div>
-    </div>
-
     <!-- ===== HELP MODAL ===== -->
     <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 space-y-4 max-h-[85vh] flex flex-col">
@@ -499,65 +310,82 @@
                 </h3>
                 <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
+            
+            <!-- Tabs -->
             <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[10px] font-bold overflow-x-auto">
                 <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 px-1 rounded-lg bg-indigo-600 text-white text-center whitespace-nowrap">Rules</button>
-                <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Controls</button>
-                <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Multi-Phone</button>
-                <button onclick="switchHelpTab('ai')" id="tabBtnAi" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">AI Builder</button>
-                <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">FAQ</button>
+                <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Setup</button>
+                <button onclick="switchHelpTab('gameplay')" id="tabBtnGameplay" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Gameplay</button>
+                <button onclick="switchHelpTab('ai')" id="tabBtnAi" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Decks & AI</button>
             </div>
+
             <div class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
 
+                <!-- Quick Start Card -->
                 <div class="bg-gradient-to-br from-indigo-950/80 to-purple-950/60 border border-indigo-500/40 rounded-xl p-3 space-y-1.5">
                     <h4 class="font-bold text-indigo-200 flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Quick Start</h4>
                     <ol class="list-decimal list-inside text-[11px] text-slate-300 space-y-1">
-                        <li>Host phone: set teams, tap START MATCH.</li>
-                        <li>Each player: open URL → Player role → enter code → Lookup → pick team → Join.</li>
-                        <li>Clue-giver sees card + SKIP.</li>
-                        <li>Opposing team sees card + TABOO/CORRECT.</li>
+                        <li>Enter team names and player names.</li>
+                        <li>Tap START MATCH.</li>
+                        <li>Pass the phone to the first clue-giver.</li>
+                        <li>Clue-giver taps START TURN, then controls the 3 buttons.</li>
                     </ol>
                 </div>
 
+                <!-- TAB 1: RULES -->
                 <div id="helpContentRules" class="space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-indigo-400"></i> Objective</h4>
-                        <p class="text-[11px] text-slate-400">Get teammates to guess the target word before time runs out, without saying forbidden words.</p>
+                        <p class="text-[11px] text-slate-400">Get your teammates to guess the Target Word before time runs out. You can say anything, EXCEPT the target word or any of the 5 Forbidden Words.</p>
                     </div>
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Roles per turn</h4>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Roles</h4>
                         <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li><strong class="text-white">Clue-Giver</strong> — sees card, controls START & SKIP.</li>
-                            <li><strong class="text-white">Teammates</strong> — cannot see card, shout guesses.</li>
-                            <li><strong class="text-white">Opposing Team</strong> — sees card, controls TABOO & CORRECT.</li>
+                            <li><strong class="text-white">Clue-Giver:</strong> Holds the phone, sees the card, and taps the buttons.</li>
+                            <li><strong class="text-white">Guessing Team:</strong> Shouts answers based on the clues.</li>
+                            <li><strong class="text-white">Watchdogs (Opposing Team):</strong> Sits nearby, listens, and catches violations.</li>
                         </ul>
                     </div>
                 </div>
 
+                <!-- TAB 2: SETUP -->
                 <div id="helpContentUsage" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-gear"></i> Joining</h4>
-                        <p class="text-[11px] text-slate-400">Type the host's 4-digit code and tap <strong>Lookup</strong> to fetch active teams. Then enter your name, pick a team, and tap Join.</p>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-gear"></i> Teams & Players</h4>
+                        <p class="text-[11px] text-slate-400">Under Teams, type the player names separated by commas (e.g., <em>Alice, Bob, Charlie</em>). The app automatically rotates them as the clue-giver each round.</p>
                     </div>
-                </div>
-
-                <div id="helpContentSync" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen"></i> Sync</h4>
-                        <p class="text-[11px] text-slate-400">Host taps the users icon to see the room code. Players use the lookup flow on their own phones.</p>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> Parameters</h4>
+                        <p class="text-[11px] text-slate-400">Set the number of rounds, the timer length (e.g., 60s), and how many skips a clue-giver is allowed per turn.</p>
                     </div>
                 </div>
 
+                <!-- TAB 3: GAMEPLAY -->
+                <div id="helpContentGameplay" class="hidden space-y-3 text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-play"></i> During the Turn</h4>
+                        <p class="text-[11px] text-slate-400">Hand the phone to the active Clue-Giver. They tap <strong>START TURN</strong>. The timer starts and the card reveals.</p>
+                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1 mt-1">
+                            <li><span class="text-emerald-400 font-bold">CORRECT (+1):</span> Next card.</li>
+                            <li><span class="text-amber-400 font-bold">SKIP:</span> Next card (uses 1 skip).</li>
+                            <li><span class="text-rose-400 font-bold">TABOO:</span> Loses points, next card.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-rotate"></i> End of Turn</h4>
+                        <p class="text-[11px] text-slate-400">When the timer hits 0, the screen locks. The app will announce who is next. Pass the phone to the next clue-giver!</p>
+                    </div>
+                </div>
+
+                <!-- TAB 4: DECKS & AI -->
                 <div id="helpContentAi" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-robot"></i> AI Builder</h4>
-                        <p class="text-[11px] text-slate-400">Generate 50 fresh cards per category using a Gemini API key. Review and save to DB.</p>
+                        <p class="text-[11px] text-slate-400">Tap the database icon at the top right to open decks. You can use the AI Builder to generate 50 fresh cards for any category using a free Gemini API key.</p>
                     </div>
-                </div>
-
-                <div id="helpContentFaq" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: What if my phone refreshes?</h4>
-                        <p class="text-[11px] text-slate-400">Re-enter code, tap Lookup, and join with the same name/team. It will replace the dead connection.</p>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-file-csv"></i> Custom Decks</h4>
+                        <p class="text-[11px] text-slate-400">Import your own CSV or JSON files, or just select one of the preset decks to reload the game database.</p>
                     </div>
                 </div>
             </div>
@@ -582,18 +410,18 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — v5 (Fixed player action sending)
+   TABOO MASTER ENGINE — Pass & Play (Final)
    ============================================================ */
 
 const TEAM_COLORS = [
-    { name:'Indigo',  bg:'rgba(99,102,241,0.25)', border:'#6366f1', text:'#c7d2fe', hex:'#6366f1' },
-    { name:'Emerald', bg:'rgba(16,185,129,0.25)', border:'#10b981', text:'#a7f3d0', hex:'#10b981' },
-    { name:'Rose',    bg:'rgba(244,63,94,0.25)',  border:'#f43f5e', text:'#fecdd3', hex:'#f43f5e' },
-    { name:'Amber',   bg:'rgba(245,158,11,0.25)', border:'#f59e0b', text:'#fde68a', hex:'#f59e0b' },
-    { name:'Cyan',    bg:'rgba(6,182,212,0.25)',  border:'#06b6d4', text:'#a5f3fc', hex:'#06b6d4' },
-    { name:'Fuchsia', bg:'rgba(217,70,239,0.25)', border:'#d946ef', text:'#f5d0fe', hex:'#d946ef' },
-    { name:'Lime',    bg:'rgba(132,204,22,0.25)', border:'#84cc16', text:'#d9f99d', hex:'#84cc16' },
-    { name:'Orange',  bg:'rgba(249,115,22,0.25)', border:'#f97316', text:'#fed7aa', hex:'#f97316' }
+    { name:'Indigo',  bg:'rgba(99,102,241,0.25)', border:'#6366f1', text:'#c7d2fe' },
+    { name:'Emerald', bg:'rgba(16,185,129,0.25)', border:'#10b981', text:'#a7f3d0' },
+    { name:'Rose',    bg:'rgba(244,63,94,0.25)',  border:'#f43f5e', text:'#fecdd3' },
+    { name:'Amber',   bg:'rgba(245,158,11,0.25)', border:'#f59e0b', text:'#fde68a' },
+    { name:'Cyan',    bg:'rgba(6,182,212,0.25)',  border:'#06b6d4', text:'#a5f3fc' },
+    { name:'Fuchsia', bg:'rgba(217,70,239,0.25)', border:'#d946ef', text:'#f5d0fe' },
+    { name:'Lime',    bg:'rgba(132,204,22,0.25)', border:'#84cc16', text:'#d9f99d' },
+    { name:'Orange',  bg:'rgba(249,115,22,0.25)', border:'#f97316', text:'#fed7aa' }
 ];
 function teamColor(idx) { return TEAM_COLORS[idx % TEAM_COLORS.length]; }
 
@@ -648,17 +476,14 @@ function escapeHtml(s) {
 
 /* ---------- STATE ---------- */
 const appState = {
-    role: 'host',
     db: null,
     cards: [],
     unplayedIndices: [],
     currentCard: null,
     teams: [
-        { name:'Team Alpha', score:0 },
-        { name:'Team Beta',  score:0 }
+        { name:'Team Alpha', players:'Player 1, Player 2', score:0, playerIndex:0 },
+        { name:'Team Beta',  players:'Player 3, Player 4', score:0, playerIndex:0 }
     ],
-    players: [],
-    currentClueGiverId: null,
     config: { totalRounds:3, turnTimerSec:60, maxSkips:3, tabooPenalty:-1, correctPoint:1 },
     gameState: {
         currentRound:1,
@@ -667,38 +492,15 @@ const appState = {
         timerSeconds:60,
         timerInterval:null,
         isPaused:false,
-        isActive:false,
-        turnStartTime:0,
-        recentActions:{}
-    },
-    hostIsPlaying:false,
-    hostPlayer: { name:'', teamIndex:0 },
-    peer:null,
-    peerConnections: [],
-    roomCode:'',
-    hostRetryCount:0,
-    myPlayerId: null,
-    myPlayerName: '',
-    myTeamIndex: 0
+        isActive:false
+    }
 };
 
 /* ---------- INIT ---------- */
 window.onload = function() {
     initDatabase();
     renderTeamInputs();
-    renderHostTeamSelect();
-    builderRenderCategories();
     updateSoundIcon();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomParam = urlParams.get('room') || urlParams.get('join');
-    if (roomParam && roomParam.length === 4) {
-        setRole('player');
-        document.getElementById('joinRoomCodeInput').value = roomParam;
-        setTimeout(() => lookupRoomTeams(), 800);
-    } else {
-        initPeerHost();
-    }
     checkSavedGame();
 };
 
@@ -1001,7 +803,7 @@ function builderExportAndSave() {
 }
 
 /* ============================================================
-   TEAMS / PLAYERS / SETUP UI
+   TEAMS / SETUP UI
    ============================================================ */
 function renderTeamInputs() {
     const c = document.getElementById("teamsContainer");
@@ -1012,47 +814,60 @@ function renderTeamInputs() {
         const div = document.createElement("div");
         div.className = "bg-slate-950 p-3 rounded-xl border space-y-2";
         div.style.borderColor = col.border;
-        div.innerHTML = `
-            <div class="flex justify-between items-center">
-                <span class="text-xs font-bold" style="color:${col.text}">Team ${i+1}</span>
-                ${appState.teams.length > 2 ? `<button onclick="removeTeamInput(${i})" class="text-rose-400 text-xs px-1"><i class="fa-solid fa-trash"></i></button>` : ''}
-            </div>`;
-        const input = document.createElement("input");
-        input.type = "text"; input.value = t.name;
-        input.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white w-full";
-        input.onchange = () => { appState.teams[i].name = input.value; renderHostTeamSelect(); renderTeamInputs(); };
-        div.appendChild(input);
+        
+        const header = document.createElement("div");
+        header.className = "flex justify-between items-center";
+        header.innerHTML = `<span class="text-xs font-bold" style="color:${col.text}">Team ${i+1}</span>`;
+        if (appState.teams.length > 2) {
+            const btn = document.createElement("button");
+            btn.className = "text-rose-400 text-xs px-1";
+            btn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            btn.onclick = () => removeTeamInput(i);
+            header.appendChild(btn);
+        }
+        div.appendChild(header);
+
+        const grid = document.createElement("div");
+        grid.className = "grid grid-cols-1 gap-2";
+
+        // Team Name Input
+        const nameInput = document.createElement("input");
+        nameInput.type = "text"; nameInput.value = t.name;
+        nameInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white w-full";
+        nameInput.placeholder = "Team Name";
+        nameInput.onchange = () => { appState.teams[i].name = nameInput.value; renderTeamInputs(); };
+        
+        // Players Input
+        const playersInput = document.createElement("input");
+        playersInput.type = "text"; playersInput.value = t.players;
+        playersInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white w-full";
+        playersInput.placeholder = "Players (comma separated)";
+        playersInput.onchange = () => { appState.teams[i].players = playersInput.value; };
+
+        grid.appendChild(nameInput);
+        grid.appendChild(playersInput);
+        div.appendChild(grid);
         c.appendChild(div);
     });
-    renderHostTeamSelect();
-}
-function renderHostTeamSelect() {
-    const sel = document.getElementById("hostPlayerTeam");
-    if (!sel) return;
-    sel.innerHTML = appState.teams.map((t, i) =>
-        `<option value="${i}">${escapeHtml(t.name)}</option>`).join('');
 }
 function addTeamInput() {
     if (appState.teams.length >= 8) return alert("Max 8 teams.");
-    appState.teams.push({ name: `Team ${String.fromCharCode(65 + appState.teams.length)}`, score:0 });
+    appState.teams.push({ name: `Team ${String.fromCharCode(65 + appState.teams.length)}`, players:'Player 1, Player 2', score:0, playerIndex:0 });
     renderTeamInputs();
 }
 function removeTeamInput(i) {
     if (appState.teams.length > 2) { appState.teams.splice(i, 1); renderTeamInputs(); }
 }
-function toggleHostPlaying() {
-    appState.hostIsPlaying = !appState.hostIsPlaying;
-    const btn = document.getElementById("hostPlayToggle");
-    const fields = document.getElementById("hostPlayerFields");
-    if (appState.hostIsPlaying) {
-        btn.innerText = "Join as Player";
-        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 border border-emerald-500 text-white";
-        fields.classList.remove("hidden");
-    } else {
-        btn.innerText = "Referee";
-        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300";
-        fields.classList.add("hidden");
-    }
+
+function getActiveClueGiverPlayer(team) {
+    if (!team.players || !team.players.trim()) return team.name;
+    const list = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    if (list.length === 0) return team.name;
+    return list[(team.playerIndex || 0) % list.length];
+}
+function getActiveClueGiverFull(team) {
+    const p = getActiveClueGiverPlayer(team);
+    return p === team.name ? team.name : `${p} (${team.name})`;
 }
 
 /* ============================================================
@@ -1060,56 +875,21 @@ function toggleHostPlaying() {
    ============================================================ */
 function startGameHost() {
     if (appState.cards.length === 0) return alert("Database empty. Load a deck first.");
-    if (appState.hostIsPlaying) {
-        const name = document.getElementById("hostPlayerName").value.trim();
-        if (!name) return alert("Enter your name since you're joining as a player.");
-        appState.hostPlayer.name = name;
-        appState.hostPlayer.teamIndex = parseInt(document.getElementById("hostPlayerTeam").value) || 0;
-    }
 
     appState.config.totalRounds = parseInt(document.getElementById("cfgRounds").value) || 3;
     appState.config.turnTimerSec = parseInt(document.getElementById("cfgTimer").value) || 60;
     appState.config.maxSkips = parseInt(document.getElementById("cfgMaxSkips").value) || 3;
     appState.config.tabooPenalty = parseInt(document.getElementById("cfgTabooPenalty").value);
 
-    appState.teams.forEach(t => t.score = 0);
+    appState.teams.forEach(t => { t.score = 0; t.playerIndex = 0; });
     appState.gameState.currentRound = 1;
     appState.gameState.currentTeamIndex = 0;
-
-    if (appState.hostIsPlaying) {
-        appState.myPlayerId = 'HOST_' + Date.now();
-        appState.myPlayerName = appState.hostPlayer.name;
-        appState.myTeamIndex = appState.hostPlayer.teamIndex;
-        appState.players = [{
-            id: appState.myPlayerId, name: appState.hostPlayer.name,
-            teamIndex: appState.hostPlayer.teamIndex, isHost: true, conn: null
-        }];
-    } else {
-        appState.myPlayerId = null;
-        appState.players = [];
-    }
+    appState.gameState.isActive = true;
 
     document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
     document.getElementById("setupView").classList.add("hidden");
     document.getElementById("gameOverView").classList.add("hidden");
-
-    if (appState.hostIsPlaying) {
-        document.getElementById("gameView").classList.add("hidden");
-        document.getElementById("playerView").classList.remove("hidden");
-        receiveSyncedState({
-            teams: appState.teams,
-            currentTeamIndex: 0,
-            currentRound: 1,
-            timerSeconds: appState.config.turnTimerSec,
-            isActive: false,
-            currentClueGiverId: null,
-            currentClueGiverName: null,
-            skipsRemaining: appState.config.maxSkips
-        });
-    } else {
-        document.getElementById("gameView").classList.remove("hidden");
-        document.getElementById("playerView").classList.add("hidden");
-    }
+    document.getElementById("gameView").classList.remove("hidden");
 
     resetDeckIndices();
     prepTurn();
@@ -1121,91 +901,81 @@ function prepTurn() {
     renderScoreboard();
 
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    const teamPlayers = appState.players.filter(p => p.teamIndex === appState.gameState.currentTeamIndex);
+    const clueGiverPlayer = getActiveClueGiverPlayer(currentTeam);
+    const clueGiverFull = getActiveClueGiverFull(currentTeam);
     
-    if (teamPlayers.length === 0) {
-        appState.gameState.currentClueGiverId = null;
-    } else {
-        const idx = (appState.gameState.currentRound - 1) % teamPlayers.length;
-        appState.gameState.currentClueGiverId = teamPlayers[idx].id;
-    }
-    appState.gameState.skipsRemaining = appState.config.maxSkips;
-    appState.gameState.timerSeconds = appState.config.turnTimerSec;
+    document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
+    
+    const turnEl = document.getElementById("turnIndicator");
+    const col = teamColor(appState.gameState.currentTeamIndex);
+    turnEl.innerText = `${currentTeam.name}'s Turn`;
+    turnEl.style.color = col.text;
+    turnEl.style.backgroundColor = col.bg;
+    turnEl.style.borderColor = col.border;
+    
+    document.getElementById("activeClueGiver").innerText = clueGiverPlayer;
+    document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
+    document.getElementById("cardTargetWord").innerText = "READY?";
+    
+    document.getElementById("forbiddenList").innerHTML = `
+        <div class="p-4 text-center">
+            <span class="text-slate-300 font-bold text-sm">Pass phone to</span><br>
+            <span class="font-black text-base tracking-wide" style="color:${col.text}">${escapeHtml(clueGiverFull)}</span><br>
+            <span class="text-xs text-slate-400 font-medium mt-1 block">Tap 'START TURN' when ready!</span>
+        </div>
+    `;
 
-    if (!appState.hostIsPlaying && appState.role === 'host') {
-        document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
-        const turnEl = document.getElementById("turnIndicator");
-        const col = teamColor(appState.gameState.currentTeamIndex);
-        turnEl.innerText = `${currentTeam.name}'s Turn (Ready)`;
-        turnEl.style.color = col.text;
-        turnEl.style.backgroundColor = col.bg;
-        turnEl.style.borderColor = col.border;
-        document.getElementById("activeClueGiver").innerText = currentClueGiverName() || "—";
-        document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
-        document.getElementById("cardTargetWord").innerText = "READY?";
-        document.getElementById("forbiddenList").innerHTML =
-            `<p class="text-xs text-slate-500 text-center py-4">Waiting for the clue-giver to start…</p>`;
-        document.getElementById("actionContainer").className = "grid grid-cols-1 gap-3 pt-1";
-        document.getElementById("actionContainer").innerHTML =
-            `<button onclick="hostStartTurn()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl">\n<i class="fa-solid fa-play"></i> START TURN\n</button>`;
-    }
-
-    broadcastState();
-
-    if (appState.hostIsPlaying) {
-        receiveSyncedState({
-            teams: appState.teams,
-            currentTeamIndex: appState.gameState.currentTeamIndex,
-            currentRound: appState.gameState.currentRound,
-            timerSeconds: appState.gameState.timerSeconds,
-            isActive: false,
-            card: null,
-            currentClueGiverId: appState.gameState.currentClueGiverId,
-            currentClueGiverName: currentClueGiverName(),
-            skipsRemaining: appState.gameState.skipsRemaining
-        });
-    }
+    const ac = document.getElementById("actionContainer");
+    ac.className = "grid grid-cols-1 gap-3 pt-1";
+    ac.innerHTML = `
+        <button onclick="beginActualTurn()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-play"></i> START TURN
+        </button>
+    `;
 }
 
-function currentClueGiverName() {
-    const p = appState.players.find(x => x.id === appState.gameState.currentClueGiverId);
-    return p ? p.name : null;
-}
-
-function hostStartTurn() {
-    if (appState.role !== 'host') return;
-    beginTurn();
-}
-
-function beginTurn() {
+function beginActualTurn() {
     appState.gameState.isActive = true;
     appState.gameState.skipsRemaining = appState.config.maxSkips;
     appState.gameState.timerSeconds = appState.config.turnTimerSec;
     appState.gameState.isPaused = false;
-    appState.gameState.turnStartTime = Date.now();
-    appState.gameState.recentActions = {};
+    
     soundEngine.play('start');
+    
+    const ac = document.getElementById("actionContainer");
+    ac.className = "grid grid-cols-3 gap-3 pt-1";
+    ac.innerHTML = `
+        <button onclick="handleCardAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1">
+            <i class="fa-solid fa-ban text-xl"></i>
+            <span class="text-[10px]">TABOO (${appState.config.tabooPenalty})</span>
+        </button>
+        <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1">
+            <i class="fa-solid fa-forward text-xl"></i>
+            <span class="text-[10px]">SKIP</span>
+        </button>
+        <button onclick="handleCardAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1">
+            <i class="fa-solid fa-check text-xl"></i>
+            <span class="text-[10px]">CORRECT (+1)</span>
+        </button>
+    `;
+
+    updateTurnHeader();
+    renderScoreboard();
     drawNextCard();
     startTimer();
-    renderScoreboard();
-    broadcastState();
+}
 
-    if (!appState.hostIsPlaying && appState.role === 'host') {
-        const ac = document.getElementById("actionContainer");
-        ac.className = "grid grid-cols-3 gap-3 pt-1";
-        ac.innerHTML = `
-            <button onclick="hostAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-2xl flex flex-col items-center justify-center gap-1">
-                <i class="fa-solid fa-ban text-xl"></i>
-                <span class="text-[10px]">TABOO (${appState.config.tabooPenalty})</span>
-            </button>
-            <button id="skipBtn" onclick="hostAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 text-white font-extrabold rounded-2xl flex flex-col items-center justify-center gap-1">
-                <i class="fa-solid fa-forward text-xl"></i>
-                <span class="text-[10px]">SKIP</span>
-            </button>
-            <button onclick="hostAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl flex flex-col items-center justify-center gap-1">
-                <i class="fa-solid fa-check text-xl"></i>
-                <span class="text-[10px]">CORRECT (+1)</span>
-            </button>`;
+function updateTurnHeader() {
+    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
+    document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn`;
+    document.getElementById("skipsLeftDisplay").innerText = appState.gameState.skipsRemaining;
+    document.getElementById("activeClueGiver").innerText = getActiveClueGiverPlayer(currentTeam);
+
+    const skipBtn = document.getElementById("skipBtn");
+    if (skipBtn) {
+        if (appState.gameState.skipsRemaining <= 0) skipBtn.classList.add("opacity-50", "pointer-events-none");
+        else skipBtn.classList.remove("opacity-50", "pointer-events-none");
     }
 }
 
@@ -1214,93 +984,54 @@ function drawNextCard() {
     const idx = appState.unplayedIndices.pop();
     appState.currentCard = appState.cards[idx];
 
-    if (!appState.hostIsPlaying && appState.role === 'host') {
-        document.getElementById("cardTargetWord").innerText = appState.currentCard.target;
-        const list = document.getElementById("forbiddenList");
-        list.innerHTML = "";
-        appState.currentCard.forbidden.forEach(w => {
-            const d = document.createElement("div");
-            d.className = "forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase tracking-wider";
-            d.innerText = w;
-            list.appendChild(d);
-        });
+    document.getElementById("cardTargetWord").innerText = appState.currentCard.target;
+    const list = document.getElementById("forbiddenList");
+    list.innerHTML = "";
+    appState.currentCard.forbidden.forEach(w => {
+        const d = document.createElement("div");
+        d.className = "forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase tracking-wider";
+        d.innerText = w;
+        list.appendChild(d);
+    });
+}
+
+function handleCardAction(action) {
+    if (!appState.gameState.isActive || appState.gameState.isPaused) return;
+    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    saveGameState();
+
+    if (action === 'correct') {
+        soundEngine.play('correct');
+        currentTeam.score += appState.config.correctPoint;
+        drawNextCard();
+    } else if (action === 'taboo') {
+        soundEngine.play('taboo');
+        currentTeam.score += appState.config.tabooPenalty;
+        drawNextCard();
+    } else if (action === 'skip' && appState.gameState.skipsRemaining > 0) {
+        soundEngine.play('skip');
+        appState.gameState.skipsRemaining--;
+        updateTurnHeader();
+        drawNextCard();
     }
-    broadcastState();
+    renderScoreboard();
 }
 
 function startTimer() {
     clearInterval(appState.gameState.timerInterval);
+    document.getElementById("timerDisplay").innerText = appState.gameState.timerSeconds;
+
     appState.gameState.timerInterval = setInterval(() => {
         if (appState.gameState.isPaused) return;
         appState.gameState.timerSeconds--;
-        if (appState.role === 'host') {
-            const el = document.getElementById("timerDisplay");
-            if (el) el.innerText = appState.gameState.timerSeconds;
-        }
+        document.getElementById("timerDisplay").innerText = appState.gameState.timerSeconds;
         if (appState.gameState.timerSeconds <= 5 && appState.gameState.timerSeconds > 0) soundEngine.play('tick');
-        broadcastState();
+
         if (appState.gameState.timerSeconds <= 0) {
             clearInterval(appState.gameState.timerInterval);
             endTurn();
         }
     }, 1000);
-}
-
-function hostAction(action) {
-    if (appState.role !== 'host') return;
-    applyAction(action, appState.myPlayerId || 'HOST_REF');
-}
-
-function applyAction(action, byPlayerId) {
-    if (appState.gameState.isPaused) return;
-
-    const key = `${byPlayerId}_${action}`;
-    const now = Date.now();
-    if (appState.gameState.recentActions[key] && now - appState.gameState.recentActions[key] < 200) return;
-    appState.gameState.recentActions[key] = now;
-
-    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    const byPlayer = appState.players.find(p => p.id === byPlayerId);
-    
-    const isClueGiver = byPlayerId === appState.gameState.currentClueGiverId;
-    const isOpposing = byPlayer && byPlayer.teamIndex !== appState.gameState.currentTeamIndex;
-    const isReferee = appState.role === 'host' && !appState.hostIsPlaying && !byPlayer;
-
-    if (action === 'startTurn') {
-        if (!isClueGiver) return; 
-        beginTurn();
-        return;
-    }
-
-    if (!appState.gameState.isActive) return;
-
-    if (action === 'correct') {
-        if (!isOpposing && !isReferee) return;
-        soundEngine.play('correct');
-        currentTeam.score += appState.config.correctPoint;
-        drawNextCard();
-    } else if (action === 'taboo') {
-        if (!isOpposing && !isReferee) return;
-        soundEngine.play('taboo');
-        currentTeam.score += appState.config.tabooPenalty;
-        drawNextCard();
-    } else if (action === 'skip') {
-        if (!isClueGiver && !isReferee) return;
-        if (appState.gameState.skipsRemaining <= 0) return;
-        soundEngine.play('skip');
-        appState.gameState.skipsRemaining--;
-        drawNextCard();
-    }
-    
-    renderScoreboard();
-    updateSkipsUI();
-    saveGameState();
-    broadcastState();
-}
-
-function updateSkipsUI() {
-    const sk = document.getElementById("skipsLeftDisplay");
-    if (sk) sk.innerText = appState.gameState.skipsRemaining;
 }
 
 function pauseResumeGame() {
@@ -1314,11 +1045,16 @@ function pauseResumeGame() {
 function endTurn() {
     soundEngine.play('turnEnd');
     appState.gameState.isActive = false;
+    
+    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    if (currentTeam) currentTeam.playerIndex = (currentTeam.playerIndex || 0) + 1;
+    
     appState.gameState.currentTeamIndex++;
     if (appState.gameState.currentTeamIndex >= appState.teams.length) {
         appState.gameState.currentTeamIndex = 0;
         appState.gameState.currentRound++;
     }
+
     if (appState.gameState.currentRound > appState.config.totalRounds) showGameOver();
     else { saveGameState(); prepTurn(); }
 }
@@ -1329,10 +1065,11 @@ function showGameOver() {
     checkSavedGame();
     soundEngine.play('gameOver');
     const sorted = [...appState.teams].sort((a, b) => b.score - a.score);
+    
     document.getElementById("gameView").classList.add("hidden");
-    document.getElementById("playerView").classList.add("hidden");
     document.getElementById("gameOverView").classList.remove("hidden");
     document.getElementById("winnerName").innerText = sorted[0].name;
+    
     const summary = document.getElementById("finalScoreboard");
     summary.innerHTML = "";
     sorted.forEach((t, idx) => {
@@ -1346,494 +1083,38 @@ function showGameOver() {
             <span class="font-black" style="color:${col.text}">${t.score} PTS</span>`;
         summary.appendChild(div);
     });
-    broadcastState();
 }
 
 function resetToSetup() {
-    destroyPeer();
-    initPeerHost();
     document.getElementById("gameOverView").classList.add("hidden");
     document.getElementById("setupView").classList.remove("hidden");
 }
 
 function renderScoreboard() {
     const bar = document.getElementById("scoreboardBar");
-    if (bar) {
-        bar.innerHTML = "";
-        appState.teams.forEach((t, i) => {
-            const col = teamColor(i);
-            const isCur = i === appState.gameState.currentTeamIndex;
-            const div = document.createElement("div");
-            div.className = "p-2 rounded-xl flex justify-between items-center border";
-            div.style.backgroundColor = isCur ? col.bg : '#020617';
-            div.style.borderColor = isCur ? col.border : '#1e293b';
-            div.innerHTML = `
-                <span class="text-xs font-bold truncate" style="color:${isCur ? col.text : '#94a3b8'}">${escapeHtml(t.name)}</span>
-                <span class="text-xs font-black text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${t.score}</span>`;
-            bar.appendChild(div);
-        });
-    }
-    const p = document.getElementById("playerScoreboard");
-    if (p) {
-        p.innerHTML = "";
-        appState.teams.forEach((t, i) => {
-            const col = teamColor(i);
-            const isCur = i === appState.gameState.currentTeamIndex;
-            const div = document.createElement("div");
-            div.className = "bg-slate-950 p-2 rounded-lg border text-xs flex justify-between";
-            div.style.borderColor = isCur ? col.border : '#1e293b';
-            div.innerHTML = `
-                <span class="font-bold" style="color:${col.text}">${escapeHtml(t.name)}</span>
-                <span class="font-black" style="color:${col.text}">${t.score}</span>`;
-            p.appendChild(div);
-        });
-    }
-}
-
-/* ============================================================
-   PEERJS & LOOKUP
-   ============================================================ */
-function generate4DigitCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
-function destroyPeer() {
-    if (appState.peer) { try { appState.peer.destroy(); } catch(e) {} appState.peer = null; }
-    appState.peerConnections = [];
-    updatePeerCountUI();
-    renderConnectedList();
-}
-function initPeerHost() {
-    destroyPeer();
-    appState.roomCode = generate4DigitCode();
-    const peerId = "taboo-room-" + appState.roomCode;
-    try { appState.peer = new Peer(peerId); } catch(e) { console.error(e); return; }
-    appState.peer.on('open', () => {
-        appState.hostRetryCount = 0;
-        const el = document.getElementById("displayRoomCode");
-        if (el) el.innerText = appState.roomCode;
-        const badge = document.getElementById("roomCodeBadge");
-        if (badge) { badge.innerText = `ROOM: ${appState.roomCode}`; badge.classList.remove("hidden"); }
-        const qr = document.getElementById("roomQRCode");
-        if (qr) {
-            const url = window.location.origin + window.location.pathname + '?room=' + appState.roomCode;
-            qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=` + encodeURIComponent(url);
-        }
+    if (!bar) return;
+    bar.innerHTML = "";
+    appState.teams.forEach((t, i) => {
+        const col = teamColor(i);
+        const isCur = i === appState.gameState.currentTeamIndex;
+        const div = document.createElement("div");
+        div.className = "p-2 rounded-xl flex justify-between items-center border";
+        div.style.backgroundColor = isCur ? col.bg : '#020617';
+        div.style.borderColor = isCur ? col.border : '#1e293b';
+        div.innerHTML = `
+            <span class="text-xs font-bold truncate" style="color:${isCur ? col.text : '#94a3b8'}">${escapeHtml(t.name)}</span>
+            <span class="text-xs font-black text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${t.score}</span>`;
+        bar.appendChild(div);
     });
-    appState.peer.on('connection', conn => {
-        conn.on('data', data => handleIncomingPlayerMessage(conn, data));
-        conn.on('open', () => {});
-        conn.on('close', () => {
-            appState.peerConnections = appState.peerConnections.filter(x => x.conn !== conn);
-            const removed = appState.players.find(p => p.conn === conn);
-            if (removed) appState.players = appState.players.filter(p => p.conn !== conn);
-            updatePeerCountUI();
-            renderConnectedList();
-            broadcastState();
-        });
-    });
-    appState.peer.on('error', err => {
-        if (err.type === 'unavailable-id' && appState.hostRetryCount < 3) {
-            appState.hostRetryCount++;
-            setTimeout(initPeerHost, 500);
-        }
-    });
-}
-
-function handleIncomingPlayerMessage(conn, data) {
-    if (!data || !data.type) return;
-
-    if (data.type === 'requestTeams') {
-        conn.send({ type: 'teamsList', teams: appState.teams.map(t => t.name) });
-        return;
-    }
-
-    if (data.type === 'join') {
-        const teamIdx = parseInt(data.teamIndex);
-        if (isNaN(teamIdx) || teamIdx < 0 || teamIdx >= appState.teams.length) {
-            conn.send({ type:'joinError', message:'Team no longer exists. Please rejoin.' });
-            return;
-        }
-        const name = String(data.name || '').trim().slice(0, 20);
-        if (!name) { conn.send({ type:'joinError', message:'Name is required.' }); return; }
-
-        const existing = appState.players.find(p => p.name === name && p.teamIndex === teamIdx && !p.isHost);
-        if (existing && existing.conn && existing.conn.open) {
-            conn.send({ type:'joinError', message:`${name} is already playing on ${appState.teams[teamIdx].name}. Pick another name.` });
-            return;
-        }
-        if (existing) {
-            existing.conn = conn;
-            existing.id = 'P_' + Date.now();
-            appState.peerConnections = appState.peerConnections.filter(x => x.conn !== conn);
-            appState.peerConnections.push({ conn, playerId: existing.id });
-        } else {
-            const id = 'P_' + Date.now();
-            appState.players.push({ id, name, teamIndex:teamIdx, isHost:false, conn });
-            appState.peerConnections.push({ conn, playerId:id });
-        }
-        conn.send({ type:'joinAccepted', teams: appState.teams.map(t => t.name) });
-        updatePeerCountUI();
-        renderConnectedList();
-        broadcastState();
-        return;
-    }
-
-    if (data.type === 'action' && data.action) {
-        // FIXED: Retrieve playerId sent from the client, fallback to connection lookup
-        let playerId = data.playerId;
-        if (!playerId) {
-            const player = appState.players.find(p => p.conn === conn);
-            if (player) playerId = player.id;
-        }
-        
-        if (playerId) {
-            applyAction(data.action, playerId);
-        }
-    }
-}
-
-let lookupPeer = null;
-let lookupConn = null;
-let discoveredTeams = [];
-let discoveredRoomCode = '';
-
-function onRoomCodeChanged() {
-    const code = document.getElementById("joinRoomCodeInput").value.trim();
-    if (code !== discoveredRoomCode) {
-        discoveredTeams = [];
-        document.getElementById("joinTeamSelect").disabled = true;
-        document.getElementById("joinTeamSelect").innerHTML = `<option value="">— enter code & tap Lookup —</option>`;
-        document.getElementById("joinBtn").disabled = true;
-        document.getElementById("lookupStatus").innerText = "";
-    }
-    const btn = document.getElementById("lookupBtn");
-    if (btn) btn.disabled = code.length !== 4;
-}
-
-function lookupRoomTeams() {
-    const code = document.getElementById("joinRoomCodeInput").value.trim();
-    if (code.length !== 4) {
-        document.getElementById("lookupStatus").innerText = "Enter 4-digit code first.";
-        return;
-    }
-    const status = document.getElementById("lookupStatus");
-    status.innerText = "Connecting to room " + code + "…";
-    status.className = "text-[11px] text-amber-400 text-center min-h-[16px]";
-
-    if (lookupPeer) { try { lookupPeer.destroy(); } catch(e) {} lookupPeer = null; }
-    lookupPeer = new Peer();
-    const myPeer = lookupPeer;
-
-    myPeer.on('open', () => {
-        const conn = myPeer.connect("taboo-room-" + code);
-        lookupConn = conn;
-        let timeout = setTimeout(() => {
-            status.innerText = "❌ Host not responding. Check code and try again.";
-            status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
-            try { conn.close(); } catch(e) {}
-        }, 5000);
-
-        conn.on('open', () => {
-            conn.send({ type: 'requestTeams' });
-        });
-
-        conn.on('data', data => {
-            clearTimeout(timeout);
-            if (data.type === 'teamsList') {
-                discoveredTeams = data.teams || [];
-                discoveredRoomCode = code;
-                status.innerText = `✅ Room found — ${discoveredTeams.length} team(s) available.`;
-                status.className = "text-[11px] text-emerald-400 text-center min-h-[16px]";
-
-                const sel = document.getElementById("joinTeamSelect");
-                sel.innerHTML = discoveredTeams.map((name, i) =>
-                    `<option value="${i}">${escapeHtml(name)}</option>`
-                ).join('');
-                sel.disabled = false;
-
-                const nameInput = document.getElementById("joinNameInput");
-                nameInput.focus();
-                const updateJoinBtn = () => {
-                    document.getElementById("joinBtn").disabled = nameInput.value.trim().length === 0;
-                };
-                nameInput.oninput = updateJoinBtn;
-                updateJoinBtn();
-            } else if (data.type === 'joinError') {
-                status.innerText = "❌ " + (data.message || 'Join failed');
-                status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
-            }
-        });
-
-        conn.on('error', () => {
-            clearTimeout(timeout);
-            status.innerText = "❌ Connection error.";
-            status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
-        });
-    });
-
-    myPeer.on('error', err => {
-        if (err.type === 'peer-unavailable') {
-            status.innerText = "❌ Room not found. Check the code.";
-        } else {
-            status.innerText = "❌ " + (err.type || 'Error');
-        }
-        status.className = "text-[11px] text-rose-400 text-center min-h-[16px]";
-    });
-}
-
-function joinRoomAsPlayer() {
-    const code = document.getElementById("joinRoomCodeInput").value.trim();
-    const name = document.getElementById("joinNameInput").value.trim();
-    const teamIdx = parseInt(document.getElementById("joinTeamSelect").value);
-    if (code.length !== 4) return alert("Enter 4-digit code.");
-    if (!name) return alert("Enter your name.");
-    if (isNaN(teamIdx)) return alert("Select a team.");
-    if (!lookupConn || !lookupConn.open) {
-        return alert("Please tap Lookup first to load teams.");
-    }
-
-    const status = document.getElementById("joinStatusText");
-    status.innerText = "Sending join request…";
-
-    lookupConn.send({ type: 'join', name, teamIndex: teamIdx });
-
-    lookupConn.on('data', data => {
-        if (data.type === 'joinAccepted') {
-            status.innerText = "Connected!";
-            appState.myPlayerName = name;
-            appState.myTeamIndex = teamIdx;
-            appState.myPlayerId = 'P_' + Date.now();
-            appState.peer = lookupPeer;
-            appState.peerConnections = [{ conn: lookupConn, playerId: appState.myPlayerId }];
-            closeSyncModal();
-            setRole('player');
-            lookupConn.on('data', msg => receiveSyncedState(msg));
-        } else if (data.type === 'joinError') {
-            status.innerText = "❌ " + (data.message || 'Join failed');
-            status.className = "text-[11px] text-rose-400 text-center";
-        }
-    });
-}
-
-function updatePeerCountUI() {
-    const c = appState.players.filter(p => !p.isHost).length;
-    const a = document.getElementById("connectedPeerCount"); if (a) a.innerText = c;
-    const b = document.getElementById("modalConnectedCount"); if (b) b.innerText = c;
-}
-function renderConnectedList() {
-    const list = document.getElementById("connectedPlayersList");
-    if (!list) return;
-    const nonHost = appState.players.filter(p => !p.isHost);
-    if (nonHost.length === 0) {
-        list.innerHTML = `<p class="text-slate-500 text-center py-2">No players yet</p>`;
-        return;
-    }
-    list.innerHTML = nonHost.map(p => {
-        const col = teamColor(p.teamIndex);
-        return `<div class="flex justify-between">
-            <span class="font-bold" style="color:${col.text}">${escapeHtml(p.name)}</span>
-            <span class="text-slate-400 text-[10px]">${escapeHtml(appState.teams[p.teamIndex]?.name || '')}</span>
-        </div>`;
-    }).join('');
-}
-
-function receiveSyncedState(data) {
-    if (!data) return;
-    if (data.type === 'joinAccepted') return;
-
-    const myId = appState.myPlayerId;
-    const myTeam = appState.myTeamIndex;
-    
-    const myRole = data.gameOver ? 'gameover' :
-        (data.currentClueGiverId === myId ? 'cluegiver' :
-        (myTeam === data.currentTeamIndex ? 'teammate' : 'opposing'));
-
-    const currentTeamName = data.teams?.[data.currentTeamIndex]?.name || '—';
-    
-    document.getElementById("playerTurnLine").innerText = `${currentTeamName}'s Turn`;
-    
-    if (myRole === 'cluegiver') {
-        document.getElementById("playerRoleLabel").innerText = '🎯 YOUR TURN — CLUE-GIVER';
-    } else if (myRole === 'teammate') {
-        document.getElementById("playerRoleLabel").innerText = '⏳ YOUR TEAMMATE IS GIVING CLUES';
-    } else if (myRole === 'opposing') {
-        document.getElementById("playerRoleLabel").innerText = '👁 JUDGE MODE — OPPOSING TEAM';
-    } else {
-        document.getElementById("playerRoleLabel").innerText = 'WAITING';
-    }
-
-    const baseSeconds = data.timerSeconds ?? 60;
-    const drift = data.hostTimestamp ? Math.floor((Date.now() - data.hostTimestamp) / 1000) : 0;
-    document.getElementById("playerTimerDisplay").innerText = Math.max(0, baseSeconds - drift);
-    document.getElementById("playerRoundDisplay").innerText = data.currentRound || 1;
-
-    const cardTarget = document.getElementById("clueTargetWord");
-    const cardForbidden = document.getElementById("clueForbiddenList");
-    const oppTarget = document.getElementById("opposingTargetWord");
-    const oppForbidden = document.getElementById("opposingForbiddenList");
-    const refSummary = document.getElementById("refereeCardSummary");
-    const refForbidden = document.getElementById("refereeForbiddenList");
-
-    ['clueGiverCard','teammateCard','opposingCard','refereeCard'].forEach(id => {
-        const el = document.getElementById(id); if (el) el.classList.add("hidden");
-    });
-
-    if (myRole === 'cluegiver') {
-        document.getElementById("clueGiverCard").classList.remove("hidden");
-        
-        if (!data.isActive) {
-            cardTarget.innerText = "GET READY";
-            cardForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Tap START to reveal the card and begin the timer.</p>`;
-            document.getElementById("playerStartBtn").style.display = 'block';
-            document.getElementById("playerSkipBtn").style.display = 'none';
-        } else {
-            if (data.card) {
-                cardTarget.innerText = data.card.target;
-                cardForbidden.innerHTML = data.card.forbidden.map(w =>
-                    `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
-                ).join('');
-            }
-            document.getElementById("playerStartBtn").style.display = 'none';
-            document.getElementById("playerSkipBtn").style.display = 'block';
-            document.getElementById("playerSkipCount").innerText = data.skipsRemaining ?? 0;
-            const skipBtn = document.getElementById("playerSkipBtn");
-            if (skipBtn) skipBtn.disabled = (data.skipsRemaining ?? 0) <= 0;
-        }
-    } 
-    else if (myRole === 'teammate') {
-        document.getElementById("teammateCard").classList.remove("hidden");
-        document.getElementById("clueGiverNameHidden").innerText = data.currentClueGiverName || 'Your teammate';
-        
-        const teammateHint = document.getElementById("teammateHintText");
-        if (!data.isActive) {
-            teammateHint.innerText = `Waiting for ${data.currentClueGiverName || 'your teammate'} to start...`;
-        } else {
-            teammateHint.innerText = "Listen and shout your guesses!";
-        }
-    } 
-    else if (myRole === 'opposing') {
-        document.getElementById("opposingCard").classList.remove("hidden");
-        
-        if (!data.isActive) {
-            oppTarget.innerText = "WAITING";
-            oppForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Waiting for ${data.currentClueGiverName || 'the clue-giver'} to start...</p>`;
-            document.querySelectorAll("#opposingCard button").forEach(b => b.disabled = true);
-        } else {
-            if (data.card) {
-                oppTarget.innerText = data.card.target;
-                oppForbidden.innerHTML = data.card.forbidden.map(w =>
-                    `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
-                ).join('');
-            }
-            document.querySelectorAll("#opposingCard button").forEach(b => b.disabled = false);
-        }
-    }
-    else if (myRole === 'gameover' && myTeam === undefined) {
-        document.getElementById("refereeCard").classList.remove("hidden");
-        if (data.card) {
-            document.getElementById("refereeCardSummary").classList.remove("hidden");
-            refForbidden.innerHTML = data.card.forbidden.map(w =>
-                `<div class="text-[10px] text-slate-300 font-bold">• ${escapeHtml(w)}</div>`
-            ).join('');
-        }
-    }
-
-    const sb = document.getElementById("playerScoreboard");
-    if (sb && data.teams) {
-        sb.innerHTML = "";
-        data.teams.forEach((t, i) => {
-            const col = teamColor(i);
-            const isCur = i === data.currentTeamIndex;
-            const div = document.createElement("div");
-            div.className = "bg-slate-950 p-2 rounded-lg border text-xs flex justify-between";
-            div.style.borderColor = isCur ? col.border : '#1e293b';
-            div.innerHTML = `<span class="font-bold" style="color:${col.text}">${escapeHtml(t.name)}</span>
-                             <span class="font-black" style="color:${col.text}">${t.score}</span>`;
-            sb.appendChild(div);
-        });
-    }
-
-    const panel = document.getElementById("playerGameOverPanel");
-    if (data.gameOver) {
-        panel.classList.remove("hidden");
-        document.getElementById("playerWinnerName").innerText = data.winnerName || '—';
-        document.getElementById("playerFinalScores").innerHTML =
-            (data.finalScores || []).map(s =>
-                `<div>${escapeHtml(s.name)}: <strong>${s.score}</strong></div>`).join('');
-    } else {
-        panel.classList.add("hidden");
-    }
-}
-
-function playerSendAction(action) {
-    if (!appState.peerConnections.length) return;
-    const conn = appState.peerConnections[0].conn;
-    // FIXED: Include playerId in the payload so the host knows who pressed the button
-    if (conn && conn.open) conn.send({ type:'action', action, playerId: appState.myPlayerId });
-}
-
-function broadcastState() {
-    if (appState.role !== 'host') return;
-    const winner = appState.gameState.currentRound > appState.config.totalRounds
-        ? [...appState.teams].sort((a, b) => b.score - a.score)[0].name : null;
-    const base = {
-        card: appState.currentCard,
-        teams: appState.teams,
-        currentTeamIndex: appState.gameState.currentTeamIndex,
-        currentRound: appState.gameState.currentRound,
-        timerSeconds: appState.gameState.timerSeconds,
-        isActive: appState.gameState.isActive,
-        hostTimestamp: Date.now(),
-        turnStartTime: appState.gameState.turnStartTime,
-        gameOver: appState.gameState.currentRound > appState.config.totalRounds,
-        winnerName: winner,
-        finalScores: appState.teams.map(t => ({ name: t.name, score: t.score, colorIdx: 0 })),
-        currentClueGiverId: appState.gameState.currentClueGiverId,
-        currentClueGiverName: currentClueGiverName(),
-        skipsRemaining: appState.gameState.skipsRemaining
-    };
-    appState.peerConnections.forEach(({ conn }) => {
-        if (conn && conn.open) conn.send(base);
-    });
-}
-
-function setRole(role) {
-    if (appState.role !== role) destroyPeer();
-    appState.role = role;
-    const hostBtn = document.getElementById("modeHostBtn");
-    const playerBtn = document.getElementById("modePlayerBtn");
-    const roleBadge = document.getElementById("roleBadge");
-    if (role === 'host') {
-        hostBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow";
-        playerBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
-        roleBadge.innerText = "Host";
-        document.getElementById("hostSyncPanel").classList.remove("hidden");
-        document.getElementById("playerSyncPanel").classList.add("hidden");
-        document.getElementById("setupView").classList.remove("hidden");
-        document.getElementById("gameView").classList.add("hidden");
-        document.getElementById("playerView").classList.add("hidden");
-        document.getElementById("gameOverView").classList.add("hidden");
-        initPeerHost();
-    } else {
-        playerBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow";
-        hostBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
-        roleBadge.innerText = "Player";
-        document.getElementById("playerSyncPanel").classList.remove("hidden");
-        document.getElementById("hostSyncPanel").classList.add("hidden");
-        document.getElementById("setupView").classList.add("hidden");
-        document.getElementById("gameView").classList.add("hidden");
-        document.getElementById("playerView").classList.remove("hidden");
-        document.getElementById("gameOverView").classList.add("hidden");
-    }
 }
 
 /* ---------- MODALS ---------- */
 function openDeckModal() { document.getElementById("deckModal").classList.remove("hidden"); }
 function closeDeckModal() { document.getElementById("deckModal").classList.add("hidden"); }
-function openSyncModal() { document.getElementById("syncModal").classList.remove("hidden"); }
-function closeSyncModal() { document.getElementById("syncModal").classList.add("hidden"); }
 function openHelpModal() { document.getElementById("helpModal").classList.remove("hidden"); }
 function closeHelpModal() { document.getElementById("helpModal").classList.add("hidden"); }
 function switchHelpTab(tab) {
-    ['rules', 'usage', 'sync', 'ai', 'faq'].forEach(t => {
+    ['rules', 'usage', 'gameplay', 'ai'].forEach(t => {
         const cap = t.charAt(0).toUpperCase() + t.slice(1);
         const btn = document.getElementById(`tabBtn${cap}`);
         const content = document.getElementById(`helpContent${cap}`);
@@ -1897,7 +1178,6 @@ function executeResumeGame() {
         document.getElementById("gameOverView").classList.add("hidden");
         document.getElementById("gameView").classList.remove("hidden");
         prepTurn();
-        broadcastState();
     } catch(e) { alert("Error loading saved game."); }
 }
 </script>
