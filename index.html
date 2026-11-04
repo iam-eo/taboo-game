@@ -442,7 +442,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — Pass & Play (Future-Proof AI)
+   TABOO MASTER ENGINE — Pass & Play (Final Bulletproof)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -726,12 +726,10 @@ async function builderFetchModels(apiKey) {
         if (d.error) throw new Error(d.error.message);
         if (!d.models || !Array.isArray(d.models)) throw new Error("Invalid response from API");
 
-        // Get all models that can generate text
         const validModels = d.models
             .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"))
             .map(m => m.name.replace("models/", ""));
 
-        // Sort by version (highest first, e.g. gemini-2.5 > gemini-1.5)
         validModels.sort((a, b) => {
             const getVersion = (str) => {
                 const match = str.match(/gemini-(\d+\.\d+)/);
@@ -740,7 +738,6 @@ async function builderFetchModels(apiKey) {
             return getVersion(b) - getVersion(a);
         });
 
-        // Try to find a 'flash' model first (faster), otherwise use the highest available
         const flashModels = validModels.filter(m => m.includes("flash"));
         
         if (flashModels.length > 0) return flashModels;
@@ -780,6 +777,15 @@ async function builderGenerateWithAI() {
     }
 
     const models = modelsOrError;
+    
+    // FIX: Check if models array is empty before proceeding
+    if (!models || models.length === 0) {
+        clearInterval(builderTimerInterval);
+        alert("No available AI models found for this API key. Please verify your key in Google AI Studio.");
+        pb.classList.add("hidden"); genBtn.disabled = false;
+        return;
+    }
+
     const catName = selCat.name;
     let generated = 0; const target = 50;
 
@@ -989,7 +995,9 @@ function savePlayersModal() {
 
 function getActiveClueGiverPlayer(team) {
     if (!team.playersArray || team.playersArray.length === 0) return team.name;
-    return team.playersArray[(team.playerIndex || 0) % team.playersArray.length];
+    // Ensure playerIndex doesn't exceed array bounds
+    const idx = (team.playerIndex || 0) % team.playersArray.length;
+    return team.playersArray[idx];
 }
 
 /* ============================================================
@@ -1303,10 +1311,11 @@ function executeResumeGame() {
         appState.teams = d.teams;
         appState.config = d.config;
         
-        // FIX: Migrate old save data that doesn't have playersArray
+        // FIX: Migrate old save data and ensure arrays exist
         appState.teams.forEach(t => {
-            if (!t.playersArray) t.playersArray = ['Player 1', 'Player 2'];
+            if (!t.playersArray || t.playersArray.length === 0) t.playersArray = ['Player 1'];
             if (!t.playerCount) t.playerCount = t.playersArray.length;
+            if (t.playerIndex >= t.playersArray.length) t.playerIndex = 0;
         });
 
         Object.assign(appState.gameState, {
@@ -1315,6 +1324,12 @@ function executeResumeGame() {
             skipsRemaining:d.gameState.skipsRemaining,
             timerSeconds:d.gameState.timerSeconds
         });
+
+        // FIX: Prevent out-of-bounds team index if teams were changed
+        if (appState.gameState.currentTeamIndex >= appState.teams.length) {
+            appState.gameState.currentTeamIndex = 0;
+        }
+
         appState.currentCard = d.currentCard;
         appState.unplayedIndices = d.unplayedIndices;
         
@@ -1323,9 +1338,12 @@ function executeResumeGame() {
         document.getElementById("gameOverView").classList.add("hidden");
         document.getElementById("gameView").classList.remove("hidden");
         
-        // FIX: Restart the current turn cleanly
+        // Restart the current turn cleanly
         prepTurn();
-    } catch(e) { console.error(e); alert("Error loading saved game."); }
+    } catch(e) { 
+        console.error(e); 
+        alert("Error loading saved game. The save file may be corrupted."); 
+    }
 }
 </script>
 </body>
