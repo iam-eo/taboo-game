@@ -400,4 +400,1464 @@
                         <input type="text" id="builderNewCatInput" placeholder="Add custom category..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
                         <button onclick="builderAddCategory()" class="bg-indigo-600 px-3 py-2 font-bold text-white rounded-xl">+ Add</button>
                     </div>
-                    <div id="builderCategoryContainer" class="flex flex-wrap gap-
+                    <div id="builderCategoryContainer" class="flex flex-wrap gap-1.5 pt-1"></div>
+                    <button onclick="builderGenerateWithAI()" id="builderGenBtn" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold uppercase rounded-xl shadow-lg mt-2">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate AI Cards (50)
+                    </button>
+                </div>
+                <div id="builderProgressBox" class="builder-card hidden">
+                    <div class="flex justify-between items-center font-bold text-indigo-300 text-xs">
+                        <span id="builderStatusText">Generating...</span>
+                        <span id="builderElapsedText" class="text-purple-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">0s</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center px-1 mb-2">
+                        <span class="font-bold text-slate-400">Generated: <strong id="builderTotalBadge" class="text-white">0</strong></span>
+                        <button onclick="builderClearWorkspace()" class="text-rose-400 font-bold">Clear</button>
+                    </div>
+                    <div id="builderCardsGrid" class="space-y-2"></div>
+                </div>
+            </div>
+            <button onclick="builderExportAndSave()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-database"></i> Save & Import to Database
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== SYNC MODAL ===== -->
+    <div id="syncModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-wifi text-indigo-400"></i> Connect Devices
+                </h3>
+                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="hostSyncPanel" class="space-y-3">
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-2">
+                    <span class="text-xs text-slate-400 font-semibold block">ROOM CODE</span>
+                    <div id="displayRoomCode" class="text-4xl font-black text-emerald-400 tracking-widest font-mono">----</div>
+                    <p class="text-[11px] text-slate-400">Scan QR to join instantly!</p>
+                    <div class="bg-white p-2 rounded-xl inline-block mx-auto mt-2">
+                        <img id="roomQRCode" src="" alt="Scan to Join" class="w-32 h-32 mx-auto rounded">
+                    </div>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Connected Players:</span>
+                    <strong id="modalConnectedCount" class="text-indigo-400 font-bold text-sm">0</strong>
+                </div>
+                <div id="connectedPlayersList" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1 max-h-32 overflow-y-auto">
+                    <p class="text-slate-500 text-center py-2">No players yet</p>
+                </div>
+            </div>
+            <div id="playerSyncPanel" class="hidden space-y-3">
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <label class="text-xs text-slate-400 font-semibold block text-center">ENTER HOST 4-DIGIT CODE</label>
+                    <input type="text" id="joinRoomCodeInput" maxlength="4" placeholder="1234" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-center text-2xl font-mono font-bold text-emerald-400 uppercase tracking-widest focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="joinNameInput" placeholder="Your name" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    <label class="text-xs text-slate-400 font-semibold block">YOUR TEAM</label>
+                    <select id="joinTeamSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                        <option value="">— enter code first to load teams —</option>
+                    </select>
+                    <button onclick="joinRoomAsPlayer()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg">
+                        JOIN GAME ROOM
+                    </button>
+                    <p id="joinStatusText" class="text-[11px] text-slate-400 text-center"></p>
+                </div>
+            </div>
+            <button onclick="closeSyncModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Done</button>
+        </div>
+    </div>
+
+    <!-- ===== HELP MODAL (5 tabs) ===== -->
+    <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-indigo-400"></i> Taboo Guide & Help
+                </h3>
+                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[10px] font-bold overflow-x-auto">
+                <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 px-1 rounded-lg bg-indigo-600 text-white text-center whitespace-nowrap">Rules</button>
+                <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Controls</button>
+                <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Multi-Phone</button>
+                <button onclick="switchHelpTab('ai')" id="tabBtnAi" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">AI Builder</button>
+                <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">FAQ</button>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
+
+                <!-- Quick Start Card -->
+                <div class="bg-gradient-to-br from-indigo-950/80 to-purple-950/60 border border-indigo-500/40 rounded-xl p-3 space-y-1.5">
+                    <h4 class="font-bold text-indigo-200 flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Quick Start (5 teams, 1 phone each)</h4>
+                    <ol class="list-decimal list-inside text-[11px] text-slate-300 space-y-1">
+                        <li>Host phone: set teams, name them, tap START MATCH.</li>
+                        <li>Each team's phone: open URL → Player role → enter code + name + team.</li>
+                        <li>Clue-giver's phone shows the card + SKIP.</li>
+                        <li>Opposing team's phones show the card + TABOO/CORRECT.</li>
+                        <li>All other players just watch the timer.</li>
+                    </ol>
+                </div>
+
+                <!-- TAB 1: RULES -->
+                <div id="helpContentRules" class="space-y-3 text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-indigo-400"></i> Objective</h4>
+                        <p class="text-[11px] text-slate-400">Get teammates to guess the target word before time runs out, without saying the target or forbidden words.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Roles per turn</h4>
+                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
+                            <li><strong class="text-white">Clue-Giver</strong> — sees the card, controls START & SKIP.</li>
+                            <li><strong class="text-white">Their Teammates</strong> — cannot see the card; shout guesses.</li>
+                            <li><strong class="text-white">Opposing Team</strong> — sees the card; controls TABOO & CORRECT (judging).</li>
+                            <li><strong class="text-white">Referee</strong> (if host not playing) — sees card, taps nothing.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-star text-indigo-400"></i> Scoring</h4>
+                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
+                            <li><span class="text-emerald-400 font-bold">CORRECT (+1):</span> New card, points to clue-giver's team.</li>
+                            <li><span class="text-rose-400 font-bold">TABOO (penalty):</span> New card, points deducted, timer continues.</li>
+                            <li><span class="text-amber-400 font-bold">SKIP:</span> New card, limited by quota, no points.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CONTROLS -->
+                <div id="helpContentUsage" class="hidden space-y-3 text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-tie text-indigo-400"></i> Host Setup</h4>
+                        <p class="text-[11px] text-slate-400">Configure rounds, timer, skips, penalty. Toggle Host Participation between <strong class="text-white">Referee</strong> (observe only) and <strong class="text-white">Join as player</strong> (enter your name + team).</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen text-emerald-400"></i> Player Setup</h4>
+                        <p class="text-[11px] text-slate-400">Enter room code → name → team. Each phone is bound to one team. Duplicate names within the same team are rejected.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-database text-amber-400"></i> Card Import Formats</h4>
+                        <p class="text-[11px] text-slate-400">
+                            <strong class="text-white">CSV:</strong><br>
+                            <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1 text-[10px]">TARGET,F1,F2,F3,F4,F5</code>
+                            <strong class="text-white mt-2 block">JSON:</strong><br>
+                            <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1 text-[10px]">{"cards":[{"target":"CAT","forbidden":["DOG","PET","MEOW","FUR","PAW"]}]}</code>
+                        </p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-volume-high text-emerald-400"></i> Sound & Colors</h4>
+                        <p class="text-[11px] text-slate-400">Tap the speaker icon to mute. Each team gets its own color (Indigo, Emerald, Rose, Amber, Cyan, Fuchsia, Lime, Orange).</p>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MULTI-PHONE -->
+                <div id="helpContentSync" class="hidden space-y-3 text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen-button text-indigo-400"></i> Step-by-Step Sync</h4>
+                        <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1.5">
+                            <li>Host tap users icon → note 4-digit code.</li>
+                            <li>Player opens same URL → users icon → Player role.</li>
+                            <li>Enter code → name → team → JOIN.</li>
+                            <li>QR code auto-fills the code on the player's phone.</li>
+                        </ol>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-eye text-emerald-400"></i> What Each Role Sees</h4>
+                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
+                            <li><strong class="text-white">Clue-giver:</strong> Full card + START + SKIP.</li>
+                            <li><strong class="text-white">Teammate:</strong> Hidden card + waiting screen.</li>
+                            <li><strong class="text-white">Opposing:</strong> Full card + TABOO + CORRECT.</li>
+                            <li><strong class="text-white">Referee:</strong> Full card, no buttons.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Troubleshooting</h4>
+                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
+                            <li>Both devices need network for initial handshake.</li>
+                            <li>Host must stay on tab; closing kills the room.</li>
+                            <li>Refreshing a phone: re-enter name/team; same-name replaces dead connection.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- TAB 4: AI BUILDER -->
+                <div id="helpContentAi" class="hidden space-y-3 text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-robot text-indigo-400"></i> What it does</h4>
+                        <p class="text-[11px] text-slate-400">Generates 50 fresh Taboo cards per category using Gemini AI. Uses your own free API key.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-key text-amber-400"></i> Get a free API key</h4>
+                        <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1">
+                            <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-indigo-400">Google AI Studio</a>.</li>
+                            <li>Create API Key → copy (starts with <code class="text-amber-300">AIza…</code>).</li>
+                            <li>Paste into the AI Builder field.</li>
+                        </ol>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-tags text-emerald-400"></i> Generate cards</h4>
+                        <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1">
+                            <li>Pick one category (or add custom, e.g. "Filipino Food").</li>
+                            <li>Tap Generate (50). Progress shows elapsed time.</li>
+                            <li>Save & Import to DB or Export JSON.</li>
+                        </ol>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tips</h4>
+                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
+                            <li>Free tier allows ~15 req/min; one run = 1 request.</li>
+                            <li>15s cooldown protects your quota.</li>
+                            <li>Review cards before saving — AI output varies.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- TAB 5: FAQ -->
+                <div id="helpContentFaq" class="hidden space-y-3 text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300">Q: Can players tap TABOO/CORRECT?</h4>
+                        <p class="text-[11px] text-slate-400">Only the opposing team's phones. The clue-giver and their teammates cannot — they're on the guessing side.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300">Q: Who can tap SKIP?</h4>
+                        <p class="text-[11px] text-slate-400">Only the clue-giver's phone, since they're the one seeing the card and deciding.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300">Q: Does it work offline?</h4>
+                        <p class="text-[11px] text-slate-400">Yes — cards live in IndexedDB. Multi-phone sync needs internet only for the initial WebRTC handshake.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300">Q: What if my phone refreshes?</h4>
+                        <p class="text-[11px] text-slate-400">Re-enter code + name + team. If a dead connection has the same name, it's replaced automatically.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300">Q: How do double-taps behave?</h4>
+                        <p class="text-[11px] text-slate-400">Duplicate actions within 200ms from the same player are ignored, so two people tapping CORRECT simultaneously only counts once.</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <h4 class="font-bold text-indigo-300">Q: Is my data sent anywhere?</h4>
+                        <p class="text-[11px] text-slate-400">No. Everything stays local except AI Builder calls to Google (only when you trigger them).</p>
+                    </div>
+                </div>
+            </div>
+            <button onclick="closeHelpModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">Got It!</button>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
+            <h3 id="confirmTitle" class="font-bold text-white text-base flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Confirm
+            </h3>
+            <p id="confirmMessage" class="text-xs text-slate-300 leading-relaxed"></p>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Cancel</button>
+                <button id="confirmYesBtn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   TABOO MASTER ENGINE — v2 (team-bound multiplayer)
+   ============================================================ */
+
+const TEAM_COLORS = [
+    { name:'Indigo',  bg:'rgba(99,102,241,0.25)', border:'#6366f1', text:'#c7d2fe', hex:'#6366f1' },
+    { name:'Emerald', bg:'rgba(16,185,129,0.25)', border:'#10b981', text:'#a7f3d0', hex:'#10b981' },
+    { name:'Rose',    bg:'rgba(244,63,94,0.25)',  border:'#f43f5e', text:'#fecdd3', hex:'#f43f5e' },
+    { name:'Amber',   bg:'rgba(245,158,11,0.25)', border:'#f59e0b', text:'#fde68a', hex:'#f59e0b' },
+    { name:'Cyan',    bg:'rgba(6,182,212,0.25)',  border:'#06b6d4', text:'#a5f3fc', hex:'#06b6d4' },
+    { name:'Fuchsia', bg:'rgba(217,70,239,0.25)', border:'#d946ef', text:'#f5d0fe', hex:'#d946ef' },
+    { name:'Lime',    bg:'rgba(132,204,22,0.25)', border:'#84cc16', text:'#d9f99d', hex:'#84cc16' },
+    { name:'Orange',  bg:'rgba(249,115,22,0.25)', border:'#f97316', text:'#fed7aa', hex:'#f97316' }
+];
+function teamColor(idx) { return TEAM_COLORS[idx % TEAM_COLORS.length]; }
+
+/* ---------- SOUND ---------- */
+const soundEngine = {
+    ctx:null, enabled: localStorage.getItem('taboo_sound') !== 'off',
+    init() { if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} } },
+    play(type) {
+        if (!this.enabled) return;
+        this.init(); if (!this.ctx) return;
+        const ctx = this.ctx, now = ctx.currentTime;
+        const tones = {
+            correct:  [{f:523,d:0.12},{f:659,d:0.12},{f:784,d:0.16}],
+            taboo:    [{f:200,d:0.18},{f:140,d:0.22}],
+            skip:     [{f:330,d:0.1}],
+            tick:     [{f:880,d:0.06,vol:0.15}],
+            turnEnd:  [{f:440,d:0.15},{f:330,d:0.15},{f:220,d:0.25}],
+            gameOver: [{f:523,d:0.15},{f:659,d:0.15},{f:784,d:0.15},{f:1047,d:0.35}],
+            start:    [{f:660,d:0.1},{f:880,d:0.15}]
+        };
+        const seq = tones[type] || [];
+        let t = now;
+        seq.forEach(n => {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.type = type === 'taboo' ? 'sawtooth' : 'sine';
+            o.frequency.value = n.f;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(n.vol || 0.25, t + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.001, t + n.d);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(t); o.stop(t + n.d + 0.02);
+            t += n.d;
+        });
+    }
+};
+function toggleSound() {
+    soundEngine.enabled = !soundEngine.enabled;
+    localStorage.setItem('taboo_sound', soundEngine.enabled ? 'on' : 'off');
+    updateSoundIcon();
+}
+function updateSoundIcon() {
+    const b = document.getElementById('soundToggleBtn');
+    if (b) b.innerHTML = soundEngine.enabled
+        ? '<i class="fa-solid fa-volume-high text-emerald-400"></i>'
+        : '<i class="fa-solid fa-volume-xmark text-slate-500"></i>';
+}
+
+/* ---------- SAFE STRING ---------- */
+function escapeHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ---------- STATE ---------- */
+const appState = {
+    role: 'host',                 // 'host' | 'player'
+    db: null,
+    cards: [],
+    unplayedIndices: [],
+    currentCard: null,
+
+    teams: [
+        { name:'Team Alpha', score:0 },
+        { name:'Team Beta',  score:0 }
+    ],
+    // Players: { id, name, teamIndex, isHost, conn }
+    players: [],
+    // The player id whose turn it is to give clues this turn
+    currentClueGiverId: null,
+
+    config: { totalRounds:3, turnTimerSec:60, maxSkips:3, tabooPenalty:-1, correctPoint:1 },
+    gameState: {
+        currentRound:1,
+        currentTeamIndex:0,
+        skipsRemaining:3,
+        timerSeconds:60,
+        timerInterval:null,
+        isPaused:false,
+        isActive:false,
+        turnStartTime:0,
+        recentActions:{}
+    },
+
+    hostIsPlaying:false,
+    hostPlayer: { name:'', teamIndex:0 },
+
+    peer:null,
+    peerConnections: [],   // [{ conn, playerId }]
+    roomCode:'',
+    hostRetryCount:0,
+
+    // my player id (host-as-player OR player device)
+    myPlayerId: null,
+    myPlayerName: '',
+    myTeamIndex: 0
+};
+
+/* ---------- INIT ---------- */
+window.onload = function() {
+    initDatabase();
+    renderTeamInputs();
+    renderHostTeamSelect();
+    builderRenderCategories();
+    updateSoundIcon();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room') || urlParams.get('join');
+    if (roomParam && roomParam.length === 4) {
+        setRole('player');
+        document.getElementById('joinRoomCodeInput').value = roomParam;
+        // Fetch teams from host after join screen appears
+    } else {
+        initPeerHost();
+    }
+    checkSavedGame();
+};
+
+/* ============================================================
+   INDEXEDDB
+   ============================================================ */
+function initDatabase() {
+    const req = indexedDB.open("TabooMasterDB", 1);
+    req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("cards")) db.createObjectStore("cards", { keyPath:"id", autoIncrement:true });
+    };
+    req.onsuccess = e => { appState.db = e.target.result; checkAndSeedCards(); };
+}
+function checkAndSeedCards() {
+    const tx = appState.db.transaction(["cards"],"readonly");
+    const c = tx.objectStore("cards").count();
+    c.onsuccess = () => {
+        const el = document.getElementById("dbCountDisplay");
+        if (el) el.innerText = c.result;
+        if (c.result === 0) autoLoadFirstDeck();
+        else loadCardsFromDB();
+    };
+}
+async function autoLoadFirstDeck() {
+    const sel = document.getElementById("deckPresetSelect");
+    const first = sel ? sel.options[0].value : "taboo_cards.json";
+    await loadHostedDeck(first, true);
+}
+async function loadHostedDeck(fileName, isStartup = false) {
+    const status = document.getElementById("dbCountDisplay");
+    if (status) status.innerText = "Loading...";
+    try {
+        const r = await fetch(`./${fileName}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const txt = await r.text();
+        let imported = [];
+        if (fileName.endsWith('.json')) {
+            const raw = JSON.parse(txt);
+            const arr = Array.isArray(raw) ? raw : (raw.cards || []);
+            imported = arr.map(c => ({
+                target:(c.target || c.word || '').toUpperCase(),
+                forbidden:(c.forbidden || c.banned || []).map(w => w.toUpperCase())
+            })).filter(c => c.target && c.forbidden.length > 0);
+        } else if (fileName.endsWith('.csv')) {
+            txt.split('\n').forEach(line => {
+                const p = line.split(',').map(s => s.trim());
+                if (p.length >= 6) imported.push({ target:p[0].toUpperCase(), forbidden:p.slice(1,6).map(w => w.toUpperCase()) });
+            });
+        }
+        if (imported.length > 0) {
+            const modeEl = document.querySelector('input[name="importMode"]:checked');
+            const mode = modeEl ? modeEl.value : 'overwrite';
+            const tx = appState.db.transaction(["cards"],"readwrite");
+            const store = tx.objectStore("cards");
+            if (mode === 'overwrite') store.clear();
+            imported.forEach(c => store.add(c));
+            tx.oncomplete = () => {
+                loadCardsFromDB();
+                if (!isStartup) alert(`Loaded ${imported.length} cards from ${fileName}.`);
+            };
+        } else {
+            if (!isStartup) alert("No valid cards in file. DB untouched.");
+            loadCardsFromDB();
+        }
+    } catch (err) {
+        console.error(err);
+        if (!isStartup) alert("Failed to download deck file.");
+    }
+}
+function loadCardsFromDB() {
+    const tx = appState.db.transaction(["cards"],"readonly");
+    const getAll = tx.objectStore("cards").getAll();
+    getAll.onsuccess = () => {
+        appState.cards = getAll.result;
+        const el = document.getElementById("dbCountDisplay");
+        if (el) el.innerText = appState.cards.length;
+        resetDeckIndices();
+    };
+}
+function resetDeckIndices() {
+    appState.unplayedIndices = Array.from({ length: appState.cards.length }, (_, i) => i);
+    for (let i = appState.unplayedIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [appState.unplayedIndices[i], appState.unplayedIndices[j]] = [appState.unplayedIndices[j], appState.unplayedIndices[i]];
+    }
+}
+function handleFileImport(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const modeEl = document.querySelector('input[name="importMode"]:checked');
+    const mode = modeEl ? modeEl.value : 'overwrite';
+    const reader = new FileReader();
+    reader.onload = ev => {
+        let imported = [];
+        try {
+            const content = ev.target.result;
+            if (file.name.endsWith('.json')) {
+                const raw = JSON.parse(content);
+                const arr = Array.isArray(raw) ? raw : (raw.cards || []);
+                imported = arr.map(c => ({ target:(c.target || '').toUpperCase(), forbidden:(c.forbidden || []).map(w => w.toUpperCase()) }))
+                    .filter(c => c.target && c.forbidden.length > 0);
+            } else {
+                content.split('\n').forEach(line => {
+                    const p = line.split(',').map(s => s.trim());
+                    if (p.length >= 6) imported.push({ target:p[0].toUpperCase(), forbidden:p.slice(1,6).map(w => w.toUpperCase()) });
+                });
+            }
+            if (imported.length > 0) {
+                const tx = appState.db.transaction(["cards"],"readwrite");
+                const store = tx.objectStore("cards");
+                if (mode === 'overwrite') store.clear();
+                imported.forEach(c => store.add(c));
+                tx.oncomplete = () => { loadCardsFromDB(); alert(`Imported ${imported.length} cards.`); };
+            } else alert("No valid cards. DB untouched.");
+        } catch(err) { alert("Error parsing file."); }
+    };
+    reader.readAsText(file);
+}
+function addCustomCard() {
+    const t = document.getElementById("newTarget").value.trim().toUpperCase();
+    const f = document.getElementById("newForbidden").value.trim().toUpperCase();
+    if (!t || !f) return alert("Fill both fields.");
+    const arr = f.split(',').map(w => w.trim()).filter(w => w.length > 0);
+    if (arr.length < 5) return alert("Provide 5 forbidden words.");
+    const tx = appState.db.transaction(["cards"],"readwrite");
+    tx.objectStore("cards").add({ target:t, forbidden:arr.slice(0,5) });
+    tx.oncomplete = () => {
+        document.getElementById("newTarget").value = "";
+        document.getElementById("newForbidden").value = "";
+        loadCardsFromDB(); alert("Card saved.");
+    };
+}
+
+/* ============================================================
+   AI BUILDER (unchanged logic, minor polish)
+   ============================================================ */
+const builderState = {
+    categories: [
+        { name:"General", selected:true }, { name:"Places", selected:false },
+        { name:"Food", selected:false }, { name:"Pop Culture", selected:false },
+        { name:"Music", selected:false }, { name:"History", selected:false },
+        { name:"Science", selected:false }, { name:"Entertainment", selected:false },
+        { name:"Jobs", selected:false }, { name:"Technology", selected:false }
+    ],
+    cards: []
+};
+let builderTimerInterval = null, builderCooldownInterval = null;
+
+function openBuilderModal() { closeDeckModal(); document.getElementById("builderModal").classList.remove("hidden"); builderRenderCategories(); }
+function closeBuilderModal() { document.getElementById("builderModal").classList.add("hidden"); openDeckModal(); }
+function builderRenderCategories() {
+    const box = document.getElementById("builderCategoryContainer");
+    if (!box) return;
+    box.innerHTML = "";
+    const selCount = builderState.categories.filter(c => c.selected).length;
+    builderState.categories.forEach((cat, idx) => {
+        const isDisabled = selCount >= 1 && !cat.selected;
+        const tag = document.createElement("div");
+        tag.className = `badge-cat ${cat.selected ? 'badge-active' : 'badge-inactive'} ${isDisabled ? 'badge-disabled' : ''}`;
+        tag.innerHTML = `
+            <span onclick="builderToggleCat(${idx})" style="cursor:${isDisabled ? 'not-allowed' : 'pointer'};">${escapeHtml(cat.name)}</span>
+            <button onclick="builderRemoveCat(${idx})" style="background:none;color:inherit;padding:0;font-weight:900;">×</button>
+        `;
+        box.appendChild(tag);
+    });
+}
+function builderToggleCat(i) {
+    const sel = builderState.categories.filter(c => c.selected).length;
+    if (!builderState.categories[i].selected && sel >= 1) builderState.categories.forEach(c => c.selected = false);
+    builderState.categories[i].selected = !builderState.categories[i].selected;
+    builderRenderCategories();
+}
+function builderRemoveCat(i) { builderState.categories.splice(i, 1); builderRenderCategories(); }
+function builderClearAllCats() { builderState.categories.forEach(c => c.selected = false); builderRenderCategories(); }
+function builderAddCategory() {
+    const v = document.getElementById("builderNewCatInput").value.trim();
+    if (v && !builderState.categories.some(c => c.name.toLowerCase() === v.toLowerCase())) {
+        builderState.categories.push({ name:v, selected:false });
+        document.getElementById("builderNewCatInput").value = "";
+        builderRenderCategories();
+    }
+}
+async function builderFetchModels(apiKey) {
+    try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const d = await r.json();
+        if (d.models && Array.isArray(d.models)) {
+            return d.models
+                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"))
+                .map(m => m.name.replace("models/",""))
+                .filter(n => n.includes("flash"));
+        }
+    } catch(e) {}
+    return ["gemini-2.0-flash", "gemini-1.5-flash"];
+}
+async function builderGenerateWithAI() {
+    const apiKey = document.getElementById("builderApiKeyInput").value.trim();
+    if (!apiKey) return alert("Enter your Gemini API key.");
+    const selCat = builderState.categories.find(c => c.selected);
+    if (!selCat) return alert("Select a category.");
+    const genBtn = document.getElementById("builderGenBtn");
+    genBtn.disabled = true;
+    const pb = document.getElementById("builderProgressBox");
+    const st = document.getElementById("builderStatusText");
+    const el = document.getElementById("builderElapsedText");
+    pb.classList.remove("hidden");
+    st.innerText = "Discovering models...";
+    let sec = 0; el.innerText = `Time: 0s`;
+    clearInterval(builderTimerInterval);
+    builderTimerInterval = setInterval(() => { sec++; el.innerText = `Time: ${sec}s`; }, 1000);
+    const models = await builderFetchModels(apiKey);
+    const catName = selCat.name;
+    let generated = 0; const target = 50;
+
+    while (generated < target) {
+        const batch = Math.min(50, target - generated);
+        const exclude = builderState.cards.map(c => c.target);
+        const excl = exclude.length > 0 ? `\nExclude: [${exclude.join(",")}]` : "";
+        st.innerText = `Generating ${catName} (${batch})...`;
+        const prompt = `Category: ${catName}\nCount: ${batch}\nRules: Unique real-world Taboo cards.${excl}\nJSON only:\n{"cards":[{"category":"${catName.toUpperCase()}","target":"WORD","forbidden":["F1","F2","F3","F4","F5"]}]}`;
+        let ok = false, lastErr = "";
+        for (let attempt = 1; attempt <= 3 && !ok; attempt++) {
+            for (const m of models) {
+                try {
+                    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+                        method:"POST", headers:{"Content-Type":"application/json"},
+                        body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{responseMimeType:"application/json"} })
+                    });
+                    const d = await r.json();
+                    if (d.error) { lastErr = d.error.message; continue; }
+                    if (!d.candidates?.[0]?.content) { lastErr = "Empty"; continue; }
+                    const txt = d.candidates[0].content.parts[0].text.replace(/```json/g,'').replace(/```/g,'').trim();
+                    const parsed = JSON.parse(txt);
+                    if (parsed.cards && Array.isArray(parsed.cards)) {
+                        const fresh = parsed.cards.filter(nc => !builderState.cards.some(ec => ec.target.toLowerCase() === nc.target.toLowerCase()));
+                        builderState.cards.unshift(...fresh);
+                        generated += fresh.length;
+                        builderRenderGrid();
+                        ok = true; break;
+                    }
+                } catch(e) { lastErr = e.message; }
+            }
+            if (!ok) await new Promise(r => setTimeout(r, 800));
+        }
+        if (!ok) {
+            clearInterval(builderTimerInterval);
+            alert(`Error: ${lastErr}`);
+            pb.classList.add("hidden"); genBtn.disabled = false; return;
+        }
+    }
+    clearInterval(builderTimerInterval);
+    builderStartCooldown(genBtn, st, el, pb);
+}
+function builderStartCooldown(btn, st, el, pb) {
+    let cd = 15;
+    st.innerText = "Complete!";
+    el.innerText = `Cooldown: ${cd}s`;
+    clearInterval(builderCooldownInterval);
+    builderCooldownInterval = setInterval(() => {
+        cd--;
+        if (cd > 0) { el.innerText = `Cooldown: ${cd}s`; btn.innerText = `WAIT (${cd}s)...`; }
+        else {
+            clearInterval(builderCooldownInterval);
+            pb.classList.add("hidden"); btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> GENERATE (50)`;
+        }
+    }, 1000);
+}
+function builderRenderGrid() {
+    document.getElementById("builderTotalBadge").innerText = builderState.cards.length;
+    const grid = document.getElementById("builderCardsGrid");
+    grid.innerHTML = "";
+    builderState.cards.slice(0, 100).forEach(card => {
+        const div = document.createElement("div");
+        div.className = "card-grid-item";
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+                <span style="font-size:9px;font-weight:bold;color:#818cf8;background-color:#1e1b4b;padding:2px 6px;border-radius:4px;">${escapeHtml(card.category || '')}</span>
+                <span style="font-size:11px;font-weight:900;color:white;">${escapeHtml(card.target)}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
+                ${card.forbidden.map(f => `<div class="forbidden-pill">${escapeHtml(f)}</div>`).join('')}
+            </div>`;
+        grid.appendChild(div);
+    });
+}
+function builderClearWorkspace() { builderState.cards = []; builderRenderGrid(); }
+function builderExportJSON() {
+    if (builderState.cards.length === 0) return alert("Deck is empty.");
+    const s = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ cards: builderState.cards }, null, 2));
+    const a = document.createElement('a'); a.href = s; a.download = "taboo_cards.json"; a.click();
+}
+function builderExportAndSave() {
+    if (builderState.cards.length === 0) return alert("Nothing to save.");
+    const tx = appState.db.transaction(["cards"],"readwrite");
+    const store = tx.objectStore("cards");
+    store.clear();
+    builderState.cards.forEach(c => store.add({ target:c.target.toUpperCase(), forbidden:c.forbidden.map(w => w.toUpperCase()) }));
+    tx.oncomplete = () => { loadCardsFromDB(); alert(`Saved ${builderState.cards.length} cards.`); closeBuilderModal(); };
+}
+
+/* ============================================================
+   TEAMS / PLAYERS / SETUP UI
+   ============================================================ */
+function renderTeamInputs() {
+    const c = document.getElementById("teamsContainer");
+    c.innerHTML = "";
+    document.getElementById("teamCountDisplay").innerText = appState.teams.length;
+    appState.teams.forEach((t, i) => {
+        const col = teamColor(i);
+        const div = document.createElement("div");
+        div.className = "bg-slate-950 p-3 rounded-xl border space-y-2";
+        div.style.borderColor = col.border;
+        div.innerHTML = `
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold" style="color:${col.text}">Team ${i+1}</span>
+                ${appState.teams.length > 2 ? `<button onclick="removeTeamInput(${i})" class="text-rose-400 text-xs px-1"><i class="fa-solid fa-trash"></i></button>` : ''}
+            </div>`;
+        const input = document.createElement("input");
+        input.type = "text"; input.value = t.name;
+        input.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white w-full";
+        input.onchange = () => { appState.teams[i].name = this.value; renderHostTeamSelect(); renderTeamInputs(); };
+        div.appendChild(input);
+        c.appendChild(div);
+    });
+    renderHostTeamSelect();
+}
+function renderHostTeamSelect() {
+    const sel = document.getElementById("hostPlayerTeam");
+    if (!sel) return;
+    sel.innerHTML = appState.teams.map((t, i) =>
+        `<option value="${i}">${escapeHtml(t.name)}</option>`).join('');
+}
+function addTeamInput() {
+    if (appState.teams.length >= 8) return alert("Max 8 teams.");
+    appState.teams.push({ name: `Team ${String.fromCharCode(65 + appState.teams.length)}`, score:0 });
+    renderTeamInputs();
+}
+function removeTeamInput(i) {
+    if (appState.teams.length > 2) { appState.teams.splice(i, 1); renderTeamInputs(); }
+}
+function toggleHostPlaying() {
+    appState.hostIsPlaying = !appState.hostIsPlaying;
+    const btn = document.getElementById("hostPlayToggle");
+    const fields = document.getElementById("hostPlayerFields");
+    if (appState.hostIsPlaying) {
+        btn.innerText = "Join as Player";
+        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 border border-emerald-500 text-white";
+        fields.classList.remove("hidden");
+    } else {
+        btn.innerText = "Referee";
+        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300";
+        fields.classList.add("hidden");
+    }
+}
+
+/* ============================================================
+   GAME FLOW
+   ============================================================ */
+function startGameHost() {
+    if (appState.cards.length === 0) return alert("Database empty. Load a deck first.");
+    if (appState.hostIsPlaying) {
+        const name = document.getElementById("hostPlayerName").value.trim();
+        if (!name) return alert("Enter your name since you're joining as a player.");
+        appState.hostPlayer.name = name;
+        appState.hostPlayer.teamIndex = parseInt(document.getElementById("hostPlayerTeam").value) || 0;
+    }
+
+    appState.config.totalRounds = parseInt(document.getElementById("cfgRounds").value) || 3;
+    appState.config.turnTimerSec = parseInt(document.getElementById("cfgTimer").value) || 60;
+    appState.config.maxSkips = parseInt(document.getElementById("cfgMaxSkips").value) || 3;
+    appState.config.tabooPenalty = parseInt(document.getElementById("cfgTabooPenalty").value);
+
+    appState.teams.forEach(t => t.score = 0);
+    appState.gameState.currentRound = 1;
+    appState.gameState.currentTeamIndex = 0;
+
+    // Register host as player if joining
+    if (appState.hostIsPlaying) {
+        appState.myPlayerId = 'HOST_' + Date.now();
+        appState.myPlayerName = appState.hostPlayer.name;
+        appState.myTeamIndex = appState.hostPlayer.teamIndex;
+        appState.players = [{
+            id: appState.myPlayerId, name: appState.hostPlayer.name,
+            teamIndex: appState.hostPlayer.teamIndex, isHost: true, conn: null
+        }];
+    } else {
+        appState.myPlayerId = null;
+        appState.players = [];
+    }
+
+    document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
+    document.getElementById("setupView").classList.add("hidden");
+    document.getElementById("gameOverView").classList.add("hidden");
+
+    if (appState.hostIsPlaying) {
+        // Host joins as player → uses player view based on role
+        document.getElementById("gameView").classList.add("hidden");
+        document.getElementById("playerView").classList.remove("hidden");
+    } else {
+        document.getElementById("gameView").classList.remove("hidden");
+        document.getElementById("playerView").classList.add("hidden");
+    }
+
+    resetDeckIndices();
+    prepTurn();
+}
+
+function prepTurn() {
+    appState.gameState.isActive = false;
+    clearInterval(appState.gameState.timerInterval);
+    renderScoreboard();
+
+    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    // Pick next clue-giver on this team
+    const teamPlayers = appState.players.filter(p => p.teamIndex === appState.gameState.currentTeamIndex);
+    if (teamPlayers.length === 0) {
+        // No one from this team connected: cycle back
+        appState.gameState.currentClueGiverId = null;
+    } else {
+        // Round-robin: use currentRound to pick
+        const idx = (appState.gameState.currentRound - 1) % teamPlayers.length;
+        appState.gameState.currentClueGiverId = teamPlayers[idx].id;
+    }
+    appState.gameState.skipsRemaining = appState.config.maxSkips;
+    appState.gameState.timerSeconds = appState.config.turnTimerSec;
+
+    // Host controller UI (referee only)
+    if (!appState.hostIsPlaying && appState.role === 'host') {
+        document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
+        const turnEl = document.getElementById("turnIndicator");
+        const col = teamColor(appState.gameState.currentTeamIndex);
+        turnEl.innerText = `${currentTeam.name}'s Turn (Ready)`;
+        turnEl.style.color = col.text;
+        turnEl.style.backgroundColor = col.bg;
+        turnEl.style.borderColor = col.border;
+        document.getElementById("activeClueGiver").innerText = currentClueGiverName() || "—";
+        document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
+        document.getElementById("cardTargetWord").innerText = "READY?";
+        document.getElementById("forbiddenList").innerHTML =
+            `<p class="text-xs text-slate-500 text-center py-4">Waiting for the clue-giver to start…</p>`;
+        document.getElementById("actionContainer").className = "grid grid-cols-1 gap-3 pt-1";
+        document.getElementById("actionContainer").innerHTML =
+            `<button onclick="hostStartTurn()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl">\n<i class="fa-solid fa-play"></i> START TURN\n</button>`;
+    }
+
+    broadcastState();
+}
+
+function currentClueGiverName() {
+    const p = appState.players.find(x => x.id === appState.gameState.currentClueGiverId);
+    return p ? p.name : null;
+}
+
+function hostStartTurn() {
+    if (appState.role !== 'host') return;
+    beginTurn();
+}
+
+function beginTurn() {
+    appState.gameState.isActive = true;
+    appState.gameState.skipsRemaining = appState.config.maxSkips;
+    appState.gameState.timerSeconds = appState.config.turnTimerSec;
+    appState.gameState.isPaused = false;
+    appState.gameState.turnStartTime = Date.now();
+    appState.gameState.recentActions = {};
+    soundEngine.play('start');
+    drawNextCard();
+    startTimer();
+    renderScoreboard();
+    broadcastState();
+
+    // Referee host UI: reveal card + control buttons
+    if (!appState.hostIsPlaying && appState.role === 'host') {
+        const ac = document.getElementById("actionContainer");
+        ac.className = "grid grid-cols-3 gap-3 pt-1";
+        ac.innerHTML = `
+            <button onclick="hostAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-2xl flex flex-col items-center justify-center gap-1">
+                <i class="fa-solid fa-ban text-xl"></i>
+                <span class="text-[10px]">TABOO (${appState.config.tabooPenalty})</span>
+            </button>
+            <button id="skipBtn" onclick="hostAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 text-white font-extrabold rounded-2xl flex flex-col items-center justify-center gap-1">
+                <i class="fa-solid fa-forward text-xl"></i>
+                <span class="text-[10px]">SKIP</span>
+            </button>
+            <button onclick="hostAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl flex flex-col items-center justify-center gap-1">
+                <i class="fa-solid fa-check text-xl"></i>
+                <span class="text-[10px]">CORRECT (+1)</span>
+            </button>`;
+    }
+}
+
+function drawNextCard() {
+    if (appState.unplayedIndices.length === 0) resetDeckIndices();
+    const idx = appState.unplayedIndices.pop();
+    appState.currentCard = appState.cards[idx];
+
+    if (!appState.hostIsPlaying && appState.role === 'host') {
+        document.getElementById("cardTargetWord").innerText = appState.currentCard.target;
+        const list = document.getElementById("forbiddenList");
+        list.innerHTML = "";
+        appState.currentCard.forbidden.forEach(w => {
+            const d = document.createElement("div");
+            d.className = "forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase tracking-wider";
+            d.innerText = w;
+            list.appendChild(d);
+        });
+    }
+    broadcastState();
+}
+
+function startTimer() {
+    clearInterval(appState.gameState.timerInterval);
+    appState.gameState.timerInterval = setInterval(() => {
+        if (appState.gameState.isPaused) return;
+        appState.gameState.timerSeconds--;
+        if (appState.role === 'host') {
+            const el = document.getElementById("timerDisplay");
+            if (el) el.innerText = appState.gameState.timerSeconds;
+        }
+        if (appState.gameState.timerSeconds <= 5 && appState.gameState.timerSeconds > 0) soundEngine.play('tick');
+        broadcastState();
+        if (appState.gameState.timerSeconds <= 0) {
+            clearInterval(appState.gameState.timerInterval);
+            endTurn();
+        }
+    }, 1000);
+}
+
+function hostAction(action) {
+    if (appState.role !== 'host') return;
+    applyAction(action, appState.myPlayerId || 'HOST_REF');
+}
+
+function applyAction(action, byPlayerId) {
+    if (!appState.gameState.isActive || appState.gameState.isPaused) return;
+    // Dedupe
+    const key = `${byPlayerId}_${action}`;
+    const now = Date.now();
+    if (appState.gameState.recentActions[key] && now - appState.gameState.recentActions[key] < 200) return;
+    appState.gameState.recentActions[key] = now;
+
+    const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    const byPlayer = appState.players.find(p => p.id === byPlayerId);
+    const isOpposing = byPlayer && byPlayer.teamIndex !== appState.gameState.currentTeamIndex;
+    const isClueGiver = byPlayerId === appState.gameState.currentClueGiverId;
+    const isReferee = appState.role === 'host' && !appState.hostIsPlaying && !byPlayer;
+
+    if (action === 'correct') {
+        if (!isOpposing && !isReferee) return;
+        soundEngine.play('correct');
+        currentTeam.score += appState.config.correctPoint;
+        drawNextCard();
+    } else if (action === 'taboo') {
+        if (!isOpposing && !isReferee) return;
+        soundEngine.play('taboo');
+        currentTeam.score += appState.config.tabooPenalty;
+        drawNextCard();
+    } else if (action === 'skip') {
+        if (!isClueGiver && !isReferee) return;
+        if (appState.gameState.skipsRemaining <= 0) return;
+        soundEngine.play('skip');
+        appState.gameState.skipsRemaining--;
+        drawNextCard();
+    } else if (action === 'startTurn') {
+        if (!isClueGiver) return;
+        beginTurn();
+        return;
+    }
+    renderScoreboard();
+    updateSkipsUI();
+    saveGameState();
+    broadcastState();
+}
+
+function updateSkipsUI() {
+    const sk = document.getElementById("skipsLeftDisplay");
+    if (sk) sk.innerText = appState.gameState.skipsRemaining;
+}
+
+function pauseResumeGame() {
+    appState.gameState.isPaused = !appState.gameState.isPaused;
+    const btn = document.getElementById("pauseBtn");
+    if (btn) btn.innerHTML = appState.gameState.isPaused
+        ? '<i class="fa-solid fa-play mr-1"></i> RESUME'
+        : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
+}
+
+function endTurn() {
+    soundEngine.play('turnEnd');
+    appState.gameState.isActive = false;
+    appState.gameState.currentTeamIndex++;
+    if (appState.gameState.currentTeamIndex >= appState.teams.length) {
+        appState.gameState.currentTeamIndex = 0;
+        appState.gameState.currentRound++;
+    }
+    if (appState.gameState.currentRound > appState.config.totalRounds) showGameOver();
+    else { saveGameState(); prepTurn(); }
+}
+
+function showGameOver() {
+    appState.gameState.isActive = false;
+    localStorage.removeItem("taboo_saved_game");
+    checkSavedGame();
+    soundEngine.play('gameOver');
+    const sorted = [...appState.teams].sort((a, b) => b.score - a.score);
+    // Show on both host controller and player view
+    document.getElementById("gameView").classList.add("hidden");
+    document.getElementById("playerView").classList.add("hidden");
+    document.getElementById("gameOverView").classList.remove("hidden");
+    document.getElementById("winnerName").innerText = sorted[0].name;
+    const summary = document.getElementById("finalScoreboard");
+    summary.innerHTML = "";
+    sorted.forEach((t, idx) => {
+        const i = appState.teams.indexOf(t);
+        const col = teamColor(i);
+        const div = document.createElement("div");
+        div.className = "flex justify-between p-3 rounded-xl bg-slate-950 border text-sm";
+        div.style.borderColor = col.border;
+        div.innerHTML = `
+            <span class="font-bold" style="color:${idx === 0 ? '#fbbf24' : col.text}">#${idx+1} ${escapeHtml(t.name)}</span>
+            <span class="font-black" style="color:${col.text}">${t.score} PTS</span>`;
+        summary.appendChild(div);
+    });
+    broadcastState();
+}
+
+function resetToSetup() {
+    destroyPeer();
+    initPeerHost();
+    document.getElementById("gameOverView").classList.add("hidden");
+    document.getElementById("setupView").classList.remove("hidden");
+}
+
+function renderScoreboard() {
+    const bar = document.getElementById("scoreboardBar");
+    if (bar) {
+        bar.innerHTML = "";
+        appState.teams.forEach((t, i) => {
+            const col = teamColor(i);
+            const isCur = i === appState.gameState.currentTeamIndex;
+            const div = document.createElement("div");
+            div.className = "p-2 rounded-xl flex justify-between items-center border";
+            div.style.backgroundColor = isCur ? col.bg : '#020617';
+            div.style.borderColor = isCur ? col.border : '#1e293b';
+            div.innerHTML = `
+                <span class="text-xs font-bold truncate" style="color:${isCur ? col.text : '#94a3b8'}">${escapeHtml(t.name)}</span>
+                <span class="text-xs font-black text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${t.score}</span>`;
+            bar.appendChild(div);
+        });
+    }
+    // Player scoreboard
+    const p = document.getElementById("playerScoreboard");
+    if (p) {
+        p.innerHTML = "";
+        appState.teams.forEach((t, i) => {
+            const col = teamColor(i);
+            const isCur = i === appState.gameState.currentTeamIndex;
+            const div = document.createElement("div");
+            div.className = "bg-slate-950 p-2 rounded-lg border text-xs flex justify-between";
+            div.style.borderColor = isCur ? col.border : '#1e293b';
+            div.innerHTML = `
+                <span class="font-bold" style="color:${col.text}">${escapeHtml(t.name)}</span>
+                <span class="font-black" style="color:${col.text}">${t.score}</span>`;
+            p.appendChild(div);
+        });
+    }
+}
+
+/* ============================================================
+   PEERJS
+   ============================================================ */
+function generate4DigitCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
+function destroyPeer() {
+    if (appState.peer) { try { appState.peer.destroy(); } catch(e) {} appState.peer = null; }
+    appState.peerConnections = [];
+    updatePeerCountUI();
+    renderConnectedList();
+}
+function initPeerHost() {
+    destroyPeer();
+    appState.roomCode = generate4DigitCode();
+    const peerId = "taboo-room-" + appState.roomCode;
+    try { appState.peer = new Peer(peerId); } catch(e) { console.error(e); return; }
+    appState.peer.on('open', () => {
+        appState.hostRetryCount = 0;
+        const el = document.getElementById("displayRoomCode");
+        if (el) el.innerText = appState.roomCode;
+        const badge = document.getElementById("roomCodeBadge");
+        if (badge) { badge.innerText = `ROOM: ${appState.roomCode}`; badge.classList.remove("hidden"); }
+        const qr = document.getElementById("roomQRCode");
+        if (qr) {
+            const url = window.location.origin + window.location.pathname + '?room=' + appState.roomCode;
+            qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=` + encodeURIComponent(url);
+        }
+    });
+    appState.peer.on('connection', conn => {
+        conn.on('data', data => handleIncomingPlayerMessage(conn, data));
+        conn.on('open', () => {
+            // Just wait for join message
+        });
+        conn.on('close', () => {
+            appState.peerConnections = appState.peerConnections.filter(x => x.conn !== conn);
+            const removed = appState.players.find(p => p.conn === conn);
+            if (removed) appState.players = appState.players.filter(p => p.conn !== conn);
+            updatePeerCountUI();
+            renderConnectedList();
+            broadcastState();
+        });
+    });
+    appState.peer.on('error', err => {
+        if (err.type === 'unavailable-id' && appState.hostRetryCount < 3) {
+            appState.hostRetryCount++;
+            setTimeout(initPeerHost, 500);
+        }
+    });
+}
+
+function handleIncomingPlayerMessage(conn, data) {
+    if (!data || !data.type) return;
+    if (data.type === 'join') {
+        // Validate
+        const teamIdx = parseInt(data.teamIndex);
+        if (isNaN(teamIdx) || teamIdx < 0 || teamIdx >= appState.teams.length) {
+            conn.send({ type:'joinError', message:'Team no longer exists. Please rejoin.' });
+            return;
+        }
+        const name = String(data.name || '').trim().slice(0, 20);
+        if (!name) { conn.send({ type:'joinError', message:'Name is required.' }); return; }
+
+        // Replace disconnected player with same name/team
+        const existing = appState.players.find(p => p.name === name && p.teamIndex === teamIdx && !p.isHost);
+        if (existing && existing.conn && existing.conn.open) {
+            conn.send({ type:'joinError', message:`${name} is already playing on ${appState.teams[teamIdx].name}. Pick another name.` });
+            return;
+        }
+        if (existing) {
+            // Replace dead connection
+            existing.conn = conn;
+            existing.id = 'P_' + Date.now();
+            appState.peerConnections = appState.peerConnections.filter(x => x.conn !== conn);
+            appState.peerConnections.push({ conn, playerId: existing.id });
+        } else {
+            const id = 'P_' + Date.now();
+            appState.players.push({ id, name, teamIndex:teamIdx, isHost:false, conn });
+            appState.peerConnections.push({ conn, playerId:id });
+        }
+        conn.send({ type:'joinAccepted', teams: appState.teams.map(t => t.name) });
+        updatePeerCountUI();
+        renderConnectedList();
+        broadcastState();
+        return;
+    }
+
+    // Action from player
+    if (data.type === 'action' && data.action) {
+        const player = appState.players.find(p => p.conn === conn);
+        if (!player) return;
+        applyAction(data.action, player.id);
+    }
+}
+
+function joinRoomAsPlayer() {
+    const code = document.getElementById("joinRoomCodeInput").value.trim();
+    const name = document.getElementById("joinNameInput").value.trim();
+    const teamIdx = parseInt(document.getElementById("joinTeamSelect").value);
+    if (code.length !== 4) return alert("Enter 4-digit code.");
+    if (!name) return alert("Enter your name.");
+    if (isNaN(teamIdx)) return alert("Select a team.");
+
+    const status = document.getElementById("joinStatusText");
+    status.innerText = "Connecting...";
+    destroyPeer();
+
+    try { appState.peer = new Peer(); } catch(e) { status.innerText = "PeerJS error."; return; }
+    appState.peer.on('open', () => {
+        const conn = appState.peer.connect("taboo-room-" + code);
+        conn.on('open', () => {
+            status.innerText = "Sending join request…";
+            conn.send({ type:'join', name, teamIndex:teamIdx });
+        });
+        conn.on('data', data => {
+            if (data.type === 'joinAccepted') {
+                status.innerText = "Connected!";
+                appState.myPlayerName = name;
+                appState.myTeamIndex = teamIdx;
+                appState.myPlayerId = 'P_' + Date.now();
+                closeSyncModal();
+                setRole('player');
+                appState.peerConnections = [{ conn, playerId: appState.myPlayerId }];
+                conn.on('data', msg => receiveSyncedState(msg));
+            } else if (data.type === 'joinError') {
+                status.innerText = "❌ " + data.message;
+            } else {
+                receiveSyncedState(data);
+            }
+        });
+        conn.on('close', () => { status.innerText = "Disconnected."; });
+        conn.on('error', () => { status.innerText = "Connection error."; });
+    });
+    appState.peer.on('error', err => { status.innerText = "Error: " + (err.type || 'unknown'); });
+}
+
+function updatePeerCountUI() {
+    const c = appState.players.filter(p => !p.isHost).length;
+    const a = document.getElementById("connectedPeerCount"); if (a) a.innerText = c;
+    const b = document.getElementById("modalConnectedCount"); if (b) b.innerText = c;
+}
+function renderConnectedList() {
+    const list = document.getElementById("connectedPlayersList");
+    if (!list) return;
+    const nonHost = appState.players.filter(p => !p.isHost);
+    if (nonHost.length === 0) {
+        list.innerHTML = `<p class="text-slate-500 text-center py-2">No players yet</p>`;
+        return;
+    }
+    list.innerHTML = nonHost.map(p => {
+        const col = teamColor(p.teamIndex);
+        return `<div class="flex justify-between">
+            <span class="font-bold" style="color:${col.text}">${escapeHtml(p.name)}</span>
+            <span class="text-slate-400 text-[10px]">${escapeHtml(appState.teams[p.teamIndex]?.name || '')}</span>
+        </div>`;
+    }).join('');
+}
+
+function receiveSyncedState(data) {
+    if (!data) return;
+    if (data.type === 'joinAccepted') return;
+
+    // Role determination for current player
+    const myId = appState.myPlayerId;
+    const myTeam = appState.myTeamIndex;
+    const myRole = data.gameOver ? 'gameover' :
+        (data.currentClueGiverId === myId ? 'cluegiver' :
+        (myTeam === data.currentTeamIndex ? 'teammate' : 'opposing'));
+
+    // Header
+    const currentTeamName = data.teams?.[data.currentTeamIndex]?.name || '—';
+    document.getElementById("playerRoleLabel").innerText =
+        myRole === 'cluegiver' ? '🎯 YOUR TURN — CLUE-GIVER' :
+        myRole === 'teammate' ? '⏳ YOUR TEAMMATE IS GIVING CLUES' :
+        myRole === 'opposing' ? '👁 JUDGE MODE — OPPOSING TEAM' :
+        myRole === 'gameover' ? 'MATCH FINISHED' : 'WAITING';
+    document.getElementById("playerTurnLine").innerText = `${currentTeamName}'s Turn`;
+
+    // Timer
+    const baseSeconds = data.timerSeconds ?? 60;
+    const drift = data.hostTimestamp ? Math.floor((Date.now() - data.hostTimestamp) / 1000) : 0;
+    document.getElementById("playerTimerDisplay").innerText = Math.max(0, baseSeconds - drift);
+    document.getElementById("playerRoundDisplay").innerText = data.currentRound || 1;
+
+    // Card visibility by role
+    const cardTarget = document.getElementById("clueTargetWord");
+    const cardForbidden = document.getElementById("clueForbiddenList");
+    const teamCard = document.getElementById("teammateCard");
+    const oppTarget = document.getElementById("opposingTargetWord");
+    const oppForbidden = document.getElementById("opposingForbiddenList");
+    const refCard = document.getElementById("refereeCard");
+    const refForbidden = document.getElementById("refereeForbiddenList");
+    const refSummary = document.getElementById("refereeCardSummary");
+
+    // Hide all role cards
+    ['clueGiverCard','teammateCard','opposingCard','refereeCard'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.classList.add("hidden");
+    });
+
+    if (myRole === 'cluegiver') {
+        document.getElementById("clueGiverCard").classList.remove("hidden");
+        if (data.card) {
+            cardTarget.innerText = data.card.target;
+            cardForbidden.innerHTML = data.card.forbidden.map(w =>
+                `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
+            ).join('');
+        } else {
+            cardTarget.innerText = "READY?";
+            cardForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Tap START when ready</p>`;
+        }
+        const startBtn = document.getElementById("playerStartBtn");
+        if (startBtn) startBtn.style.display = data.isActive ? 'none' : 'block';
+        document.getElementById("playerSkipCount").innerText = data.skipsRemaining ?? 0;
+        const skipBtn = document.getElementById("playerSkipBtn");
+        if (skipBtn) skipBtn.disabled = !data.isActive || (data.skipsRemaining ?? 0) <= 0;
+    } else if (myRole === 'teammate') {
+        document.getElementById("teammateCard").classList.remove("hidden");
+        document.getElementById("clueGiverNameHidden").innerText = data.currentClueGiverName || 'Your teammate';
+    } else if (myRole === 'opposing') {
+        document.getElementById("opposingCard").classList.remove("hidden");
+        if (data.card) {
+            oppTarget.innerText = data.card.target;
+            oppForbidden.innerHTML = data.card.forbidden.map(w =>
+                `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
+            ).join('');
+        } else {
+            oppTarget.innerText = "WAITING";
+            oppForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Waiting for turn to start…</p>`;
+        }
+    } else if (myRole === 'gameover' && myTeam === undefined) {
+        // Referee / observer
+        document.getElementById("refereeCard").classList.remove("hidden");
+        if (data.card) {
+            document.getElementById("refereeCardSummary").classList.remove("hidden");
+            refForbidden.innerHTML = data.card.forbidden.map(w =>
+                `<div class="text-[10px] text-slate-300 font-bold">• ${escapeHtml(w)}</div>`
+            ).join('');
+        }
+    }
+
+    // Scoreboard
+    const sb = document.getElementById("playerScoreboard");
+    if (sb && data.teams) {
+        sb.innerHTML = "";
+        data.teams.forEach((t, i) => {
+            const col = teamColor(i);
+            const isCur = i === data.currentTeamIndex;
+            const div = document.createElement("div");
+            div.className = "bg-slate-950 p-2 rounded-lg border text-xs flex justify-between";
+            div.style.borderColor = isCur ? col.border : '#1e293b';
+            div.innerHTML = `<span class="font-bold" style="color:${col.text}">${escapeHtml(t.name)}</span>
+                             <span class="font-black" style="color:${col.text}">${t.score}</span>`;
+            sb.appendChild(div);
+        });
+    }
+
+    // Game over
+    const panel = document.getElementById("playerGameOverPanel");
+    if (data.gameOver) {
+        panel.classList.remove("hidden");
+        document.getElementById("playerWinnerName").innerText = data.winnerName || '—';
+        document.getElementById("playerFinalScores").innerHTML =
+            (data.finalScores || []).map(s =>
+                `<div>${escapeHtml(s.name)}: <strong>${s.score}</strong></div>`).join('');
+    } else {
+        panel.classList.add("hidden");
+    }
+}
+
+function playerSendAction(action) {
+    if (!appState.peerConnections.length) return;
+    const conn = appState.peerConnections[0].conn;
+    if (conn && conn.open) conn.send({ type:'action', action });
+}
+
+function broadcastState() {
+    if (appState.role !== 'host') return;
+    const winner = appState.gameState.currentRound > appState.config.totalRounds
+        ? [...appState.teams].sort((a, b) => b.score - a.score)[0].name : null;
+    const base = {
+        card: appState.currentCard,
+        teams: appState.teams,
+        currentTeamIndex: appState.gameState.currentTeamIndex,
+        currentRound: appState.gameState.currentRound,
+        timerSeconds: appState.gameState.timerSeconds,
+        isActive: appState.gameState.isActive,
+        hostTimestamp: Date.now(),
+        turnStartTime: appState.gameState.turnStartTime,
+        gameOver: appState.gameState.currentRound > appState.config.totalRounds,
+        winnerName: winner,
+        finalScores: appState.teams.map(t => ({ name: t.name, score: t.score, colorIdx: 0 })),
+        currentClueGiverId: appState.gameState.currentClueGiverId,
+        currentClueGiverName: currentClueGiverName(),
+        skipsRemaining: appState.gameState.skipsRemaining
+    };
+    appState.peerConnections.forEach(({ conn }) => {
+        if (conn && conn.open) conn.send(base);
+    });
+}
+
+function setRole(role) {
+    if (appState.role !== role) destroyPeer();
+    appState.role = role;
+    const hostBtn = document.getElementById("modeHostBtn");
+    const playerBtn = document.getElementById("modePlayerBtn");
+    const roleBadge = document.getElementById("roleBadge");
+    if (role === 'host') {
+        hostBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow";
+        playerBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
+        roleBadge.innerText = "Host";
+        document.getElementById("hostSyncPanel").classList.remove("hidden");
+        document.getElementById("playerSyncPanel").classList.add("hidden");
+        document.getElementById("setupView").classList.remove("hidden");
+        document.getElementById("gameView").classList.add("hidden");
+        document.getElementById("playerView").classList.add("hidden");
+        document.getElementById("gameOverView").classList.add("hidden");
+        initPeerHost();
+    } else {
+        playerBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow";
+        hostBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
+        roleBadge.innerText = "Player";
+        document.getElementById("playerSyncPanel").classList.remove("hidden");
+        document.getElementById("hostSyncPanel").classList.add("hidden");
+        document.getElementById("setupView").classList.add("hidden");
+        document.getElementById("gameView").classList.add("hidden");
+        document.getElementById("playerView").classList.remove("hidden");
+        document.getElementById("gameOverView").classList.add("hidden");
+    }
+}
+
+/* ---------- MODALS ---------- */
+function openDeckModal() { document.getElementById("deckModal").classList.remove("hidden"); }
+function closeDeckModal() { document.getElementById("deckModal").classList.add("hidden"); }
+function openSyncModal() { document.getElementById("syncModal").classList.remove("hidden"); }
+function closeSyncModal() { document.getElementById("syncModal").classList.add("hidden"); }
+function openHelpModal() { document.getElementById("helpModal").classList.remove("hidden"); }
+function closeHelpModal() { document.getElementById("helpModal").classList.add("hidden"); }
+function switchHelpTab(tab) {
+    ['rules', 'usage', 'sync', 'ai', 'faq'].forEach(t => {
+        const cap = t.charAt(0).toUpperCase() + t.slice(1);
+        const btn = document.getElementById(`tabBtn${cap}`);
+        const content = document.getElementById(`helpContent${cap}`);
+        if (!btn || !content) return;
+        if (t === tab) { btn.className = "flex-1 py-1.5 px-1 rounded-lg bg-indigo-600 text-white text-center font-bold whitespace-nowrap"; content.classList.remove("hidden"); }
+        else { btn.className = "flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center font-bold whitespace-nowrap"; content.classList.add("hidden"); }
+    });
+}
+
+/* ---------- SAVE / RESUME ---------- */
+function saveGameState() {
+    localStorage.setItem("taboo_saved_game", JSON.stringify({
+        teams: appState.teams,
+        config: appState.config,
+        gameState: {
+            currentRound: appState.gameState.currentRound,
+            currentTeamIndex: appState.gameState.currentTeamIndex,
+            skipsRemaining: appState.gameState.skipsRemaining,
+            timerSeconds: appState.gameState.timerSeconds
+        },
+        currentCard: appState.currentCard,
+        unplayedIndices: appState.unplayedIndices
+    }));
+}
+function checkSavedGame() {
+    const s = localStorage.getItem("taboo_saved_game");
+    const b = document.getElementById("resumeGameBtn");
+    if (s && b) b.classList.remove("hidden");
+    else if (b) b.classList.add("hidden");
+}
+function showConfirmModal(title, message, onYes) {
+    document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${escapeHtml(title)}`;
+    document.getElementById("confirmMessage").innerText = message;
+    const old = document.getElementById("confirmYesBtn");
+    const n = old.cloneNode(true);
+    old.parentNode.replaceChild(n, old);
+    n.onclick = () => { closeConfirmModal(); if (typeof onYes === 'function') onYes(); };
+    document.getElementById("confirmModal").classList.remove("hidden");
+}
+function closeConfirmModal() { document.getElementById("confirmModal").classList.add("hidden"); }
+function confirmResumeGame() {
+    showConfirmModal("Resume Last Game?", "Continue your previous saved game?", executeResumeGame);
+}
+function executeResumeGame() {
+    const s = localStorage.getItem("taboo_saved_game");
+    if (!s) return alert("No saved game.");
+    try {
+        const d = JSON.parse(s);
+        appState.teams = d.teams;
+        appState.config = d.config;
+        Object.assign(appState.gameState, {
+            currentRound:d.gameState.currentRound,
+            currentTeamIndex:d.gameState.currentTeamIndex,
+            skipsRemaining:d.gameState.skipsRemaining,
+            timerSeconds:d.gameState.timerSeconds
+        });
+        appState.currentCard = d.currentCard;
+        appState.unplayedIndices = d.unplayedIndices;
+        document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
+        document.getElementById("setupView").classList.add("hidden");
+        document.getElementById("gameOverView").classList.add("hidden");
+        document.getElementById("gameView").classList.remove("hidden");
+        prepTurn();
+        broadcastState();
+    } catch(e) { alert("Error loading saved game."); }
+}
+</script>
+</body>
+</html>
