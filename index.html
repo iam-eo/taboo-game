@@ -150,7 +150,6 @@
                     <span id="turnIndicator" class="text-indigo-300 font-bold bg-indigo-950/80 px-2.5 py-0.5 rounded-lg border border-indigo-800/50">—</span>
                     <span>Skips: <strong id="skipsLeftDisplay" class="text-amber-400">3</strong></span>
                 </div>
-                <!-- FIX: Added max-h and scrollability for many teams -->
                 <div id="scoreboardBar" class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 max-h-32 overflow-y-auto pr-1"></div>
             </div>
 
@@ -443,7 +442,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — Pass & Play (Final)
+   TABOO MASTER ENGINE — Pass & Play (Bulletproof)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -527,7 +526,8 @@ const appState = {
         isPaused:false,
         isActive:false
     },
-    editingTeamIndex: null
+    editingTeamIndex: null,
+    saveTimeout: null // For debouncing
 };
 
 /* ---------- INIT ---------- */
@@ -779,7 +779,6 @@ async function builderGenerateWithAI() {
 
     const models = modelsOrError;
     
-    // FIX: Check if models array is empty before proceeding
     if (!models || models.length === 0) {
         clearInterval(builderTimerInterval);
         alert("No available AI models found for this API key. Please verify your key in Google AI Studio.");
@@ -996,7 +995,6 @@ function savePlayersModal() {
 
 function getActiveClueGiverPlayer(team) {
     if (!team.playersArray || team.playersArray.length === 0) return team.name;
-    // Ensure playerIndex doesn't exceed array bounds
     const idx = (team.playerIndex || 0) % team.playersArray.length;
     return team.playersArray[idx];
 }
@@ -1007,9 +1005,14 @@ function getActiveClueGiverPlayer(team) {
 function startGameHost() {
     if (appState.cards.length === 0) return alert("Database empty. Load a deck first.");
 
-    appState.config.totalRounds = parseInt(document.getElementById("cfgRounds").value) || 3;
-    appState.config.turnTimerSec = parseInt(document.getElementById("cfgTimer").value) || 60;
-    appState.config.maxSkips = parseInt(document.getElementById("cfgMaxSkips").value) || 3;
+    // FIX 3: Sanitize numeric inputs to prevent broken game states
+    const roundsVal = parseInt(document.getElementById("cfgRounds").value);
+    const timerVal = parseInt(document.getElementById("cfgTimer").value);
+    const skipsVal = parseInt(document.getElementById("cfgMaxSkips").value);
+    
+    appState.config.totalRounds = Math.max(1, Math.min(50, isNaN(roundsVal) ? 3 : roundsVal));
+    appState.config.turnTimerSec = Math.max(10, Math.min(300, isNaN(timerVal) ? 60 : timerVal));
+    appState.config.maxSkips = Math.max(0, Math.min(10, isNaN(skipsVal) ? 3 : skipsVal));
     appState.config.tabooPenalty = parseInt(document.getElementById("cfgTabooPenalty").value);
 
     appState.teams.forEach(t => { t.score = 0; t.playerIndex = 0; });
@@ -1028,9 +1031,8 @@ function startGameHost() {
 
 function prepTurn() {
     appState.gameState.isActive = false;
-    appState.gameState.isPaused = false; // FIX: Reset pause state
+    appState.gameState.isPaused = false;
     
-    // FIX: Reset pause button text
     const pBtn = document.getElementById("pauseBtn");
     if (pBtn) pBtn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 
@@ -1053,21 +1055,14 @@ function prepTurn() {
     document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
     document.getElementById("cardTargetWord").innerText = "READY?";
     
-    // Hide elements only needed during active play
     document.getElementById("forbiddenWordsLabel").classList.add("hidden");
     document.getElementById("activeClueGiverArea").classList.add("hidden");
     
-    // Show the Handoff Message with bigger player name and smaller, bolder team name
     document.getElementById("forbiddenList").innerHTML = `
         <div class="py-8 md:py-12 flex flex-col items-center justify-center text-center">
             <span class="text-slate-400 text-sm md:text-lg font-bold mb-1 md:mb-2">Pass phone to</span>
-            
-            <!-- Player Name (Big & Bold) -->
             <span class="text-3xl md:text-5xl font-black tracking-wide" style="color:${col.text}">${escapeHtml(clueGiverPlayer)}</span>
-            
-            <!-- Team Name (Slightly smaller, but bold and colored) -->
             <span class="text-lg md:text-2xl font-extrabold mt-2 md:mt-3 tracking-wide" style="color:${col.text};">${escapeHtml(currentTeam.name)}</span>
-            
             <span class="text-xs md:text-base text-slate-500 font-medium bg-slate-800/50 py-1.5 px-4 rounded-full border border-slate-700 mt-6 md:mt-8">Tap 'START TURN' when ready</span>
         </div>
     `;
@@ -1089,7 +1084,6 @@ function beginActualTurn() {
     
     soundEngine.play('start');
     
-    // Reveal active play elements
     document.getElementById("forbiddenWordsLabel").classList.remove("hidden");
     document.getElementById("activeClueGiverArea").classList.remove("hidden");
     
@@ -1149,7 +1143,7 @@ function drawNextCard() {
 function handleCardAction(action) {
     if (!appState.gameState.isActive || appState.gameState.isPaused) return;
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    saveGameState();
+    saveGameState(); // Debounced internally
 
     if (action === 'correct') {
         soundEngine.play('correct');
@@ -1161,7 +1155,7 @@ function handleCardAction(action) {
         drawNextCard();
     } else if (action === 'skip' && appState.gameState.skipsRemaining > 0) {
         soundEngine.play('skip');
-        appState.gameState.skipsRemaining = Math.max(0, appState.gameState.skipsRemaining - 1); // FIX: Prevent negative
+        appState.gameState.skipsRemaining = Math.max(0, appState.gameState.skipsRemaining - 1);
         updateTurnHeader();
         drawNextCard();
     }
@@ -1237,6 +1231,11 @@ function showGameOver() {
 }
 
 function resetToSetup() {
+    // FIX 1: Reset pause state and button
+    appState.gameState.isPaused = false;
+    const pBtn = document.getElementById("pauseBtn");
+    if (pBtn) pBtn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
+
     document.getElementById("gameOverView").classList.add("hidden");
     document.getElementById("setupView").classList.remove("hidden");
 }
@@ -1277,19 +1276,34 @@ function switchHelpTab(tab) {
 }
 
 /* ---------- SAVE / RESUME ---------- */
+// FIX 2: Debounce saves to prevent micro-stutter during fast button taps
 function saveGameState() {
-    localStorage.setItem("taboo_saved_game", JSON.stringify({
-        teams: appState.teams,
-        config: appState.config,
-        gameState: {
-            currentRound: appState.gameState.currentRound,
-            currentTeamIndex: appState.gameState.currentTeamIndex,
-            skipsRemaining: appState.gameState.skipsRemaining,
-            timerSeconds: appState.gameState.timerSeconds
-        },
-        currentCard: appState.currentCard,
-        unplayedIndices: appState.unplayedIndices
-    }));
+    if (appState.saveTimeout) clearTimeout(appState.saveTimeout);
+    
+    const doSave = () => {
+        localStorage.setItem("taboo_saved_game", JSON.stringify({
+            teams: appState.teams,
+            config: appState.config,
+            gameState: {
+                currentRound: appState.gameState.currentRound,
+                currentTeamIndex: appState.gameState.currentTeamIndex,
+                skipsRemaining: appState.gameState.skipsRemaining,
+                timerSeconds: appState.gameState.timerSeconds
+            },
+            currentCard: appState.currentCard,
+            unplayedIndices: appState.unplayedIndices
+        }));
+        appState.saveTimeout = null;
+    };
+
+    // If a save was scheduled less than 2 seconds ago, wait for it to complete
+    // otherwise, save immediately (which happens on the first action or turn end)
+    if (appState.saveTimeout) {
+        appState.saveTimeout = setTimeout(doSave, 2000);
+    } else {
+        doSave();
+        appState.saveTimeout = setTimeout(() => { appState.saveTimeout = null; }, 2000);
+    }
 }
 function checkSavedGame() {
     const s = localStorage.getItem("taboo_saved_game");
@@ -1318,7 +1332,6 @@ function executeResumeGame() {
         appState.teams = d.teams;
         appState.config = d.config;
         
-        // FIX: Migrate old save data and ensure arrays exist
         appState.teams.forEach(t => {
             if (!t.playersArray || t.playersArray.length === 0) t.playersArray = ['Player 1'];
             if (!t.playerCount) t.playerCount = t.playersArray.length;
@@ -1332,7 +1345,6 @@ function executeResumeGame() {
             timerSeconds:d.gameState.timerSeconds
         });
 
-        // FIX: Prevent out-of-bounds team index if teams were changed
         if (appState.gameState.currentTeamIndex >= appState.teams.length) {
             appState.gameState.currentTeamIndex = 0;
         }
@@ -1345,7 +1357,6 @@ function executeResumeGame() {
         document.getElementById("gameOverView").classList.add("hidden");
         document.getElementById("gameView").classList.remove("hidden");
         
-        // Restart the current turn cleanly
         prepTurn();
     } catch(e) { 
         console.error(e); 
