@@ -582,7 +582,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — v4 (Host-as-player fixed, waiting states)
+   TABOO MASTER ENGINE — v5 (Fixed player action sending)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -1252,7 +1252,6 @@ function hostAction(action) {
 }
 
 function applyAction(action, byPlayerId) {
-    if (!appState.gameState.isActive && action !== 'startTurn') return;
     if (appState.gameState.isPaused) return;
 
     const key = `${byPlayerId}_${action}`;
@@ -1268,7 +1267,7 @@ function applyAction(action, byPlayerId) {
     const isReferee = appState.role === 'host' && !appState.hostIsPlaying && !byPlayer;
 
     if (action === 'startTurn') {
-        if (!isClueGiver) return;
+        if (!isClueGiver) return; 
         beginTurn();
         return;
     }
@@ -1478,9 +1477,16 @@ function handleIncomingPlayerMessage(conn, data) {
     }
 
     if (data.type === 'action' && data.action) {
-        const player = appState.players.find(p => p.conn === conn);
-        if (!player) return;
-        applyAction(data.action, player.id);
+        // FIXED: Retrieve playerId sent from the client, fallback to connection lookup
+        let playerId = data.playerId;
+        if (!playerId) {
+            const player = appState.players.find(p => p.conn === conn);
+            if (player) playerId = player.id;
+        }
+        
+        if (playerId) {
+            applyAction(data.action, playerId);
+        }
     }
 }
 
@@ -1636,7 +1642,6 @@ function receiveSyncedState(data) {
     const myId = appState.myPlayerId;
     const myTeam = appState.myTeamIndex;
     
-    // Determine my role
     const myRole = data.gameOver ? 'gameover' :
         (data.currentClueGiverId === myId ? 'cluegiver' :
         (myTeam === data.currentTeamIndex ? 'teammate' : 'opposing'));
@@ -1655,7 +1660,6 @@ function receiveSyncedState(data) {
         document.getElementById("playerRoleLabel").innerText = 'WAITING';
     }
 
-    // Timer
     const baseSeconds = data.timerSeconds ?? 60;
     const drift = data.hostTimestamp ? Math.floor((Date.now() - data.hostTimestamp) / 1000) : 0;
     document.getElementById("playerTimerDisplay").innerText = Math.max(0, baseSeconds - drift);
@@ -1762,7 +1766,8 @@ function receiveSyncedState(data) {
 function playerSendAction(action) {
     if (!appState.peerConnections.length) return;
     const conn = appState.peerConnections[0].conn;
-    if (conn && conn.open) conn.send({ type:'action', action });
+    // FIXED: Include playerId in the payload so the host knows who pressed the button
+    if (conn && conn.open) conn.send({ type:'action', action, playerId: appState.myPlayerId });
 }
 
 function broadcastState() {
