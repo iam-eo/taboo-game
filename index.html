@@ -335,7 +335,7 @@
         </div>
     </div>
 
-    <!-- ===== EDIT PLAYERS MODAL (NEW) ===== -->
+    <!-- ===== EDIT PLAYERS MODAL ===== -->
     <div id="playersModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 md:p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -443,7 +443,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — Pass & Play (v6)
+   TABOO MASTER ENGINE — Pass & Play (v7 - Better Team Names)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -837,7 +837,7 @@ function builderExportAndSave() {
 }
 
 /* ============================================================
-   TEAMS / SETUP UI (UPDATED)
+   TEAMS / SETUP UI
    ============================================================ */
 function renderTeamInputs() {
     const c = document.getElementById("teamsContainer");
@@ -879,7 +879,6 @@ function renderTeamInputs() {
         ).join('');
         countSelect.onchange = () => {
             appState.teams[i].playerCount = parseInt(countSelect.value);
-            // Adjust array length if necessary
             if (appState.teams[i].playersArray.length !== appState.teams[i].playerCount) {
                 if (appState.teams[i].playersArray.length < appState.teams[i].playerCount) {
                     for (let k = appState.teams[i].playersArray.length; k < appState.teams[i].playerCount; k++) {
@@ -1008,13 +1007,18 @@ function prepTurn() {
     document.getElementById("forbiddenWordsLabel").classList.add("hidden");
     document.getElementById("activeClueGiverArea").classList.add("hidden");
     
-    // Show the Handoff Message with bigger player name and smaller team name below it
+    // Show the Handoff Message with bigger player name and smaller, bolder team name
     document.getElementById("forbiddenList").innerHTML = `
         <div class="py-8 md:py-12 flex flex-col items-center justify-center text-center">
             <span class="text-slate-400 text-sm md:text-lg font-bold mb-1 md:mb-2">Pass phone to</span>
+            
+            <!-- Player Name (Big & Bold) -->
             <span class="text-3xl md:text-5xl font-black tracking-wide" style="color:${col.text}">${escapeHtml(clueGiverPlayer)}</span>
-            <span class="text-base md:text-xl font-bold text-slate-500 mt-1 md:mt-2">${escapeHtml(currentTeam.name)}</span>
-            <span class="text-xs md:text-base text-slate-500 font-medium bg-slate-800/50 py-1.5 px-4 rounded-full border border-slate-700 mt-4 md:mt-6">Tap 'START TURN' when ready</span>
+            
+            <!-- Team Name (Slightly smaller, but bold and colored) -->
+            <span class="text-lg md:text-2xl font-extrabold mt-2 md:mt-3 tracking-wide" style="color:${col.text};">${escapeHtml(currentTeam.name)}</span>
+            
+            <span class="text-xs md:text-base text-slate-500 font-medium bg-slate-800/50 py-1.5 px-4 rounded-full border border-slate-700 mt-6 md:mt-8">Tap 'START TURN' when ready</span>
         </div>
     `;
 
