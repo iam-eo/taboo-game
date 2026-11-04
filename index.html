@@ -15,7 +15,33 @@
     </script>
     <style>
         body { font-family:'Inter',sans-serif; user-select:none; -webkit-user-select:none; touch-action:manipulation; background:#090d16; color:#f8fafc; }
-        .app-container { max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; position:relative; background:#0f172a; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); }
+        
+        /* Responsive App Container */
+        .app-container { 
+            width: 100%;
+            max-width: 480px; 
+            margin: 0 auto; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            background: #0f172a; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); 
+        }
+        
+        /* Tablet / Desktop improvements */
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 640px;
+                border-radius: 24px;
+                margin-top: 2rem;
+                margin-bottom: 2rem;
+                min-height: calc(100vh - 4rem);
+            }
+            .forbidden-card-item { font-size: 1.25rem !important; padding: 1rem !important; }
+            #cardTargetWord { font-size: 4rem !important; }
+        }
+
         ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-track { background:rgba(15,23,42,0.6); }
         ::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
         .forbidden-card-item { background:linear-gradient(135deg,rgba(239,68,68,0.15) 0%,rgba(239,68,68,0.05) 100%); border-left:4px solid #ef4444; }
@@ -28,61 +54,61 @@
         .forbidden-pill { background-color:#090d16; color:#cbd5e1; font-size:9px; font-weight:bold; padding:4px; text-align:center; border-radius:6px; border:1px solid #1e293b; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen">
+<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen p-0 md:p-4">
 
-<div class="app-container overflow-hidden w-full border-x border-slate-800">
+<div class="app-container overflow-hidden border-x md:border border-slate-800">
     <!-- HEADER -->
-    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-        <div class="flex items-center gap-2.5">
-            <div class="bg-indigo-600 text-white rounded-xl p-2 font-black text-xs uppercase flex items-center justify-center h-9 w-9 shadow-lg shadow-indigo-600/30">
-                <i class="fa-solid fa-ban text-sm"></i>
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 md:py-4 flex items-center justify-between sticky top-0 z-30 md:rounded-t-3xl">
+        <div class="flex items-center gap-2.5 md:gap-3">
+            <div class="bg-indigo-600 text-white rounded-xl p-2 font-black text-xs uppercase flex items-center justify-center h-9 w-9 md:h-10 md:w-10 shadow-lg shadow-indigo-600/30">
+                <i class="fa-solid fa-ban text-sm md:text-base"></i>
             </div>
             <div>
-                <h1 class="font-black text-base text-white leading-tight tracking-wide">TABOO MASTER</h1>
+                <h1 class="font-black text-base md:text-lg text-white leading-tight tracking-wide">TABOO MASTER</h1>
                 <div class="flex items-center gap-2">
-                    <span id="roleBadge" class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/50">Pass & Play</span>
+                    <span class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/50">Pass & Play</span>
                 </div>
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="toggleSound()" id="soundToggleBtn" title="Toggle Sound" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
+            <button onclick="toggleSound()" id="soundToggleBtn" title="Toggle Sound" class="p-2 md:p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm md:text-base border border-slate-700">
                 <i class="fa-solid fa-volume-high text-emerald-400"></i>
             </button>
-            <button onclick="openHelpModal()" title="Help & Rules" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
+            <button onclick="openHelpModal()" title="Help & Rules" class="p-2 md:p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm md:text-base border border-slate-700">
                 <i class="fa-solid fa-circle-question text-indigo-400"></i>
             </button>
-            <button onclick="openDeckModal()" title="Word Database" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
+            <button onclick="openDeckModal()" title="Word Database" class="p-2 md:p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm md:text-base border border-slate-700">
                 <i class="fa-solid fa-database text-amber-400"></i>
             </button>
         </div>
     </header>
 
-    <main class="flex-1 flex flex-col p-4 overflow-y-auto" id="mainView">
+    <main class="flex-1 flex flex-col p-4 md:p-6 overflow-y-auto" id="mainView">
 
         <!-- ===== SETUP VIEW ===== -->
-        <section id="setupView" class="space-y-5 flex-1 flex flex-col justify-between">
-            <div class="space-y-4">
+        <section id="setupView" class="space-y-4 md:space-y-6 flex-1 flex flex-col justify-between">
+            <div class="space-y-4 md:space-y-6">
                 <!-- Game parameters -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-                    <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm space-y-3 md:space-y-4">
+                    <h2 class="text-xs md:text-sm font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-sliders"></i> Game Parameters
                     </h2>
-                    <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="grid grid-cols-2 gap-3 md:gap-4 text-sm md:text-base">
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Total Rounds</label>
-                            <input type="number" id="cfgRounds" min="1" max="50" value="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="text-xs md:text-sm text-slate-400 block mb-1 md:mb-1.5">Total Rounds</label>
+                            <input type="number" id="cfgRounds" min="1" max="50" value="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 md:py-2.5 text-white font-semibold focus:outline-none focus:border-indigo-500">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Turn Time (sec)</label>
-                            <input type="number" id="cfgTimer" min="10" max="300" value="60" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="text-xs md:text-sm text-slate-400 block mb-1 md:mb-1.5">Turn Time (sec)</label>
+                            <input type="number" id="cfgTimer" min="10" max="300" value="60" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 md:py-2.5 text-white font-semibold focus:outline-none focus:border-indigo-500">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Skips Limit</label>
-                            <input type="number" id="cfgMaxSkips" min="0" max="10" value="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="text-xs md:text-sm text-slate-400 block mb-1 md:mb-1.5">Skips Limit</label>
+                            <input type="number" id="cfgMaxSkips" min="0" max="10" value="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 md:py-2.5 text-white font-semibold focus:outline-none focus:border-indigo-500">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-400 block mb-1">Taboo Penalty</label>
-                            <select id="cfgTabooPenalty" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-indigo-500">
+                            <label class="text-xs md:text-sm text-slate-400 block mb-1 md:mb-1.5">Taboo Penalty</label>
+                            <select id="cfgTabooPenalty" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 md:py-2.5 text-white font-semibold focus:outline-none focus:border-indigo-500">
                                 <option value="-1">-1 Point</option>
                                 <option value="-2">-2 Points</option>
                                 <option value="0">0 Points</option>
@@ -92,98 +118,108 @@
                 </div>
 
                 <!-- Teams -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm space-y-3 md:space-y-4">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                        <h2 class="text-xs md:text-sm font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-users"></i> Teams (<span id="teamCountDisplay">2</span>)
                         </h2>
-                        <button onclick="addTeamInput()" class="text-xs bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold border border-indigo-500/40 px-3 py-1 rounded-xl transition">
+                        <button onclick="addTeamInput()" class="text-xs md:text-sm bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold border border-indigo-500/40 px-3 py-1.5 rounded-xl transition">
                             <i class="fa-solid fa-plus mr-1"></i> Add Team
                         </button>
                     </div>
-                    <p class="text-[10px] text-slate-400">Enter player names separated by commas (e.g. Alice, Bob). They will rotate as the clue-giver.</p>
+                    <p class="text-[10px] md:text-xs text-slate-400">Enter player names separated by commas (e.g. Alice, Bob). They will rotate as the clue-giver.</p>
                     <div id="teamsContainer" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
-            <div class="pt-2 space-y-2">
-                <button id="resumeGameBtn" onclick="confirmResumeGame()" class="hidden w-full py-3 bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-500/40 font-bold text-xs text-emerald-300 rounded-xl flex items-center justify-center gap-2">
+            <div class="pt-2 space-y-2 md:space-y-3">
+                <button id="resumeGameBtn" onclick="confirmResumeGame()" class="hidden w-full py-3 md:py-4 bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-500/40 font-bold text-xs md:text-sm text-emerald-300 rounded-xl flex items-center justify-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left"></i> RESUME LAST GAME
                 </button>
-                <button onclick="startGameHost()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 font-extrabold text-base text-white rounded-2xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+                <button onclick="startGameHost()" class="w-full py-4 md:py-5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 font-extrabold text-base md:text-lg text-white rounded-2xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-play"></i> START MATCH
                 </button>
             </div>
         </section>
 
         <!-- ===== GAME VIEW ===== -->
-        <section id="gameView" class="hidden flex-1 flex flex-col justify-between space-y-4">
+        <section id="gameView" class="hidden flex-1 flex flex-col justify-between space-y-3 md:space-y-5">
             
             <!-- Score & Round Header -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-md space-y-2">
-                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-slate-800 pb-2">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 md:p-4 shadow-md space-y-2 md:space-y-3">
+                <div class="flex items-center justify-between text-xs md:text-sm text-slate-400 font-semibold border-b border-slate-800 pb-2 md:pb-3">
                     <span>Round <strong id="currentRoundDisplay" class="text-indigo-400">1</strong>/<span id="totalRoundsDisplay">3</span></span>
                     <span id="turnIndicator" class="text-indigo-300 font-bold bg-indigo-950/80 px-2.5 py-0.5 rounded-lg border border-indigo-800/50">—</span>
                     <span>Skips: <strong id="skipsLeftDisplay" class="text-amber-400">3</strong></span>
                 </div>
-                <div id="scoreboardBar" class="grid grid-cols-2 gap-2"></div>
+                <div id="scoreboardBar" class="grid grid-cols-2 gap-2 md:gap-3"></div>
             </div>
 
             <!-- Timer -->
-            <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-2.5">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Turn Countdown</span>
+            <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-2.5 md:py-3.5">
+                <span class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest">Turn Countdown</span>
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-stopwatch text-indigo-400 text-lg"></i>
-                    <span id="timerDisplay" class="text-3xl font-black text-amber-400 font-mono tracking-tight">60</span>
-                    <span class="text-xs text-slate-500 font-bold">SEC</span>
+                    <i class="fa-solid fa-stopwatch text-indigo-400 text-lg md:text-xl"></i>
+                    <span id="timerDisplay" class="text-3xl md:text-4xl font-black text-amber-400 font-mono tracking-tight">60</span>
+                    <span class="text-xs md:text-sm text-slate-500 font-bold">SEC</span>
                 </div>
             </div>
 
             <!-- Word Card -->
-            <div id="tabooCard" class="flex-1 bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-5 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+            <div id="tabooCard" class="flex-1 min-h-[300px] bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-5 md:p-8 shadow-2xl flex flex-col justify-between relative overflow-hidden">
                 <div class="absolute -top-12 -right-12 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                <div class="text-center py-2 border-b-2 border-slate-800/80">
-                    <h3 id="cardTargetWord" class="text-3xl font-black text-white tracking-wide uppercase drop-shadow">READY</h3>
+                
+                <!-- Target Word Area -->
+                <div id="cardHeaderArea" class="text-center py-2 md:py-4 border-b-2 border-slate-800/80">
+                    <h3 id="cardTargetWord" class="text-3xl md:text-5xl font-black text-white tracking-wide uppercase drop-shadow">READY</h3>
                 </div>
-                <div class="my-auto py-2 space-y-2">
-                    <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest text-center block mb-1">
-                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> FORBIDDEN WORDS
-                    </span>
-                    <div id="forbiddenList" class="space-y-1.5">
-                        <p class="text-xs text-slate-500 text-center py-4">Hand the phone to the clue-giver…</p>
+                
+                <!-- Forbidden Words / Handoff Area -->
+                <div class="my-auto py-2 md:py-4 space-y-2 md:space-y-3">
+                    <!-- Hidden by default, shown during active turn -->
+                    <div id="forbiddenWordsLabel" class="hidden">
+                        <span class="text-[10px] md:text-xs font-black text-rose-400 uppercase tracking-widest text-center block mb-1 md:mb-2">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> FORBIDDEN WORDS
+                        </span>
+                    </div>
+                    
+                    <div id="forbiddenList" class="space-y-1.5 md:space-y-2.5">
+                        <!-- Handoff message goes here by default -->
                     </div>
                 </div>
-                <div class="text-center text-xs font-medium text-slate-400 bg-slate-950/70 py-2.5 rounded-xl border border-slate-800/80">
+
+                <!-- Active Clue Giver Area -->
+                <div id="activeClueGiverArea" class="hidden text-center text-xs md:text-sm font-medium text-slate-400 bg-slate-950/70 py-2.5 md:py-3.5 rounded-xl border border-slate-800/80">
                     <div>Active Clue Giver:</div>
-                    <span id="activeClueGiver" class="text-amber-400 font-extrabold text-sm tracking-wide block mt-0.5">—</span>
+                    <span id="activeClueGiver" class="text-amber-400 font-extrabold text-sm md:text-lg tracking-wide block mt-0.5">—</span>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div id="actionContainer" class="grid grid-cols-1 gap-3 pt-1">
+            <div id="actionContainer" class="grid grid-cols-1 gap-3 md:gap-4 pt-1 md:pt-2">
                 <!-- Dynamically rendered -->
             </div>
 
             <!-- Pause -->
             <div class="flex items-center gap-2">
-                <button onclick="pauseResumeGame()" id="pauseBtn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
+                <button onclick="pauseResumeGame()" id="pauseBtn" class="flex-1 py-2.5 md:py-3.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs md:text-sm font-bold text-slate-300 border border-slate-700">
                     <i class="fa-solid fa-pause mr-1"></i> PAUSE
                 </button>
             </div>
         </section>
 
         <!-- ===== GAME OVER ===== -->
-        <section id="gameOverView" class="hidden flex-1 flex flex-col items-center justify-center text-center space-y-6">
-            <div class="w-20 h-20 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-full flex items-center justify-center text-4xl shadow-xl">
+        <section id="gameOverView" class="hidden flex-1 flex flex-col items-center justify-center text-center space-y-6 md:space-y-8">
+            <div class="w-20 h-20 md:w-28 md:h-28 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-full flex items-center justify-center text-4xl md:text-6xl shadow-xl">
                 <i class="fa-solid fa-trophy"></i>
             </div>
             <div>
-                <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">MATCH FINISHED</span>
-                <h2 class="text-3xl font-black text-white mt-1">WINNER!</h2>
-                <p id="winnerName" class="text-2xl font-black text-amber-400 mt-1">—</p>
+                <span class="text-xs md:text-sm font-bold text-indigo-400 uppercase tracking-widest">MATCH FINISHED</span>
+                <h2 class="text-3xl md:text-4xl font-black text-white mt-1">WINNER!</h2>
+                <p id="winnerName" class="text-2xl md:text-3xl font-black text-amber-400 mt-1 md:mt-2">—</p>
             </div>
-            <div id="finalScoreboard" class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2"></div>
-            <button onclick="resetToSetup()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition">
+            <div id="finalScoreboard" class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5 space-y-2 md:space-y-3"></div>
+            <button onclick="resetToSetup()" class="w-full py-4 md:py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base md:text-lg rounded-2xl shadow-lg transition">
                 <i class="fa-solid fa-rotate-right mr-2"></i> NEW MATCH
             </button>
         </section>
@@ -191,24 +227,25 @@
 
     <!-- ===== DECK MODAL ===== -->
     <div id="deckModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4 max-h-[90vh] flex flex-col">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base flex items-center gap-2">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm md:max-w-md p-5 md:p-6 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 md:pb-4">
+                <h3 class="font-bold text-white text-base md:text-lg flex items-center gap-2">
                     <i class="fa-solid fa-database text-amber-400"></i> Word Database
                 </h3>
-                <button onclick="closeDeckModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeDeckModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg md:text-xl"></i></button>
             </div>
-            <div class="space-y-3 flex-1 overflow-y-auto text-xs pr-1">
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div class="space-y-3 md:space-y-4 flex-1 overflow-y-auto text-xs md:text-sm pr-1">
+                <!-- Content remains identical, just slightly larger on md screens -->
+                <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 flex justify-between items-center">
                     <div>
-                        <span class="text-slate-400 block">Cards in DB</span>
-                        <strong id="dbCountDisplay" class="text-lg font-bold text-indigo-400">0</strong>
+                        <span class="text-slate-400 block text-xs md:text-sm">Cards in DB</span>
+                        <strong id="dbCountDisplay" class="text-lg md:text-xl font-bold text-indigo-400">0</strong>
                     </div>
-                    <button onclick="autoLoadFirstDeck()" class="bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-500/40">Reload Online Deck</button>
+                    <button onclick="autoLoadFirstDeck()" class="bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-bold border border-indigo-500/40">Reload Online Deck</button>
                 </div>
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                    <label class="font-bold text-slate-300 block">Select Online Deck</label>
-                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value, false)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
+                <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-2">
+                    <label class="font-bold text-slate-300 block text-xs md:text-sm">Select Online Deck</label>
+                    <select id="deckPresetSelect" onchange="loadHostedDeck(this.value, false)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 md:py-3 text-white text-xs md:text-sm font-semibold focus:outline-none focus:border-indigo-500">
                         <option value="taboo_cards.json">Default Deck</option>
                         <option value="decks/deck 1.json">Deck 1</option>
                         <option value="decks/deck 2.json">Deck 2</option>
@@ -217,15 +254,15 @@
                         <option value="decks/deck 5.json">Deck 5</option>
                     </select>
                 </div>
-                <div class="bg-slate-950 p-3 rounded-xl border border-indigo-500/40 space-y-2">
-                    <label class="font-bold text-indigo-300 block"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AI Deck Generator</label>
-                    <button onclick="openBuilderModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-lg text-xs flex items-center justify-center gap-2">
+                <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-indigo-500/40 space-y-2">
+                    <label class="font-bold text-indigo-300 block text-xs md:text-sm"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AI Deck Generator</label>
+                    <button onclick="openBuilderModal()" class="w-full py-2.5 md:py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-lg text-xs md:text-sm flex items-center justify-center gap-2">
                         <i class="fa-solid fa-robot"></i> Open AI Deck Builder
                     </button>
                 </div>
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                    <label class="font-bold text-slate-300 block">Import Custom Cards File</label>
-                    <div class="flex items-center gap-4 text-slate-300 text-[11px]">
+                <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-2">
+                    <label class="font-bold text-slate-300 block text-xs md:text-sm">Import Custom Cards File</label>
+                    <div class="flex items-center gap-4 text-slate-300 text-[11px] md:text-xs">
                         <label class="flex items-center gap-1.5 cursor-pointer">
                             <input type="radio" name="importMode" value="overwrite" checked> <span>Overwrite</span>
                         </label>
@@ -234,37 +271,37 @@
                         </label>
                     </div>
                     <input type="file" id="deckFileInput" accept=".csv,.json" class="hidden" onchange="handleFileImport(event)">
-                    <button onclick="document.getElementById('deckFileInput').click()" class="w-full py-2 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 font-bold border border-indigo-500/40 rounded-lg text-xs flex items-center justify-center gap-2">
+                    <button onclick="document.getElementById('deckFileInput').click()" class="w-full py-2 md:py-3 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 font-bold border border-indigo-500/40 rounded-lg text-xs md:text-sm flex items-center justify-center gap-2">
                         <i class="fa-solid fa-file-csv"></i> Import CSV / JSON
                     </button>
                 </div>
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                    <span class="font-bold text-slate-300 block">Add Single Card</span>
-                    <input type="text" id="newTarget" placeholder="Target Word" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 rounded-lg text-white text-xs">
-                    <input type="text" id="newForbidden" placeholder="5 forbidden words (comma separated)" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 rounded-lg text-white text-xs">
-                    <button onclick="addCustomCard()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-lg text-xs">Save Card</button>
+                <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-2">
+                    <span class="font-bold text-slate-300 block text-xs md:text-sm">Add Single Card</span>
+                    <input type="text" id="newTarget" placeholder="Target Word" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 md:py-3 rounded-lg text-white text-xs md:text-sm">
+                    <input type="text" id="newForbidden" placeholder="5 forbidden words (comma separated)" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 md:py-3 rounded-lg text-white text-xs md:text-sm">
+                    <button onclick="addCustomCard()" class="w-full py-2 md:py-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-lg text-xs md:text-sm">Save Card</button>
                 </div>
             </div>
-            <button onclick="closeDeckModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Close</button>
+            <button onclick="closeDeckModal()" class="w-full py-2.5 md:py-3.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs md:text-sm border border-slate-700">Close</button>
         </div>
     </div>
 
     <!-- ===== AI BUILDER MODAL ===== -->
-    <div id="builderModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-3">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-4 space-y-3 max-h-[92vh] flex flex-col">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                <button onclick="closeBuilderModal()" class="text-indigo-400 hover:text-white font-bold text-xs flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+    <div id="builderModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm md:max-w-md p-4 md:p-6 space-y-3 md:space-y-4 max-h-[92vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 md:pb-3">
+                <button onclick="closeBuilderModal()" class="text-indigo-400 hover:text-white font-bold text-xs md:text-sm flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 md:py-2 rounded-xl border border-slate-700">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
-                <span class="font-black text-xs text-white uppercase">AI Deck Creator</span>
-                <button onclick="builderExportJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1">
+                <span class="font-black text-xs md:text-sm text-white uppercase">AI Deck Creator</span>
+                <button onclick="builderExportJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl flex items-center gap-1">
                     <i class="fa-solid fa-download"></i> Export
                 </button>
             </div>
-            <div class="space-y-3 flex-1 overflow-y-auto pr-1 text-xs">
+            <div class="space-y-3 md:space-y-4 flex-1 overflow-y-auto pr-1 text-xs md:text-sm">
                 <div class="builder-card space-y-2">
                     <label class="block font-bold text-slate-300 mb-1">Gemini API Key:</label>
-                    <input type="password" id="builderApiKeyInput" placeholder="Paste your API Key here..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+                    <input type="password" id="builderApiKeyInput" placeholder="Paste your API Key here..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 md:py-3 text-white text-xs md:text-sm">
                     <p style="font-size:10px;color:#94a3b8;margin-top:4px;">Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-indigo-400">Google AI Studio</a>.</p>
                 </div>
                 <div class="builder-card space-y-2">
@@ -273,16 +310,16 @@
                         <button onclick="builderClearAllCats()" class="text-slate-400 hover:text-white">Clear</button>
                     </div>
                     <div class="flex gap-2">
-                        <input type="text" id="builderNewCatInput" placeholder="Add custom category..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
-                        <button onclick="builderAddCategory()" class="bg-indigo-600 px-3 py-2 font-bold text-white rounded-xl">+ Add</button>
+                        <input type="text" id="builderNewCatInput" placeholder="Add custom category..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 md:py-3 text-white text-xs md:text-sm">
+                        <button onclick="builderAddCategory()" class="bg-indigo-600 px-3 py-2 md:py-3 font-bold text-white rounded-xl text-xs md:text-sm">+ Add</button>
                     </div>
                     <div id="builderCategoryContainer" class="flex flex-wrap gap-1.5 pt-1"></div>
-                    <button onclick="builderGenerateWithAI()" id="builderGenBtn" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold uppercase rounded-xl shadow-lg mt-2">
+                    <button onclick="builderGenerateWithAI()" id="builderGenBtn" class="w-full py-3 md:py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold uppercase rounded-xl shadow-lg mt-2 text-xs md:text-sm">
                         <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate AI Cards (50)
                     </button>
                 </div>
                 <div id="builderProgressBox" class="builder-card hidden">
-                    <div class="flex justify-between items-center font-bold text-indigo-300 text-xs">
+                    <div class="flex justify-between items-center font-bold text-indigo-300 text-xs md:text-sm">
                         <span id="builderStatusText">Generating...</span>
                         <span id="builderElapsedText" class="text-purple-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">0s</span>
                     </div>
@@ -295,7 +332,7 @@
                     <div id="builderCardsGrid" class="space-y-2"></div>
                 </div>
             </div>
-            <button onclick="builderExportAndSave()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2">
+            <button onclick="builderExportAndSave()" class="w-full py-3 md:py-4 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl text-xs md:text-sm flex items-center justify-center gap-2">
                 <i class="fa-solid fa-database"></i> Save & Import to Database
             </button>
         </div>
@@ -303,28 +340,28 @@
 
     <!-- ===== HELP MODAL ===== -->
     <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 space-y-4 max-h-[85vh] flex flex-col">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base flex items-center gap-2">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 md:p-6 space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 md:pb-4">
+                <h3 class="font-bold text-white text-base md:text-lg flex items-center gap-2">
                     <i class="fa-solid fa-book-open text-indigo-400"></i> Taboo Guide & Help
                 </h3>
-                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg md:text-xl"></i></button>
             </div>
             
             <!-- Tabs -->
-            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[10px] font-bold overflow-x-auto">
-                <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 px-1 rounded-lg bg-indigo-600 text-white text-center whitespace-nowrap">Rules</button>
-                <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Setup</button>
-                <button onclick="switchHelpTab('gameplay')" id="tabBtnGameplay" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Gameplay</button>
-                <button onclick="switchHelpTab('ai')" id="tabBtnAi" class="flex-1 py-1.5 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Decks & AI</button>
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[10px] md:text-xs font-bold overflow-x-auto">
+                <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 md:py-2 px-1 rounded-lg bg-indigo-600 text-white text-center whitespace-nowrap">Rules</button>
+                <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 md:py-2 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Setup</button>
+                <button onclick="switchHelpTab('gameplay')" id="tabBtnGameplay" class="flex-1 py-1.5 md:py-2 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Gameplay</button>
+                <button onclick="switchHelpTab('ai')" id="tabBtnAi" class="flex-1 py-1.5 md:py-2 px-1 rounded-lg text-slate-400 text-center whitespace-nowrap">Decks & AI</button>
             </div>
 
-            <div class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
+            <div class="flex-1 overflow-y-auto space-y-3 md:space-y-4 text-xs md:text-sm pr-1">
 
                 <!-- Quick Start Card -->
-                <div class="bg-gradient-to-br from-indigo-950/80 to-purple-950/60 border border-indigo-500/40 rounded-xl p-3 space-y-1.5">
+                <div class="bg-gradient-to-br from-indigo-950/80 to-purple-950/60 border border-indigo-500/40 rounded-xl p-3 md:p-4 space-y-1.5">
                     <h4 class="font-bold text-indigo-200 flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Quick Start</h4>
-                    <ol class="list-decimal list-inside text-[11px] text-slate-300 space-y-1">
+                    <ol class="list-decimal list-inside text-[11px] md:text-xs text-slate-300 space-y-1">
                         <li>Enter team names and player names.</li>
                         <li>Tap START MATCH.</li>
                         <li>Pass the phone to the first clue-giver.</li>
@@ -333,14 +370,14 @@
                 </div>
 
                 <!-- TAB 1: RULES -->
-                <div id="helpContentRules" class="space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                <div id="helpContentRules" class="space-y-3 md:space-y-4 text-slate-300">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-indigo-400"></i> Objective</h4>
-                        <p class="text-[11px] text-slate-400">Get your teammates to guess the Target Word before time runs out. You can say anything, EXCEPT the target word or any of the 5 Forbidden Words.</p>
+                        <p class="text-[11px] md:text-xs text-slate-400">Get your teammates to guess the Target Word before time runs out. You can say anything, EXCEPT the target word or any of the 5 Forbidden Words.</p>
                     </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Roles</h4>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
+                        <ul class="list-disc list-inside text-[11px] md:text-xs text-slate-400 space-y-1">
                             <li><strong class="text-white">Clue-Giver:</strong> Holds the phone, sees the card, and taps the buttons.</li>
                             <li><strong class="text-white">Guessing Team:</strong> Shouts answers based on the clues.</li>
                             <li><strong class="text-white">Watchdogs (Opposing Team):</strong> Sits nearby, listens, and catches violations.</li>
@@ -349,60 +386,60 @@
                 </div>
 
                 <!-- TAB 2: SETUP -->
-                <div id="helpContentUsage" class="hidden space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                <div id="helpContentUsage" class="hidden space-y-3 md:space-y-4 text-slate-300">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-gear"></i> Teams & Players</h4>
-                        <p class="text-[11px] text-slate-400">Under Teams, type the player names separated by commas (e.g., <em>Alice, Bob, Charlie</em>). The app automatically rotates them as the clue-giver each round.</p>
+                        <p class="text-[11px] md:text-xs text-slate-400">Under Teams, type the player names separated by commas (e.g., <em>Alice, Bob, Charlie</em>). The app automatically rotates them as the clue-giver each round.</p>
                     </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> Parameters</h4>
-                        <p class="text-[11px] text-slate-400">Set the number of rounds, the timer length (e.g., 60s), and how many skips a clue-giver is allowed per turn.</p>
+                        <p class="text-[11px] md:text-xs text-slate-400">Set the number of rounds, the timer length (e.g., 60s), and how many skips a clue-giver is allowed per turn.</p>
                     </div>
                 </div>
 
                 <!-- TAB 3: GAMEPLAY -->
-                <div id="helpContentGameplay" class="hidden space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                <div id="helpContentGameplay" class="hidden space-y-3 md:space-y-4 text-slate-300">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-play"></i> During the Turn</h4>
-                        <p class="text-[11px] text-slate-400">Hand the phone to the active Clue-Giver. They tap <strong>START TURN</strong>. The timer starts and the card reveals.</p>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1 mt-1">
+                        <p class="text-[11px] md:text-xs text-slate-400">Hand the phone to the active Clue-Giver. They tap <strong>START TURN</strong>. The timer starts and the card reveals.</p>
+                        <ul class="list-disc list-inside text-[11px] md:text-xs text-slate-400 space-y-1 mt-1">
                             <li><span class="text-emerald-400 font-bold">CORRECT (+1):</span> Next card.</li>
                             <li><span class="text-amber-400 font-bold">SKIP:</span> Next card (uses 1 skip).</li>
                             <li><span class="text-rose-400 font-bold">TABOO:</span> Loses points, next card.</li>
                         </ul>
                     </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-rotate"></i> End of Turn</h4>
-                        <p class="text-[11px] text-slate-400">When the timer hits 0, the screen locks. The app will announce who is next. Pass the phone to the next clue-giver!</p>
+                        <p class="text-[11px] md:text-xs text-slate-400">When the timer hits 0, the screen locks. The app will announce who is next. Pass the phone to the next clue-giver!</p>
                     </div>
                 </div>
 
                 <!-- TAB 4: DECKS & AI -->
-                <div id="helpContentAi" class="hidden space-y-3 text-slate-300">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                <div id="helpContentAi" class="hidden space-y-3 md:space-y-4 text-slate-300">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-robot"></i> AI Builder</h4>
-                        <p class="text-[11px] text-slate-400">Tap the database icon at the top right to open decks. You can use the AI Builder to generate 50 fresh cards for any category using a free Gemini API key.</p>
+                        <p class="text-[11px] md:text-xs text-slate-400">Tap the database icon at the top right to open decks. You can use the AI Builder to generate 50 fresh cards for any category using a free Gemini API key.</p>
                     </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-file-csv"></i> Custom Decks</h4>
-                        <p class="text-[11px] text-slate-400">Import your own CSV or JSON files, or just select one of the preset decks to reload the game database.</p>
+                        <p class="text-[11px] md:text-xs text-slate-400">Import your own CSV or JSON files, or just select one of the preset decks to reload the game database.</p>
                     </div>
                 </div>
             </div>
-            <button onclick="closeHelpModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">Got It!</button>
+            <button onclick="closeHelpModal()" class="w-full py-2.5 md:py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs md:text-sm shadow-lg">Got It!</button>
         </div>
     </div>
 
     <!-- CONFIRM MODAL -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
-            <h3 id="confirmTitle" class="font-bold text-white text-base flex items-center gap-2">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 md:p-6 space-y-4">
+            <h3 id="confirmTitle" class="font-bold text-white text-base md:text-lg flex items-center gap-2">
                 <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Confirm
             </h3>
-            <p id="confirmMessage" class="text-xs text-slate-300 leading-relaxed"></p>
+            <p id="confirmMessage" class="text-xs md:text-sm text-slate-300 leading-relaxed"></p>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Cancel</button>
-                <button id="confirmYesBtn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">Confirm</button>
+                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 md:py-3.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs md:text-sm border border-slate-700">Cancel</button>
+                <button id="confirmYesBtn" class="flex-1 py-2.5 md:py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs md:text-sm shadow-lg">Confirm</button>
             </div>
         </div>
     </div>
@@ -410,7 +447,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — Pass & Play (Final)
+   TABOO MASTER ENGINE — Pass & Play (Responsive)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -812,15 +849,15 @@ function renderTeamInputs() {
     appState.teams.forEach((t, i) => {
         const col = teamColor(i);
         const div = document.createElement("div");
-        div.className = "bg-slate-950 p-3 rounded-xl border space-y-2";
+        div.className = "bg-slate-950 p-3 md:p-4 rounded-xl border space-y-2 md:space-y-3";
         div.style.borderColor = col.border;
         
         const header = document.createElement("div");
         header.className = "flex justify-between items-center";
-        header.innerHTML = `<span class="text-xs font-bold" style="color:${col.text}">Team ${i+1}</span>`;
+        header.innerHTML = `<span class="text-xs md:text-sm font-bold" style="color:${col.text}">Team ${i+1}</span>`;
         if (appState.teams.length > 2) {
             const btn = document.createElement("button");
-            btn.className = "text-rose-400 text-xs px-1";
+            btn.className = "text-rose-400 text-xs md:text-sm px-1";
             btn.innerHTML = '<i class="fa-solid fa-trash"></i>';
             btn.onclick = () => removeTeamInput(i);
             header.appendChild(btn);
@@ -828,19 +865,17 @@ function renderTeamInputs() {
         div.appendChild(header);
 
         const grid = document.createElement("div");
-        grid.className = "grid grid-cols-1 gap-2";
+        grid.className = "grid grid-cols-1 gap-2 md:gap-3";
 
-        // Team Name Input
         const nameInput = document.createElement("input");
         nameInput.type = "text"; nameInput.value = t.name;
-        nameInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white w-full";
+        nameInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 md:py-2 text-xs md:text-sm text-white w-full";
         nameInput.placeholder = "Team Name";
         nameInput.onchange = () => { appState.teams[i].name = nameInput.value; renderTeamInputs(); };
         
-        // Players Input
         const playersInput = document.createElement("input");
         playersInput.type = "text"; playersInput.value = t.players;
-        playersInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white w-full";
+        playersInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 md:py-2 text-xs md:text-sm text-white w-full";
         playersInput.placeholder = "Players (comma separated)";
         playersInput.onchange = () => { appState.teams[i].players = playersInput.value; };
 
@@ -917,18 +952,23 @@ function prepTurn() {
     document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
     document.getElementById("cardTargetWord").innerText = "READY?";
     
+    // Hide elements only needed during active play
+    document.getElementById("forbiddenWordsLabel").classList.add("hidden");
+    document.getElementById("activeClueGiverArea").classList.add("hidden");
+    
+    // Show the Handoff Message with BIGGER fonts
     document.getElementById("forbiddenList").innerHTML = `
-        <div class="p-4 text-center">
-            <span class="text-slate-300 font-bold text-sm">Pass phone to</span><br>
-            <span class="font-black text-base tracking-wide" style="color:${col.text}">${escapeHtml(clueGiverFull)}</span><br>
-            <span class="text-xs text-slate-400 font-medium mt-1 block">Tap 'START TURN' when ready!</span>
+        <div class="py-8 md:py-12 flex flex-col items-center justify-center text-center">
+            <span class="text-slate-400 text-sm md:text-lg font-bold mb-2">Pass phone to</span>
+            <span class="text-2xl md:text-4xl font-black tracking-wide mb-3 md:mb-4" style="color:${col.text}">${escapeHtml(clueGiverFull)}</span>
+            <span class="text-xs md:text-base text-slate-500 font-medium bg-slate-800/50 py-1.5 px-4 rounded-full border border-slate-700">Tap 'START TURN' when ready</span>
         </div>
     `;
 
     const ac = document.getElementById("actionContainer");
     ac.className = "grid grid-cols-1 gap-3 pt-1";
     ac.innerHTML = `
-        <button onclick="beginActualTurn()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+        <button onclick="beginActualTurn()" class="w-full py-4 md:py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base md:text-lg rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
             <i class="fa-solid fa-play"></i> START TURN
         </button>
     `;
@@ -942,20 +982,24 @@ function beginActualTurn() {
     
     soundEngine.play('start');
     
+    // Reveal active play elements
+    document.getElementById("forbiddenWordsLabel").classList.remove("hidden");
+    document.getElementById("activeClueGiverArea").classList.remove("hidden");
+    
     const ac = document.getElementById("actionContainer");
-    ac.className = "grid grid-cols-3 gap-3 pt-1";
+    ac.className = "grid grid-cols-3 gap-3 md:gap-4 pt-1";
     ac.innerHTML = `
-        <button onclick="handleCardAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1">
-            <i class="fa-solid fa-ban text-xl"></i>
-            <span class="text-[10px]">TABOO (${appState.config.tabooPenalty})</span>
+        <button onclick="handleCardAction('taboo')" class="py-4 md:py-6 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 md:gap-2">
+            <i class="fa-solid fa-ban text-xl md:text-2xl"></i>
+            <span class="text-[10px] md:text-sm uppercase tracking-wider">TABOO (${appState.config.tabooPenalty})</span>
         </button>
-        <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1">
-            <i class="fa-solid fa-forward text-xl"></i>
-            <span class="text-[10px]">SKIP</span>
+        <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 md:py-6 bg-amber-600 hover:bg-amber-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 md:gap-2">
+            <i class="fa-solid fa-forward text-xl md:text-2xl"></i>
+            <span class="text-[10px] md:text-sm uppercase tracking-wider">SKIP</span>
         </button>
-        <button onclick="handleCardAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1">
-            <i class="fa-solid fa-check text-xl"></i>
-            <span class="text-[10px]">CORRECT (+1)</span>
+        <button onclick="handleCardAction('correct')" class="py-4 md:py-6 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 md:gap-2">
+            <i class="fa-solid fa-check text-xl md:text-2xl"></i>
+            <span class="text-[10px] md:text-sm uppercase tracking-wider">CORRECT (+1)</span>
         </button>
     `;
 
@@ -989,7 +1033,7 @@ function drawNextCard() {
     list.innerHTML = "";
     appState.currentCard.forbidden.forEach(w => {
         const d = document.createElement("div");
-        d.className = "forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase tracking-wider";
+        d.className = "forbidden-card-item p-2 md:p-3 rounded-xl font-extrabold text-center text-xs md:text-base text-slate-200 uppercase tracking-wider";
         d.innerText = w;
         list.appendChild(d);
     });
@@ -1076,7 +1120,7 @@ function showGameOver() {
         const i = appState.teams.indexOf(t);
         const col = teamColor(i);
         const div = document.createElement("div");
-        div.className = "flex justify-between p-3 rounded-xl bg-slate-950 border text-sm";
+        div.className = "flex justify-between p-3 md:p-4 rounded-xl bg-slate-950 border text-sm md:text-base";
         div.style.borderColor = col.border;
         div.innerHTML = `
             <span class="font-bold" style="color:${idx === 0 ? '#fbbf24' : col.text}">#${idx+1} ${escapeHtml(t.name)}</span>
@@ -1098,12 +1142,12 @@ function renderScoreboard() {
         const col = teamColor(i);
         const isCur = i === appState.gameState.currentTeamIndex;
         const div = document.createElement("div");
-        div.className = "p-2 rounded-xl flex justify-between items-center border";
+        div.className = "p-2 md:p-3 rounded-xl flex justify-between items-center border";
         div.style.backgroundColor = isCur ? col.bg : '#020617';
         div.style.borderColor = isCur ? col.border : '#1e293b';
         div.innerHTML = `
-            <span class="text-xs font-bold truncate" style="color:${isCur ? col.text : '#94a3b8'}">${escapeHtml(t.name)}</span>
-            <span class="text-xs font-black text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${t.score}</span>`;
+            <span class="text-xs md:text-sm font-bold truncate" style="color:${isCur ? col.text : '#94a3b8'}">${escapeHtml(t.name)}</span>
+            <span class="text-xs md:text-sm font-black text-white px-2 md:px-3 py-0.5 md:py-1 rounded bg-slate-900 border border-slate-800">${t.score}</span>`;
         bar.appendChild(div);
     });
 }
