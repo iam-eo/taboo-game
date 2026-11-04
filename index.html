@@ -1,27 +1,20 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Taboo Master - Multiplayer Sync & Offline Deck</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- PeerJS CDN for Zero-Config WebRTC Sync -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        tabooRed: '#ef4444',
-                        tabooGreen: '#10b981',
-                        tabooAmber: '#f59e0b',
-                    }
+                    colors: { tabooRed: '#ef4444', tabooGreen: '#10b981', tabooAmber: '#f59e0b' }
                 }
             }
         }
@@ -29,43 +22,34 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
+            user-select: none; -webkit-user-select: none;
             touch-action: manipulation;
-            background-color: #090d16;
-            color: #f8fafc;
+            background-color: #090d16; color: #f8fafc;
         }
         .app-container {
-            max-width: 480px;
-            margin: 0 auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background: #0f172a;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            max-width: 480px; margin: 0 auto; min-height: 100vh;
+            display: flex; flex-direction: column; position: relative;
+            background: #0f172a; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
         }
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-track { background: rgba(15,23,42,0.6); }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        
         .forbidden-card-item {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%);
             border-left: 4px solid #ef4444;
         }
-        .builder-card { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
-        .badge-cat { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid; transition: opacity 0.2s; cursor: pointer; }
-        .badge-active { background-color: rgba(99, 102, 241, 0.2); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.5); }
-        .badge-inactive { background-color: #090d16; color: #64748b; border-color: #1e293b; }
-        .badge-disabled { opacity: 0.4; cursor: not-allowed; }
-        .card-grid-item { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
-        .forbidden-pill { background-color: #090d16; color: #cbd5e1; font-size: 9px; font-weight: bold; padding: 4px; text-align: center; border-radius: 6px; border: 1px solid #1e293b; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .builder-card { background-color:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:14px; margin-bottom:12px; }
+        .badge-cat { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:10px; font-size:11px; font-weight:bold; border:1px solid; transition:opacity 0.2s; cursor:pointer; }
+        .badge-active { background-color:rgba(99,102,241,0.2); color:#c7d2fe; border-color:rgba(99,102,241,0.5); }
+        .badge-inactive { background-color:#090d16; color:#64748b; border-color:#1e293b; }
+        .badge-disabled { opacity:0.4; cursor:not-allowed; }
+        .card-grid-item { background-color:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:12px; margin-bottom:8px; }
+        .forbidden-pill { background-color:#090d16; color:#cbd5e1; font-size:9px; font-weight:bold; padding:4px; text-align:center; border-radius:6px; border:1px solid #1e293b; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen">
 
 <div class="app-container overflow-hidden w-full border-x border-slate-800">
-    <!-- TOP NAVIGATION BAR -->
     <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
         <div class="flex items-center gap-2.5">
             <div class="bg-indigo-600 text-white rounded-xl p-2 font-black text-xs uppercase flex items-center justify-center h-9 w-9 shadow-lg shadow-indigo-600/30">
@@ -81,6 +65,9 @@
         </div>
 
         <div class="flex items-center gap-2">
+            <button onclick="toggleSound()" id="soundToggleBtn" title="Toggle Sound" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
+                <i class="fa-solid fa-volume-high text-emerald-400"></i>
+            </button>
             <button onclick="openHelpModal()" title="Instruction & Rules Guide" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm border border-slate-700">
                 <i class="fa-solid fa-circle-question text-indigo-400"></i>
             </button>
@@ -94,14 +81,10 @@
         </div>
     </header>
 
-    <!-- MAIN APP CONTENT VIEWS -->
     <main class="flex-1 flex flex-col p-4 overflow-y-auto" id="mainView">
-        
-        <!-- ================= VIEW 1: HOST SETUP ================= -->
+        <!-- SETUP VIEW -->
         <section id="setupView" class="space-y-5 flex-1 flex flex-col justify-between">
             <div class="space-y-4">
-                
-                <!-- Quick Mode Switcher Banner -->
                 <div class="bg-indigo-950/40 border border-indigo-800/60 rounded-2xl p-3 flex items-center justify-between">
                     <div>
                         <h2 class="text-xs font-bold text-indigo-300">Device Role</h2>
@@ -113,12 +96,10 @@
                     </div>
                 </div>
 
-                <!-- Game Configuration Card -->
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
                     <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-sliders"></i> Game Parameters
                     </h2>
-                    
                     <div class="grid grid-cols-2 gap-3 text-sm">
                         <div>
                             <label class="text-xs text-slate-400 block mb-1">Total Rounds</label>
@@ -143,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- Teams Configuration -->
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
@@ -153,10 +133,7 @@
                             <i class="fa-solid fa-plus mr-1"></i> Add Team
                         </button>
                     </div>
-
-                    <div id="teamsContainer" class="space-y-3 max-h-56 overflow-y-auto pr-1">
-                        <!-- Dynamic Team Rows -->
-                    </div>
+                    <div id="teamsContainer" class="space-y-3 max-h-56 overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
@@ -173,24 +150,17 @@
             </div>
         </section>
 
-        <!-- ================= VIEW 2: HOST ACTIVE GAME CONTROLLER ================= -->
+        <!-- GAME VIEW -->
         <section id="gameView" class="hidden flex-1 flex flex-col justify-between space-y-4">
-            
-            <!-- Round & Score Summary Header -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-md space-y-2">
                 <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-slate-800 pb-2">
                     <span>Round <strong id="currentRoundDisplay" class="text-indigo-400">1</strong> of <span id="totalRoundsDisplay">3</span></span>
                     <span id="turnIndicator" class="text-indigo-300 font-bold bg-indigo-950/80 px-2.5 py-0.5 rounded-lg border border-indigo-800/50">Team A's Turn</span>
                     <span>Skips: <strong id="skipsLeftDisplay" class="text-amber-400">3</strong></span>
                 </div>
-
-                <!-- Teams Score Grid -->
-                <div id="scoreboardBar" class="grid grid-cols-2 gap-2">
-                    <!-- Dynamic team score cards -->
-                </div>
+                <div id="scoreboardBar" class="grid grid-cols-2 gap-2"></div>
             </div>
 
-            <!-- Timer Display -->
             <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-2.5">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Turn Countdown</span>
                 <div class="flex items-center gap-2">
@@ -200,61 +170,34 @@
                 </div>
             </div>
 
-            <!-- TABOO WORD CARD -->
             <div id="tabooCard" class="flex-1 bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-5 shadow-2xl flex flex-col justify-between relative overflow-hidden">
                 <div class="absolute -top-12 -right-12 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                <!-- Target Word -->
                 <div class="text-center py-2 border-b-2 border-slate-800/80">
-                    
                     <h3 id="cardTargetWord" class="text-3xl font-black text-white tracking-wide uppercase drop-shadow">INITIALIZING</h3>
                 </div>
-
-                <!-- Forbidden Words -->
                 <div class="my-auto py-2 space-y-2">
                     <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest text-center block mb-1">
                         <i class="fa-solid fa-triangle-exclamation mr-1"></i> FORBIDDEN WORDS
                     </span>
-                    <div id="forbiddenList" class="space-y-1.5">
-                        <!-- Forbidden words injected here -->
-                    </div>
+                    <div id="forbiddenList" class="space-y-1.5"></div>
                 </div>
-
-                <!-- Clue Giver / Turn Footer -->
                 <div class="text-center text-xs font-medium text-slate-400 bg-slate-950/70 py-2.5 rounded-xl border border-slate-800/80">
                     <div>Active Clue Giver:</div>
                     <span id="activeClueGiver" class="text-amber-400 font-extrabold text-sm tracking-wide block mt-0.5">Team 1</span>
                 </div>
             </div>
 
-            <!-- ACTION CONTROLS -->
-            <div id="actionContainer" class="grid grid-cols-3 gap-3 pt-1">
-                <button onclick="handleCardAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold rounded-2xl shadow-lg shadow-rose-600/20 flex flex-col items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-ban text-xl"></i>
-                    <span class="text-[10px] uppercase tracking-wider">TABOO (<span id="penaltyBtnLabel">-1</span>)</span>
-                </button>
-                <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-extrabold rounded-2xl shadow-lg shadow-amber-600/20 flex flex-col items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-forward text-xl"></i>
-                    <span class="text-[10px] uppercase tracking-wider">SKIP</span>
-                </button>
-                <button onclick="handleCardAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/20 flex flex-col items-center justify-center gap-1 transition">
-                    <i class="fa-solid fa-check text-xl"></i>
-                    <span class="text-[10px] uppercase tracking-wider">CORRECT (+1)</span>
-                </button>
-            </div>
+            <div id="actionContainer" class="grid grid-cols-3 gap-3 pt-1"></div>
 
             <div class="flex items-center gap-2">
                 <button onclick="pauseResumeGame()" id="pauseBtn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 border border-slate-700">
                     <i class="fa-solid fa-pause mr-1"></i> PAUSE
                 </button>
-
             </div>
         </section>
 
-        <!-- ================= VIEW 3: PLAYER / SPECTATOR DISPLAY ================= -->
+        <!-- PLAYER VIEW -->
         <section id="playerView" class="hidden flex-1 flex flex-col justify-between space-y-4">
-            
-            <!-- Connection Status Header -->
             <div class="bg-indigo-950/60 border border-indigo-800/60 rounded-2xl p-4 text-center space-y-1">
                 <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block">CONNECTED PLAYER VIEW</span>
                 <h2 class="text-base font-bold text-white" id="playerViewTeamTurn">Waiting for Host to start match...</h2>
@@ -265,7 +208,6 @@
                 </div>
             </div>
 
-            <!-- Player Mirrored Word Card -->
             <div id="playerCardMirror" class="flex-1 bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 flex flex-col justify-between">
                 <div class="text-center py-2 border-b border-slate-800">
                     <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-1">ACTIVE TARGET WORD</span>
@@ -282,14 +224,20 @@
                 </div>
             </div>
 
-            <!-- Live Scoreboard for Players -->
+            <!-- Player Game Over Panel -->
+            <div id="playerGameOverPanel" class="hidden bg-amber-950/40 border border-amber-700/60 rounded-2xl p-4 text-center space-y-1">
+                <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">MATCH FINISHED</span>
+                <div class="text-2xl font-black text-amber-300" id="playerWinnerName">—</div>
+                <div id="playerFinalScores" class="text-xs text-slate-300 space-y-1 pt-1"></div>
+            </div>
+
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">Match Leaderboard</h4>
                 <div id="playerScoreboard" class="grid grid-cols-2 gap-2"></div>
             </div>
         </section>
 
-        <!-- ================= VIEW 4: MATCH SUMMARY ================= -->
+        <!-- GAME OVER VIEW -->
         <section id="gameOverView" class="hidden flex-1 flex flex-col items-center justify-center text-center space-y-6">
             <div class="w-20 h-20 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-full flex items-center justify-center text-4xl shadow-xl">
                 <i class="fa-solid fa-trophy"></i>
@@ -299,19 +247,14 @@
                 <h2 class="text-3xl font-black text-white mt-1">WINNER!</h2>
                 <p id="winnerName" class="text-2xl font-black text-amber-400 mt-1">Team Alpha</p>
             </div>
-
-            <div id="finalScoreboard" class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
-                <!-- Scores injected -->
-            </div>
-
+            <div id="finalScoreboard" class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2"></div>
             <button onclick="resetToSetup()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition">
                 <i class="fa-solid fa-rotate-right mr-2"></i> NEW MATCH
             </button>
         </section>
-
     </main>
 
-    <!-- MODAL 1: DATABASE & CARDS MANAGEMENT (INDEXEDDB) -->
+    <!-- DECK MODAL (unchanged structurally) -->
     <div id="deckModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4 max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -320,7 +263,6 @@
                 </h3>
                 <button onclick="closeDeckModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
             <div class="space-y-3 flex-1 overflow-y-auto text-xs pr-1">
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
                     <div>
@@ -331,8 +273,6 @@
                         Reload Online Deck
                     </button>
                 </div>
-
-                <!-- Hosted Decks Selector Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Select Online Deck</label>
                     <select id="deckPresetSelect" onchange="loadHostedDeck(this.value, false)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-indigo-500">
@@ -344,8 +284,6 @@
                         <option value="decks/deck 5.json">Deck 5</option>
                     </select>
                 </div>
-
-                <!-- Open AI Deck Builder Button Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-indigo-500/40 space-y-2">
                     <label class="font-bold text-indigo-300 block"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AI Deck Generator</label>
                     <p class="text-[11px] text-slate-400">Create and generate custom packs using Gemini AI.</p>
@@ -353,13 +291,9 @@
                         <i class="fa-solid fa-robot"></i> Open AI Deck Builder
                     </button>
                 </div>
-
-                <!-- CSV / JSON Import Panel -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="font-bold text-slate-300 block">Import Custom Cards File</label>
                     <p class="text-[11px] text-slate-400">Supports up to 250,000 cards via CSV or JSON offline.</p>
-                    
-                    <!-- Import Mode Selection Option (Defaults to Overwrite/Load Only) -->
                     <div class="flex items-center gap-4 pt-1 pb-1 text-slate-300 text-[11px]">
                         <label class="flex items-center gap-1.5 cursor-pointer">
                             <input type="radio" name="importMode" value="overwrite" checked class="text-indigo-600 focus:ring-indigo-500">
@@ -370,34 +304,25 @@
                             <span>Append to existing</span>
                         </label>
                     </div>
-
                     <input type="file" id="deckFileInput" accept=".csv,.json" class="hidden" onchange="handleFileImport(event)">
                     <button onclick="document.getElementById('deckFileInput').click()" class="w-full py-2 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 font-bold border border-indigo-500/40 rounded-lg text-xs flex items-center justify-center gap-2">
                         <i class="fa-solid fa-file-csv"></i> Import CSV / JSON
                     </button>
                 </div>
-
-                <!-- Manual Add Word Form -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <span class="font-bold text-slate-300 block">Add Single Card</span>
                     <input type="text" id="newTarget" placeholder="Target Word" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 rounded-lg text-white text-xs">
                     <input type="text" id="newForbidden" placeholder="5 forbidden words (comma separated)" class="w-full bg-slate-900 border border-slate-800 px-3 py-2 rounded-lg text-white text-xs">
-                    <button onclick="addCustomCard()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-lg text-xs">
-                        Save Card
-                    </button>
+                    <button onclick="addCustomCard()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-lg text-xs">Save Card</button>
                 </div>
             </div>
-
-            <button onclick="closeDeckModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">
-                Close
-            </button>
+            <button onclick="closeDeckModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Close</button>
         </div>
     </div>
 
-    <!-- MODAL 1B: AI DECK BUILDER EMBEDDED MODAL -->
+    <!-- BUILDER MODAL (unchanged structurally) -->
     <div id="builderModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-3">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-4 space-y-3 max-h-[92vh] flex flex-col">
-            <!-- Header with Back Button & Export JSON Button -->
             <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
                 <button onclick="closeBuilderModal()" class="text-indigo-400 hover:text-white font-bold text-xs flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
                     <i class="fa-solid fa-arrow-left"></i> Back
@@ -407,23 +332,17 @@
                     <i class="fa-solid fa-download"></i> Export JSON
                 </button>
             </div>
-
             <div class="space-y-3 flex-1 overflow-y-auto pr-1 text-xs">
-                <!-- API Key & Config -->
                 <div class="builder-card space-y-2">
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">Gemini API Key:</label>
-                        <input type="password" id="builderApiKeyInput" placeholder="Paste your API Key here..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
-                        <p style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
-                            Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-indigo-400">Google AI Studio</a>.
-                        </p>
-                    </div>
+                    <label class="block font-bold text-slate-300 mb-1">Gemini API Key:</label>
+                    <input type="password" id="builderApiKeyInput" placeholder="Paste your API Key here..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+                    <p style="font-size:10px;color:#94a3b8;margin-top:4px;">
+                        Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-indigo-400">Google AI Studio</a>.
+                    </p>
                 </div>
-
-                <!-- Category Manager -->
                 <div class="builder-card space-y-2">
                     <div class="flex justify-between items-center">
-                        <span style="font-weight: bold; color: #818cf8; text-transform: uppercase;">Categories (Max 1)</span>
+                        <span style="font-weight:bold;color:#818cf8;text-transform:uppercase;">Categories (Max 1)</span>
                         <button onclick="builderClearAllCats()" class="text-slate-400 hover:text-white">Clear</button>
                     </div>
                     <div class="flex gap-2">
@@ -431,21 +350,16 @@
                         <button onclick="builderAddCategory()" class="bg-indigo-600 px-3 py-2 font-bold text-white rounded-xl">+ Add</button>
                     </div>
                     <div id="builderCategoryContainer" class="flex flex-wrap gap-1.5 pt-1"></div>
-                    
                     <button onclick="builderGenerateWithAI()" id="builderGenBtn" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold uppercase rounded-xl shadow-lg mt-2">
                         <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate AI Cards (50)
                     </button>
                 </div>
-
-                <!-- Timer / Progress Box -->
                 <div id="builderProgressBox" class="builder-card hidden">
                     <div class="flex justify-between items-center font-bold text-indigo-300 text-xs">
                         <span id="builderStatusText">Generating...</span>
                         <span id="builderElapsedText" class="text-purple-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">0s</span>
                     </div>
                 </div>
-
-                <!-- Deck Preview -->
                 <div>
                     <div class="flex justify-between items-center px-1 mb-2">
                         <span class="font-bold text-slate-400">Generated Cards: <strong id="builderTotalBadge" class="text-white">0</strong></span>
@@ -454,15 +368,13 @@
                     <div id="builderCardsGrid" class="space-y-2"></div>
                 </div>
             </div>
-
-            <!-- Modal Bottom Import Button -->
             <button onclick="builderExportAndSave()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg">
                 <i class="fa-solid fa-database"></i> Save & Import to Database
             </button>
         </div>
     </div>
 
-    <!-- MODAL 2: ZERO-CONFIG PEERJS MULTIPLAYER SYNC -->
+    <!-- SYNC MODAL -->
     <div id="syncModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -471,8 +383,6 @@
                 </h3>
                 <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-            <!-- Host Sync Panel -->
             <div id="hostSyncPanel" class="space-y-3">
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-2">
                     <span class="text-xs text-slate-400 font-semibold block">ROOM ACCESS CODE & QR</span>
@@ -482,14 +392,11 @@
                         <img id="roomQRCode" src="" alt="Scan to Join Room" class="w-32 h-32 mx-auto rounded">
                     </div>
                 </div>
-
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
                     <span class="text-slate-400">Connected Players:</span>
                     <strong id="modalConnectedCount" class="text-indigo-400 font-bold text-sm">0</strong>
                 </div>
             </div>
-
-            <!-- Player Sync Panel -->
             <div id="playerSyncPanel" class="hidden space-y-3">
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
                     <label class="text-xs text-slate-400 font-semibold block text-center">ENTER HOST 4-DIGIT CODE</label>
@@ -500,144 +407,94 @@
                     <p id="joinStatusText" class="text-[11px] text-slate-400 text-center"></p>
                 </div>
             </div>
-
-            <button onclick="closeSyncModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">
-                Done
-            </button>
+            <button onclick="closeSyncModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Done</button>
         </div>
     </div>
 
-    <!-- MODAL 3: COMPREHENSIVE HELP & INSTRUCTION MANUAL -->
+    <!-- HELP MODAL -->
     <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 space-y-4 max-h-[85vh] flex flex-col">
-            <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-white text-base flex items-center gap-2">
                     <i class="fa-solid fa-book-open text-indigo-400"></i> Taboo Guide & Help
                 </h3>
                 <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-            <!-- Tab Buttons -->
             <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
                 <button onclick="switchHelpTab('rules')" id="tabBtnRules" class="flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center">Rules</button>
                 <button onclick="switchHelpTab('usage')" id="tabBtnUsage" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">App Controls</button>
                 <button onclick="switchHelpTab('sync')" id="tabBtnSync" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">Multi-Phone</button>
                 <button onclick="switchHelpTab('faq')" id="tabBtnFaq" class="flex-1 py-1.5 rounded-lg text-slate-400 text-center">FAQ</button>
             </div>
-
-            <!-- Tab Contents Container -->
             <div class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
-                
-                <!-- TAB 1: HOW TO PLAY -->
                 <div id="helpContentRules" class="space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-indigo-400"></i> Objective</h4>
                         <p class="text-[11px] leading-relaxed text-slate-400">
-                            Get your teammates to guess the <strong class="text-white">Target Word</strong> at the top of the card before the timer runs out, without uttering the target word or any of the 5 forbidden <strong class="text-rose-400">Taboo words</strong>!
+                            Get your teammates to guess the <strong class="text-white">Target Word</strong> before the timer runs out, without saying the target or any forbidden <strong class="text-rose-400">Taboo words</strong>!
                         </p>
                     </div>
-
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-user-group text-indigo-400"></i> Player Roles & Rotation</h4>
                         <ul class="list-disc list-inside text-[11px] space-y-1 text-slate-400">
-                            <li><strong class="text-white">Clue-Giver:</strong> Provides verbal clues to their team. When player names are entered (separated by commas), clue-givers automatically rotate each round!</li>
-                            <li><strong class="text-white">Guessers:</strong> Active teammates shouting out answers.</li>
-                            <li><strong class="text-white">Watchdogs:</strong> Opposing players monitoring for forbidden words or gestures.</li>
+                            <li><strong class="text-white">Clue-Giver:</strong> Provides verbal clues. Rotates each round automatically.</li>
+                            <li><strong class="text-white">Guessers:</strong> Teammates shouting answers.</li>
+                            <li><strong class="text-white">Watchdogs:</strong> Opposing players watching for penalties.</li>
                         </ul>
                     </div>
-
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-star text-indigo-400"></i> Scoring & Controls</h4>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-star text-indigo-400"></i> Scoring</h4>
                         <ul class="list-disc list-inside text-[11px] space-y-1 text-slate-400">
-                            <li><strong class="text-indigo-400">Start Turn:</strong> Hand the device to the active clue-giver and tap 'START TURN' to reveal cards and start timer.</li>
-                            <li><strong class="text-emerald-400">Correct (+1):</strong> Team correctly guesses the word. Advance to next card.</li>
-                            <li><strong class="text-rose-400">Taboo Penalty (-1):</strong> Clue-giver says a forbidden word, derivative, or rhyming clue. Points are deducted!</li>
-                            <li><strong class="text-amber-400">Skip:</strong> Pass on a difficult card. Limited by the set skip quota.</li>
+                            <li><strong class="text-indigo-400">Start Turn:</strong> Hand device to clue-giver, tap START TURN.</li>
+                            <li><strong class="text-emerald-400">Correct (+1):</strong> Next card.</li>
+                            <li><strong class="text-rose-400">Taboo Penalty:</strong> Points deducted.</li>
+                            <li><strong class="text-amber-400">Skip:</strong> Pass card, quota-limited.</li>
                         </ul>
                     </div>
                 </div>
-
-                <!-- TAB 2: APP USAGE -->
                 <div id="helpContentUsage" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-sliders text-indigo-400"></i> Match Setup</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Before starting, set your match preferences on the setup screen:
-                        </p>
-                        <ul class="list-disc list-inside text-[11px] text-slate-400 space-y-1">
-                            <li>Set number of rounds (1 to 50 rounds).</li>
-                            <li>Adjust turn timer (10s to 300s).</li>
-                            <li>Set skip limit per turn (0 to 10 skips).</li>
-                            <li>Add unlimited teams, set team names, and input player names separated by commas for automatic turn rotation!</li>
-                        </ul>
+                        <p class="text-[11px] text-slate-400">Configure rounds, timer, skips, teams, and players (comma-separated for auto rotation) before starting.</p>
                     </div>
-
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-database text-amber-400"></i> Managing Decks & Cards</h4>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-database text-amber-400"></i> Decks & Cards</h4>
                         <p class="text-[11px] text-slate-400">
-                            Tap the <i class="fa-solid fa-database text-amber-400"></i> Database icon at the top to select from online deck presets (Default Deck, Deck 1–5) or import offline custom packs.
-                        </p>
-                        <p class="text-[11px] text-slate-400">
-                            <strong class="text-white">CSV Format:</strong> Format custom CSV files as: <br>
-                            <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1">TARGET, FORBIDDEN1, FORBIDDEN2, FORBIDDEN3, FORBIDDEN4, FORBIDDEN5</code>
+                            <strong class="text-white">CSV Format:</strong><br>
+                            <code class="bg-slate-900 text-amber-300 p-1 rounded font-mono block mt-1">TARGET, F1, F2, F3, F4, F5</code>
                         </p>
                     </div>
                 </div>
-
-                <!-- TAB 3: MULTI-PHONE CONNECT -->
                 <div id="helpContentSync" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen-button text-indigo-400"></i> Step-by-Step Device Sync</h4>
+                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen-button text-indigo-400"></i> Device Sync</h4>
                         <ol class="list-decimal list-inside text-[11px] text-slate-400 space-y-1.5">
-                            <li><strong class="text-white">Host Phone:</strong> Keep role set to <span class="text-indigo-400 font-bold">Host</span>. Tap the <i class="fa-solid fa-users text-indigo-400"></i> Users icon to view your 4-digit Room Code.</li>
-                            <li><strong class="text-white">Player Phones:</strong> Open your GitHub Pages link on other phones. Tap the <i class="fa-solid fa-users text-indigo-400"></i> Users icon, switch role to <span class="text-indigo-400 font-bold">Player</span>, enter the 4-digit code, and tap <span class="text-white font-bold">JOIN</span>.</li>
-                            <li><strong class="text-white">Real-Time Sync:</strong> Connected player displays instantly reflect active target cards, timer countdown, and current scores!</li>
+                            <li><strong class="text-white">Host:</strong> Tap the users icon → view 4-digit code.</li>
+                            <li><strong class="text-white">Players:</strong> Switch to Player role → enter code → JOIN.</li>
+                            <li><strong class="text-white">Sync:</strong> Real-time card/timer/score updates.</li>
                         </ol>
                     </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Offline & Local Wi-Fi</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Because peer signaling uses WebRTC direct data channels, once connected, cards are stored in your device's browser memory (IndexedDB) and function seamlessly!
-                        </p>
-                    </div>
                 </div>
-
-                <!-- TAB 4: FAQ & TIPS -->
                 <div id="helpContentFaq" class="hidden space-y-3 text-slate-300">
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Can I add my own language or word packs?</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Yes! Prepare a CSV file containing your custom word deck and use the Import button in the Database menu. The app uses IndexedDB which can easily store up to 250,000+ custom entries!
-                        </p>
+                        <h4 class="font-bold text-indigo-300">Q: Custom language packs?</h4>
+                        <p class="text-[11px] text-slate-400">Yes — import any CSV/JSON via Database menu (up to 250k cards).</p>
                     </div>
-
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: Room Code isn't connecting?</h4>
-                        <p class="text-[11px] text-slate-400">
-                            Make sure both devices have active network access (Wi-Fi or cellular) when initiating the initial WebRTC connection handshake.
-                        </p>
+                        <h4 class="font-bold text-indigo-300">Q: Room code not connecting?</h4>
+                        <p class="text-[11px] text-slate-400">Both devices need network access for the initial WebRTC handshake.</p>
                     </div>
-
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300">Q: How do we prevent card repeats?</h4>
-                        <p class="text-[11px] text-slate-400">
-                            The app automatically shuffles the database indices using the Fisher-Yates algorithm. Cards will not repeat until every single card in your deck has been played.
-                        </p>
+                        <h4 class="font-bold text-indigo-300">Q: Prevent repeats?</h4>
+                        <p class="text-[11px] text-slate-400">Fisher-Yates shuffle; no card repeats until the deck is exhausted.</p>
                     </div>
                 </div>
-
             </div>
-
-            <!-- Footer Close Button -->
-            <button onclick="closeHelpModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg transition">
-                Got It!
-            </button>
+            <button onclick="closeHelpModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg transition">Got It!</button>
         </div>
     </div>
 
-    <!-- CONFIRMATION MODAL -->
+    <!-- CONFIRM MODAL -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 space-y-4">
             <h3 id="confirmTitle" class="font-bold text-white text-base flex items-center gap-2">
@@ -645,81 +502,137 @@
             </h3>
             <p id="confirmMessage" class="text-xs text-slate-300 leading-relaxed"></p>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">
-                    Cancel
-                </button>
-                <button id="confirmYesBtn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">
-                    Confirm
-                </button>
+                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs border border-slate-700">Cancel</button>
+                <button id="confirmYesBtn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">Confirm</button>
             </div>
         </div>
     </div>
-
 </div>
 
-<!-- APP JAVASCRIPT ENGINE -->
 <script>
-/**
- * TABOO MASTER ENGINE
- * Built-in PeerJS Signaling + IndexedDB 250k Deck Engine
- */
+/* ============================================================
+   TABOO MASTER ENGINE
+   ============================================================ */
 
+/* ---------- TEAM COLOR PALETTE ---------- */
+const TEAM_COLORS = [
+    { name: 'Indigo',  bg: 'rgba(99,102,241,0.25)', border: '#6366f1', text: '#c7d2fe', hex: '#6366f1' },
+    { name: 'Emerald', bg: 'rgba(16,185,129,0.25)', border: '#10b981', text: '#a7f3d0', hex: '#10b981' },
+    { name: 'Rose',    bg: 'rgba(244,63,94,0.25)',  border: '#f43f5e', text: '#fecdd3', hex: '#f43f5e' },
+    { name: 'Amber',   bg: 'rgba(245,158,11,0.25)', border: '#f59e0b', text: '#fde68a', hex: '#f59e0b' },
+    { name: 'Cyan',    bg: 'rgba(6,182,212,0.25)',  border: '#06b6d4', text: '#a5f3fc', hex: '#06b6d4' },
+    { name: 'Fuchsia', bg: 'rgba(217,70,239,0.25)', border: '#d946ef', text: '#f5d0fe', hex: '#d946ef' },
+    { name: 'Lime',    bg: 'rgba(132,204,22,0.25)', border: '#84cc16', text: '#d9f99d', hex: '#84cc16' },
+    { name: 'Orange',  bg: 'rgba(249,115,22,0.25)', border: '#f97316', text: '#fed7aa', hex: '#f97316' }
+];
+function teamColor(idx) { return TEAM_COLORS[idx % TEAM_COLORS.length]; }
+
+/* ---------- SOUND ENGINE (Web Audio, no external files) ---------- */
+const soundEngine = {
+    ctx: null,
+    enabled: localStorage.getItem('taboo_sound') !== 'off',
+    init() {
+        if (!this.ctx) {
+            try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { this.ctx = null; }
+        }
+    },
+    play(type) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const ctx = this.ctx;
+        const now = ctx.currentTime;
+        const tones = {
+            correct:  [{f:523,d:0.12},{f:659,d:0.12},{f:784,d:0.16}],
+            taboo:    [{f:200,d:0.18},{f:140,d:0.22}],
+            skip:     [{f:330,d:0.1}],
+            tick:     [{f:880,d:0.06,vol:0.15}],
+            turnEnd:  [{f:440,d:0.15},{f:330,d:0.15},{f:220,d:0.25}],
+            gameOver: [{f:523,d:0.15},{f:659,d:0.15},{f:784,d:0.15},{f:1047,d:0.35}]
+        };
+        const seq = tones[type] || [];
+        let t = now;
+        seq.forEach(note => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type === 'taboo' ? 'sawtooth' : 'sine';
+            osc.frequency.value = note.f;
+            const vol = note.vol || 0.25;
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + note.d);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(t); osc.stop(t + note.d + 0.02);
+            t += note.d;
+        });
+    }
+};
+function toggleSound() {
+    soundEngine.enabled = !soundEngine.enabled;
+    localStorage.setItem('taboo_sound', soundEngine.enabled ? 'on' : 'off');
+    updateSoundIcon();
+}
+function updateSoundIcon() {
+    const btn = document.getElementById('soundToggleBtn');
+    if (!btn) return;
+    btn.innerHTML = soundEngine.enabled
+        ? '<i class="fa-solid fa-volume-high text-emerald-400"></i>'
+        : '<i class="fa-solid fa-volume-xmark text-slate-500"></i>';
+}
+
+/* ---------- SAFE STRING HELPERS ---------- */
+function escapeAttr(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ---------- APP STATE ---------- */
 const appState = {
-    role: 'host', // 'host' or 'player'
+    role: 'host',
     db: null,
     cards: [],
     unplayedIndices: [],
     currentCard: null,
     teams: [
-        { id: 1, name: 'Team Alpha', players: 'Alice, Bob', score: 0, playerIndex: 0 },
-        { id: 2, name: 'Team Beta', players: 'Charlie, Dave', score: 0, playerIndex: 0 }
+        { id: 1, name: 'Team Alpha', players: 'Alice, Bob', score: 0, playerIndex: 0, colorIdx: 0 },
+        { id: 2, name: 'Team Beta', players: 'Charlie, Dave', score: 0, playerIndex: 0, colorIdx: 1 }
     ],
-    config: {
-        totalRounds: 3,
-        turnTimerSec: 60,
-        maxSkips: 3,
-        tabooPenalty: -1,
-        correctPoint: 1
-    },
+    config: { totalRounds: 3, turnTimerSec: 60, maxSkips: 3, tabooPenalty: -1, correctPoint: 1 },
     gameState: {
-        currentRound: 1,
-        currentTeamIndex: 0,
-        skipsRemaining: 3,
-        timerSeconds: 60,
-        timerInterval: null,
-        isPaused: false,
-        isActive: false
+        currentRound: 1, currentTeamIndex: 0, skipsRemaining: 3,
+        timerSeconds: 60, timerInterval: null, isPaused: false, isActive: false,
+        turnStartTime: 0
     },
     peer: null,
     peerConnections: [],
-    roomCode: ''
+    roomCode: '',
+    hostRetryCount: 0
 };
 
+/* ---------- INIT ---------- */
 window.onload = function() {
     initDatabase();
     renderTeamInputs();
     builderRenderCategories();
-    
-    // Check URL for ?room=XXXX auto-join
+    updateSoundIcon();
+
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room') || urlParams.get('join');
-    
     if (roomParam && roomParam.length === 4) {
         setRole('player');
         document.getElementById("joinRoomCodeInput").value = roomParam;
-        setTimeout(() => {
-            joinRoomAsPlayer();
-        }, 500);
+        setTimeout(() => joinRoomAsPlayer(), 500);
     } else {
         initPeerHost();
     }
-    
     checkSavedGame();
 };
 
-/* ----------------------------------------------------
-   1. INDEXEDDB DATABASE ENGINE (Up to 250,000 cards)
-   ---------------------------------------------------- */
+/* ============================================================
+   1. INDEXEDDB
+   ============================================================ */
 function initDatabase() {
     const request = indexedDB.open("TabooMasterDB", 1);
     request.onupgradeneeded = function(e) {
@@ -739,15 +652,13 @@ function checkAndSeedCards() {
     const countReq = tx.objectStore("cards").count();
     countReq.onsuccess = function() {
         document.getElementById("dbCountDisplay").innerText = countReq.result;
-        if (countReq.result === 0) {
-            autoLoadFirstDeck();
-        } else {
-            loadCardsFromDB();
-        }
+        if (countReq.result === 0) autoLoadFirstDeck();
+        else loadCardsFromDB();
     };
 }
 
 async function autoLoadFirstDeck() {
+    // FIX #10: "first deck" heuristic — intentionally uses first <option>
     const selectEl = document.getElementById("deckPresetSelect");
     const firstDeck = selectEl ? selectEl.options[0].value : "taboo_cards.json";
     await loadHostedDeck(firstDeck, true);
@@ -756,11 +667,9 @@ async function autoLoadFirstDeck() {
 async function loadHostedDeck(fileName, isStartup = false) {
     const statusDisplay = document.getElementById("dbCountDisplay");
     if (statusDisplay) statusDisplay.innerText = "Loading...";
-
     try {
         const response = await fetch(`./${fileName}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
         const contentText = await response.text();
         let imported = [];
 
@@ -772,14 +681,10 @@ async function loadHostedDeck(fileName, isStartup = false) {
                 forbidden: (c.forbidden || c.banned || []).map(w => w.toUpperCase())
             })).filter(c => c.target && c.forbidden.length > 0);
         } else if (fileName.endsWith('.csv')) {
-            const lines = contentText.split('\n');
-            lines.forEach(line => {
+            contentText.split('\n').forEach(line => {
                 const parts = line.split(',').map(p => p.trim());
                 if (parts.length >= 6) {
-                    imported.push({ 
-                        target: parts[0].toUpperCase(), 
-                        forbidden: parts.slice(1, 6).map(w => w.toUpperCase()) 
-                    });
+                    imported.push({ target: parts[0].toUpperCase(), forbidden: parts.slice(1, 6).map(w => w.toUpperCase()) });
                 }
             });
         }
@@ -787,31 +692,23 @@ async function loadHostedDeck(fileName, isStartup = false) {
         if (imported.length > 0) {
             const modeEl = document.querySelector('input[name="importMode"]:checked');
             const importMode = modeEl ? modeEl.value : 'overwrite';
-
             const tx = appState.db.transaction(["cards"], "readwrite");
             const store = tx.objectStore("cards");
-            
-            if (importMode === 'overwrite') {
-                store.clear();
-            }
-
+            if (importMode === 'overwrite') store.clear();
             imported.forEach(c => store.add(c));
-            
             tx.oncomplete = function() {
                 loadCardsFromDB();
-                if (!isStartup) {
-                    alert(`Successfully loaded ${imported.length} cards from ${fileName}!`);
-                }
+                if (!isStartup) alert(`Successfully loaded ${imported.length} cards from ${fileName}!`);
             };
         } else {
-            if (!isStartup) alert("No valid cards found in the selected file.");
+            // FIX #3: don't clear if file had no valid cards
+            console.warn("Deck file had no valid cards; database untouched.");
+            if (!isStartup) alert("No valid cards found in the selected file. Database left untouched.");
             loadCardsFromDB();
         }
     } catch (err) {
         console.error("Failed to fetch hosted deck:", err);
-        if (!isStartup) {
-            alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
-        }
+        if (!isStartup) alert("Failed to download deck file. Make sure you are connected to the internet or serving locally.");
     }
 }
 
@@ -836,10 +733,8 @@ function resetDeckIndices() {
 function handleFileImport(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const modeEl = document.querySelector('input[name="importMode"]:checked');
     const importMode = modeEl ? modeEl.value : 'overwrite';
-
     const reader = new FileReader();
     reader.onload = function(e) {
         const content = e.target.result;
@@ -853,32 +748,24 @@ function handleFileImport(event) {
                     forbidden: (c.forbidden || c.banned || []).map(w => w.toUpperCase())
                 })).filter(c => c.target && c.forbidden.length > 0);
             } else {
-                const lines = content.split('\n');
-                lines.forEach(line => {
+                content.split('\n').forEach(line => {
                     const parts = line.split(',').map(p => p.trim());
-                    if (parts.length >= 6) {
-                        imported.push({ target: parts[0].toUpperCase(), forbidden: parts.slice(1, 6).map(w => w.toUpperCase()) });
-                    }
+                    if (parts.length >= 6) imported.push({ target: parts[0].toUpperCase(), forbidden: parts.slice(1, 6).map(w => w.toUpperCase()) });
                 });
             }
-
             if (imported.length > 0) {
                 const tx = appState.db.transaction(["cards"], "readwrite");
                 const store = tx.objectStore("cards");
-                
-                if (importMode === 'overwrite') {
-                    store.clear();
-                }
-
+                if (importMode === 'overwrite') store.clear();
                 imported.forEach(c => store.add(c));
                 tx.oncomplete = function() {
                     loadCardsFromDB();
-                    alert(`Successfully imported ${imported.length} words to database!`);
+                    alert(`Successfully imported ${imported.length} words!`);
                 };
+            } else {
+                alert("No valid cards found in file. Database left untouched.");
             }
-        } catch (err) {
-            alert("Error parsing card deck file.");
-        }
+        } catch (err) { alert("Error parsing card deck file."); }
     };
     reader.readAsText(file);
 }
@@ -887,10 +774,8 @@ function addCustomCard() {
     const target = document.getElementById("newTarget").value.trim().toUpperCase();
     const rawForbidden = document.getElementById("newForbidden").value.trim().toUpperCase();
     if (!target || !rawForbidden) return alert("Fill in target and forbidden words.");
-    
     const forbidden = rawForbidden.split(',').map(w => w.trim()).filter(w => w.length > 0);
     if (forbidden.length < 5) return alert("Provide 5 forbidden words.");
-
     const tx = appState.db.transaction(["cards"], "readwrite");
     tx.objectStore("cards").add({ target, forbidden: forbidden.slice(0, 5) });
     tx.oncomplete = function() {
@@ -901,71 +786,49 @@ function addCustomCard() {
     };
 }
 
-/* ----------------------------------------------------
-   2. EMBEDDED AI DECK BUILDER LOGIC
-   ---------------------------------------------------- */
+/* ============================================================
+   2. AI BUILDER
+   ============================================================ */
 const builderState = {
     categories: [
-        { name: "General", selected: true },
-        { name: "Places", selected: false },
-        { name: "Food", selected: false },
-        { name: "Pop Culture", selected: false },
-        { name: "Music", selected: false },
-        { name: "History", selected: false },
-        { name: "Science", selected: false },
-        { name: "Entertainment", selected: false },
-        { name: "Jobs & Occupation", selected: false },
-        { name: "Technology", selected: false }
+        { name: "General", selected: true }, { name: "Places", selected: false },
+        { name: "Food", selected: false }, { name: "Pop Culture", selected: false },
+        { name: "Music", selected: false }, { name: "History", selected: false },
+        { name: "Science", selected: false }, { name: "Entertainment", selected: false },
+        { name: "Jobs & Occupation", selected: false }, { name: "Technology", selected: false }
     ],
     cards: []
 };
-
 let builderTimerInterval = null;
 let builderCooldownInterval = null;
 
-function openBuilderModal() {
-    closeDeckModal();
-    document.getElementById("builderModal").classList.remove("hidden");
-    builderRenderCategories();
-}
-
-function closeBuilderModal() {
-    document.getElementById("builderModal").classList.add("hidden");
-    openDeckModal();
-}
+function openBuilderModal() { closeDeckModal(); document.getElementById("builderModal").classList.remove("hidden"); builderRenderCategories(); }
+function closeBuilderModal() { document.getElementById("builderModal").classList.add("hidden"); openDeckModal(); }
 
 function builderRenderCategories() {
     const box = document.getElementById("builderCategoryContainer");
     if (!box) return;
     box.innerHTML = "";
-    
     const selectedCount = builderState.categories.filter(c => c.selected).length;
-
     builderState.categories.forEach((cat, idx) => {
         const tag = document.createElement("div");
         const isDisabled = selectedCount >= 1 && !cat.selected;
-        
         tag.className = `badge-cat ${cat.selected ? 'badge-active' : 'badge-inactive'} ${isDisabled ? 'badge-disabled' : ''}`;
         tag.innerHTML = `
-            <span onclick="builderToggleCat(${idx})" style="cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">${cat.name}</span>
-            <button onclick="builderRemoveCat(${idx})" style="background: none; color: inherit; padding: 0; font-weight: 900;">×</button>
+            <span onclick="builderToggleCat(${idx})" style="cursor:${isDisabled ? 'not-allowed' : 'pointer'};">${escapeHtml(cat.name)}</span>
+            <button onclick="builderRemoveCat(${idx})" style="background:none;color:inherit;padding:0;font-weight:900;">×</button>
         `;
         box.appendChild(tag);
     });
 }
-
-function builderToggleCat(i) { 
+function builderToggleCat(i) {
     const selectedCount = builderState.categories.filter(c => c.selected).length;
-    if (!builderState.categories[i].selected && selectedCount >= 1) {
-        builderState.categories.forEach(c => c.selected = false);
-    }
-    builderState.categories[i].selected = !builderState.categories[i].selected; 
-    builderRenderCategories(); 
+    if (!builderState.categories[i].selected && selectedCount >= 1) builderState.categories.forEach(c => c.selected = false);
+    builderState.categories[i].selected = !builderState.categories[i].selected;
+    builderRenderCategories();
 }
-
 function builderRemoveCat(i) { builderState.categories.splice(i, 1); builderRenderCategories(); }
 function builderClearAllCats() { builderState.categories.forEach(c => c.selected = false); builderRenderCategories(); }
-
 function builderAddCategory() {
     const val = document.getElementById("builderNewCatInput").value.trim();
     if (val && !builderState.categories.some(c => c.name.toLowerCase() === val.toLowerCase())) {
@@ -986,34 +849,26 @@ async function builderFetchModels(apiKey) {
                 .filter(name => name.includes("flash"));
         }
     } catch (e) {}
-    return ["gemini-3.8-flash", "gemini-1.5-flash"];
+    // FIX #2: valid current model names
+    return ["gemini-2.0-flash", "gemini-1.5-flash"];
 }
 
 async function builderGenerateWithAI() {
     const apiKey = document.getElementById("builderApiKeyInput").value.trim();
     if (!apiKey) return alert("Please enter your Gemini API key.");
-
     const selectedCats = builderState.categories.filter(c => c.selected);
     if (selectedCats.length === 0) return alert("Select a category.");
-
     const genBtn = document.getElementById("builderGenBtn");
     genBtn.disabled = true;
-
     const progressBox = document.getElementById("builderProgressBox");
     const statusText = document.getElementById("builderStatusText");
     const elapsedText = document.getElementById("builderElapsedText");
-
     progressBox.classList.remove("hidden");
     statusText.innerText = "Discovering models...";
-    
     let secondsElapsed = 0;
     elapsedText.innerText = `Time Elapsed: 0s`;
     clearInterval(builderTimerInterval);
-    builderTimerInterval = setInterval(() => {
-        secondsElapsed++;
-        elapsedText.innerText = `Time Elapsed: ${secondsElapsed}s`;
-    }, 1000);
-
+    builderTimerInterval = setInterval(() => { secondsElapsed++; elapsedText.innerText = `Time Elapsed: ${secondsElapsed}s`; }, 1000);
     const modelsToTry = await builderFetchModels(apiKey);
     const catName = selectedCats[0].name;
     let generatedForCat = 0;
@@ -1023,45 +878,22 @@ async function builderGenerateWithAI() {
         const currentBatchSize = Math.min(50, totalTarget - generatedForCat);
         const existingTargets = builderState.cards.map(c => c.target);
         let exclusionClause = existingTargets.length > 0 ? `\nExclude: [${existingTargets.join(",")}]` : "";
-
         statusText.innerText = `AI Generating ${catName} (50 Cards)...`;
-
-        const prompt = `Category: ${catName}
-Count: ${currentBatchSize}
-Rules: Unique real-world Taboo cards.${exclusionClause}
-JSON format only:
-{
-  "cards": [
-    {
-      "category": "${catName.toUpperCase()}",
-      "target": "WORD",
-      "forbidden": ["F1", "F2", "F3", "F4", "F5"]
-    }
-  ]
-}`;
-
+        const prompt = `Category: ${catName}\nCount: ${currentBatchSize}\nRules: Unique real-world Taboo cards.${exclusionClause}\nJSON format only:\n{"cards":[{"category":"${catName.toUpperCase()}","target":"WORD","forbidden":["F1","F2","F3","F4","F5"]}]}`;
         let success = false;
         let lastError = "";
-
         for (let attempt = 1; attempt <= 3; attempt++) {
             for (const modelName of modelsToTry) {
                 try {
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
-                            generationConfig: { responseMimeType: "application/json" }
-                        })
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
                     });
-
                     const data = await res.json();
                     if (data.error) { lastError = data.error.message; continue; }
                     if (!data.candidates?.[0]?.content) { lastError = "Empty response"; continue; }
-
                     let textResponse = data.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
                     const parsed = JSON.parse(textResponse);
-                    
                     if (parsed.cards && Array.isArray(parsed.cards)) {
                         const newCards = parsed.cards.filter(nc => !builderState.cards.some(ec => ec.target.toLowerCase() === nc.target.toLowerCase()));
                         builderState.cards.unshift(...newCards);
@@ -1075,7 +907,6 @@ JSON format only:
             if (success) break;
             await new Promise(r => setTimeout(r, 800));
         }
-
         if (!success) {
             clearInterval(builderTimerInterval);
             alert(`Error generating cards: ${lastError}`);
@@ -1084,7 +915,6 @@ JSON format only:
             return;
         }
     }
-
     clearInterval(builderTimerInterval);
     builderStartCooldown(genBtn, statusText, elapsedText, progressBox);
 }
@@ -1093,7 +923,6 @@ function builderStartCooldown(genBtn, statusText, elapsedText, progressBox) {
     let cooldownRemaining = 15;
     statusText.innerText = "Generation complete!";
     elapsedText.innerText = `Cooldown: ${cooldownRemaining}s`;
-
     clearInterval(builderCooldownInterval);
     builderCooldownInterval = setInterval(() => {
         cooldownRemaining--;
@@ -1113,127 +942,138 @@ function builderRenderGrid() {
     document.getElementById("builderTotalBadge").innerText = builderState.cards.length;
     const grid = document.getElementById("builderCardsGrid");
     grid.innerHTML = "";
-
     builderState.cards.slice(0, 100).forEach(card => {
         const div = document.createElement("div");
         div.className = "card-grid-item";
         div.innerHTML = `
             <div class="flex justify-between items-center mb-1">
-                <span style="font-size: 9px; font-weight: bold; color: #818cf8; background-color: #1e1b4b; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">${card.category}</span>
-                <span style="font-size: 11px; font-weight: 900; color: white; text-transform: uppercase;">${card.target}</span>
+                <span style="font-size:9px;font-weight:bold;color:#818cf8;background-color:#1e1b4b;padding:2px 6px;border-radius:4px;text-transform:uppercase;">${escapeHtml(card.category || '')}</span>
+                <span style="font-size:11px;font-weight:900;color:white;text-transform:uppercase;">${escapeHtml(card.target)}</span>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
-                ${card.forbidden.map(f => `<div class="forbidden-pill">${f}</div>`).join('')}
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
+                ${card.forbidden.map(f => `<div class="forbidden-pill">${escapeHtml(f)}</div>`).join('')}
             </div>
         `;
         grid.appendChild(div);
     });
 }
-
 function builderClearWorkspace() { builderState.cards = []; builderRenderGrid(); }
-
 function builderExportJSON() {
     if (builderState.cards.length === 0) return alert("Deck is empty!");
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ cards: builderState.cards }, null, 2));
     const a = document.createElement('a');
-    a.href = dataStr;
-    a.download = "taboo_cards.json";
-    a.click();
+    a.href = dataStr; a.download = "taboo_cards.json"; a.click();
 }
-
 function builderExportAndSave() {
     if (builderState.cards.length === 0) return alert("No generated cards to save!");
-    
     const tx = appState.db.transaction(["cards"], "readwrite");
     const store = tx.objectStore("cards");
     store.clear();
-
     builderState.cards.forEach(c => {
-        store.add({
-            target: c.target.toUpperCase(),
-            forbidden: c.forbidden.map(w => w.toUpperCase())
-        });
+        store.add({ target: c.target.toUpperCase(), forbidden: c.forbidden.map(w => w.toUpperCase()) });
     });
-
     tx.oncomplete = function() {
         loadCardsFromDB();
-        alert(`Successfully saved ${builderState.cards.length} AI generated cards to database!`);
+        alert(`Successfully saved ${builderState.cards.length} AI generated cards!`);
         closeBuilderModal();
     };
 }
 
-/* ----------------------------------------------------
-   3. GAMEPLAY & HOST SETUP
-   ---------------------------------------------------- */
+/* ============================================================
+   3. GAMEPLAY
+   ============================================================ */
 function renderTeamInputs() {
     const container = document.getElementById("teamsContainer");
     container.innerHTML = "";
     document.getElementById("teamCountDisplay").innerText = appState.teams.length;
-
     appState.teams.forEach((t, idx) => {
+        // FIX #11: use DOM property assignment, avoid raw attribute interpolation
         const div = document.createElement("div");
-        div.className = "bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2";
-        div.innerHTML = `
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-indigo-400">Team ${idx + 1}</span>
-                ${appState.teams.length > 2 ? `<button onclick="removeTeamInput(${idx})" class="text-rose-400 text-xs px-1"><i class="fa-solid fa-trash"></i></button>` : ''}
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <input type="text" value="${t.name}" onchange="appState.teams[${idx}].name=this.value" placeholder="Team Name" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                <input type="text" value="${t.players}" onchange="appState.teams[${idx}].players=this.value" placeholder="Players" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-            </div>
-        `;
+        div.className = "bg-slate-950 p-3 rounded-xl border space-y-2";
+        div.style.borderColor = teamColor(t.colorIdx ?? idx).border;
+
+        const header = document.createElement("div");
+        header.className = "flex items-center justify-between";
+        const label = document.createElement("span");
+        label.className = "text-xs font-bold";
+        label.style.color = teamColor(t.colorIdx ?? idx).text;
+        label.innerText = `Team ${idx + 1}`;
+        header.appendChild(label);
+        if (appState.teams.length > 2) {
+            const del = document.createElement("button");
+            del.className = "text-rose-400 text-xs px-1";
+            del.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            del.onclick = () => removeTeamInput(idx);
+            header.appendChild(del);
+        }
+        div.appendChild(header);
+
+        const grid = document.createElement("div");
+        grid.className = "grid grid-cols-2 gap-2";
+
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.value = t.name;
+        nameInput.placeholder = "Team Name";
+        nameInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white";
+        nameInput.onchange = function() { appState.teams[idx].name = this.value; renderScoreboard(); };
+        grid.appendChild(nameInput);
+
+        const playersInput = document.createElement("input");
+        playersInput.type = "text";
+        playersInput.value = t.players;
+        playersInput.placeholder = "Players";
+        playersInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white";
+        playersInput.onchange = function() { appState.teams[idx].players = this.value; };
+        grid.appendChild(playersInput);
+
+        div.appendChild(grid);
         container.appendChild(div);
     });
 }
 
 function getActiveClueGiverPlayer(team) {
     if (!team.players || !team.players.trim()) return team.name;
-    const playerList = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
-    if (playerList.length === 0) return team.name;
-    const idx = (team.playerIndex || 0) % playerList.length;
-    return playerList[idx];
+    const list = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    if (list.length === 0) return team.name;
+    return list[(team.playerIndex || 0) % list.length];
 }
-
 function getActiveClueGiverFull(team) {
-    const player = getActiveClueGiverPlayer(team);
-    if (player === team.name) return team.name;
-    return `${player} (${team.name})`;
+    const p = getActiveClueGiverPlayer(team);
+    return p === team.name ? team.name : `${p} (${team.name})`;
 }
 
 function addTeamInput() {
+    if (appState.teams.length >= 8) return alert("Max 8 teams.");
     const id = appState.teams.length + 1;
-    appState.teams.push({ id, name: `Team ${String.fromCharCode(64 + id)}`, players: 'Player 1, Player 2', score: 0, playerIndex: 0 });
+    appState.teams.push({
+        id,
+        name: `Team ${String.fromCharCode(64 + id)}`,
+        players: 'Player 1, Player 2',
+        score: 0, playerIndex: 0,
+        colorIdx: (appState.teams.length) % TEAM_COLORS.length
+    });
     renderTeamInputs();
 }
-
 function removeTeamInput(idx) {
-    if (appState.teams.length > 2) {
-        appState.teams.splice(idx, 1);
-        renderTeamInputs();
-    }
+    if (appState.teams.length > 2) { appState.teams.splice(idx, 1); renderTeamInputs(); }
 }
 
 function startGameHost() {
     if (appState.cards.length === 0) return alert("Database is empty! Load or seed deck first.");
     localStorage.removeItem("taboo_saved_game");
-
     appState.config.totalRounds = parseInt(document.getElementById("cfgRounds").value) || 3;
     appState.config.turnTimerSec = parseInt(document.getElementById("cfgTimer").value) || 60;
     appState.config.maxSkips = parseInt(document.getElementById("cfgMaxSkips").value) || 3;
     appState.config.tabooPenalty = parseInt(document.getElementById("cfgTabooPenalty").value);
-
     appState.teams.forEach(t => { t.score = 0; t.playerIndex = 0; });
     appState.gameState.currentRound = 1;
     appState.gameState.currentTeamIndex = 0;
     appState.gameState.isActive = true;
-
-    document.getElementById("penaltyBtnLabel").innerText = appState.config.tabooPenalty;
     document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
-
     document.getElementById("setupView").classList.add("hidden");
+    document.getElementById("gameOverView").classList.add("hidden");
     document.getElementById("gameView").classList.remove("hidden");
-
     resetDeckIndices();
     prepTurn();
 }
@@ -1242,57 +1082,56 @@ function prepTurn() {
     appState.gameState.isActive = false;
     clearInterval(appState.gameState.timerInterval);
     renderScoreboard();
-    
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
+    const color = teamColor(currentTeam.colorIdx ?? appState.gameState.currentTeamIndex);
     const clueGiverPlayer = getActiveClueGiverPlayer(currentTeam);
     const clueGiverFull = getActiveClueGiverFull(currentTeam);
-    
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
-    document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn (Ready)`;
-    document.getElementById("activeClueGiver").innerText = clueGiverPlayer;
+    const turnInd = document.getElementById("turnIndicator");
+    turnInd.innerText = `${currentTeam.name}'s Turn (Ready)`;
+    turnInd.style.color = color.text;
+    turnInd.style.backgroundColor = color.bg;
+    turnInd.style.borderColor = color.border;
+    const clueEl = document.getElementById("activeClueGiver");
+    clueEl.innerText = clueGiverPlayer;
+    clueEl.style.color = color.text;
     document.getElementById("timerDisplay").innerText = appState.config.turnTimerSec;
     document.getElementById("cardTargetWord").innerText = "READY?";
-    
     const list = document.getElementById("forbiddenList");
     list.innerHTML = `
         <div class="p-4 text-center">
             <span class="text-slate-300 font-bold text-sm">Pass phone to</span><br>
-            <span class="text-amber-400 font-black text-base tracking-wide">${clueGiverFull}</span><br>
+            <span class="font-black text-base tracking-wide" style="color:${color.text}">${escapeHtml(clueGiverFull)}</span><br>
             <span class="text-xs text-slate-400 font-medium mt-1 block">Tap 'START TURN' when ready!</span>
         </div>
     `;
-
     const actionContainer = document.getElementById("actionContainer");
-    if (actionContainer) {
-        actionContainer.className = "grid grid-cols-1 gap-3 pt-1";
-        actionContainer.innerHTML = `
-            <button onclick="beginActualTurn()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
-                <i class="fa-solid fa-play"></i> START TURN
-            </button>
-        `;
-    }
+    actionContainer.className = "grid grid-cols-1 gap-3 pt-1";
+    actionContainer.innerHTML = `
+        <button onclick="beginActualTurn()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-play"></i> START TURN
+        </button>
+    `;
+    broadcastState();
 }
 
 function beginActualTurn() {
     const actionContainer = document.getElementById("actionContainer");
-    if (actionContainer) {
-        actionContainer.className = "grid grid-cols-3 gap-3 pt-1";
-        actionContainer.innerHTML = `
-            <button onclick="handleCardAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold rounded-2xl shadow-lg shadow-rose-600/20 flex flex-col items-center justify-center gap-1 transition">
-                <i class="fa-solid fa-ban text-xl"></i>
-                <span class="text-[10px] uppercase tracking-wider">TABOO (<span id="penaltyBtnLabel">-1</span>)</span>
-            </button>
-            <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-extrabold rounded-2xl shadow-lg shadow-amber-600/20 flex flex-col items-center justify-center gap-1 transition">
-                <i class="fa-solid fa-forward text-xl"></i>
-                <span class="text-[10px] uppercase tracking-wider">SKIP</span>
-            </button>
-            <button onclick="handleCardAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/20 flex flex-col items-center justify-center gap-1 transition">
-                <i class="fa-solid fa-check text-xl"></i>
-                <span class="text-[10px] uppercase tracking-wider">CORRECT (+1)</span>
-            </button>
-        `;
-        document.getElementById("penaltyBtnLabel").innerText = appState.config.tabooPenalty;
-    }
+    actionContainer.className = "grid grid-cols-3 gap-3 pt-1";
+    actionContainer.innerHTML = `
+        <button onclick="handleCardAction('taboo')" class="py-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold rounded-2xl shadow-lg shadow-rose-600/20 flex flex-col items-center justify-center gap-1 transition">
+            <i class="fa-solid fa-ban text-xl"></i>
+            <span class="text-[10px] uppercase tracking-wider">TABOO (<span id="penaltyBtnLabel">${appState.config.tabooPenalty}</span>)</span>
+        </button>
+        <button id="skipBtn" onclick="handleCardAction('skip')" class="py-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-extrabold rounded-2xl shadow-lg shadow-amber-600/20 flex flex-col items-center justify-center gap-1 transition">
+            <i class="fa-solid fa-forward text-xl"></i>
+            <span class="text-[10px] uppercase tracking-wider">SKIP</span>
+        </button>
+        <button onclick="handleCardAction('correct')" class="py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/20 flex flex-col items-center justify-center gap-1 transition">
+            <i class="fa-solid fa-check text-xl"></i>
+            <span class="text-[10px] uppercase tracking-wider">CORRECT (+1)</span>
+        </button>
+    `;
     startTurn();
 }
 
@@ -1301,19 +1140,17 @@ function startTurn() {
     appState.gameState.skipsRemaining = appState.config.maxSkips;
     appState.gameState.timerSeconds = appState.config.turnTimerSec;
     appState.gameState.isPaused = false;
-
+    appState.gameState.turnStartTime = Date.now(); // FIX #6
     updateTurnHeader();
     renderScoreboard();
     drawNextCard();
     startTimer();
-    broadcastState();
 }
 
 function drawNextCard() {
     if (appState.unplayedIndices.length === 0) resetDeckIndices();
     const idx = appState.unplayedIndices.pop();
     appState.currentCard = appState.cards[idx];
-
     document.getElementById("cardTargetWord").innerText = appState.currentCard.target;
     const list = document.getElementById("forbiddenList");
     list.innerHTML = "";
@@ -1323,7 +1160,6 @@ function drawNextCard() {
         item.innerText = word;
         list.appendChild(item);
     });
-
     broadcastState();
 }
 
@@ -1333,24 +1169,26 @@ function updateTurnHeader() {
     document.getElementById("turnIndicator").innerText = `${currentTeam.name}'s Turn`;
     document.getElementById("skipsLeftDisplay").innerText = appState.gameState.skipsRemaining;
     document.getElementById("activeClueGiver").innerText = getActiveClueGiverPlayer(currentTeam);
-
     const skipBtn = document.getElementById("skipBtn");
-    if (appState.gameState.skipsRemaining <= 0) {
-        skipBtn.classList.add("opacity-50", "pointer-events-none");
-    } else {
-        skipBtn.classList.remove("opacity-50", "pointer-events-none");
+    if (skipBtn) {
+        if (appState.gameState.skipsRemaining <= 0) skipBtn.classList.add("opacity-50", "pointer-events-none");
+        else skipBtn.classList.remove("opacity-50", "pointer-events-none");
     }
 }
 
 function renderScoreboard() {
     const bar = document.getElementById("scoreboardBar");
+    if (!bar) return;
     bar.innerHTML = "";
     appState.teams.forEach((t, idx) => {
         const isCurrent = idx === appState.gameState.currentTeamIndex;
+        const color = teamColor(t.colorIdx ?? idx);
         const div = document.createElement("div");
-        div.className = `p-2 rounded-xl flex justify-between items-center ${isCurrent ? 'bg-indigo-600/30 border border-indigo-500' : 'bg-slate-950 border border-slate-800'}`;
+        div.className = "p-2 rounded-xl flex justify-between items-center border";
+        div.style.backgroundColor = isCurrent ? color.bg : '#020617';
+        div.style.borderColor = isCurrent ? color.border : '#1e293b';
         div.innerHTML = `
-            <span class="text-xs font-bold ${isCurrent ? 'text-indigo-300' : 'text-slate-400'} truncate">${t.name}</span>
+            <span class="text-xs font-bold truncate" style="color:${isCurrent ? color.text : '#94a3b8'}">${escapeHtml(t.name)}</span>
             <span class="text-xs font-black text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${t.score}</span>
         `;
         bar.appendChild(div);
@@ -1360,32 +1198,33 @@ function renderScoreboard() {
 function handleCardAction(action) {
     if (!appState.gameState.isActive || appState.gameState.isPaused) return;
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    saveGameState();
-
     if (action === 'correct') {
+        soundEngine.play('correct');
         currentTeam.score += appState.config.correctPoint;
         drawNextCard();
     } else if (action === 'taboo') {
+        soundEngine.play('taboo');
         currentTeam.score += appState.config.tabooPenalty;
         drawNextCard();
     } else if (action === 'skip' && appState.gameState.skipsRemaining > 0) {
+        soundEngine.play('skip');
         appState.gameState.skipsRemaining--;
         updateTurnHeader();
         drawNextCard();
     }
     renderScoreboard();
+    saveGameState();
 }
 
 function startTimer() {
     clearInterval(appState.gameState.timerInterval);
     document.getElementById("timerDisplay").innerText = appState.gameState.timerSeconds;
-
     appState.gameState.timerInterval = setInterval(() => {
         if (appState.gameState.isPaused) return;
         appState.gameState.timerSeconds--;
         document.getElementById("timerDisplay").innerText = appState.gameState.timerSeconds;
+        if (appState.gameState.timerSeconds <= 5 && appState.gameState.timerSeconds > 0) soundEngine.play('tick');
         broadcastState();
-
         if (appState.gameState.timerSeconds <= 0) {
             clearInterval(appState.gameState.timerInterval);
             endTurn();
@@ -1395,92 +1234,100 @@ function startTimer() {
 
 function pauseResumeGame() {
     appState.gameState.isPaused = !appState.gameState.isPaused;
-    document.getElementById("pauseBtn").innerHTML = appState.gameState.isPaused ? 
-        '<i class="fa-solid fa-play mr-1"></i> RESUME' : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
+    document.getElementById("pauseBtn").innerHTML = appState.gameState.isPaused
+        ? '<i class="fa-solid fa-play mr-1"></i> RESUME'
+        : '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
 }
 
 function endTurn() {
+    soundEngine.play('turnEnd');
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    if (currentTeam) {
-        currentTeam.playerIndex = (currentTeam.playerIndex || 0) + 1;
-    }
+    if (currentTeam) currentTeam.playerIndex = (currentTeam.playerIndex || 0) + 1;
     appState.gameState.currentTeamIndex++;
-    saveGameState();
     if (appState.gameState.currentTeamIndex >= appState.teams.length) {
         appState.gameState.currentTeamIndex = 0;
         appState.gameState.currentRound++;
     }
-
+    // FIX #5: only save if game continues
     if (appState.gameState.currentRound > appState.config.totalRounds) {
         showGameOver();
     } else {
+        saveGameState();
         prepTurn();
     }
 }
 
-showGameOver = function() {
+function showGameOver() {
     appState.gameState.isActive = false;
     localStorage.removeItem("taboo_saved_game");
     checkSavedGame();
+    soundEngine.play('gameOver');
     document.getElementById("gameView").classList.add("hidden");
+    document.getElementById("playerView").classList.add("hidden");
     document.getElementById("gameOverView").classList.remove("hidden");
-
     const sorted = [...appState.teams].sort((a, b) => b.score - a.score);
     document.getElementById("winnerName").innerText = sorted[0].name;
-
     const summary = document.getElementById("finalScoreboard");
     summary.innerHTML = "";
     sorted.forEach((t, idx) => {
+        const color = teamColor(t.colorIdx ?? appState.teams.indexOf(t));
         const item = document.createElement("div");
-        item.className = "flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm";
+        item.className = "flex items-center justify-between p-3 rounded-xl bg-slate-950 border text-sm";
+        item.style.borderColor = color.border;
         item.innerHTML = `
             <div class="flex items-center gap-2">
-                <span class="font-bold text-xs ${idx === 0 ? 'text-amber-400' : 'text-slate-400'}">#${idx + 1}</span>
-                <span class="font-bold text-white">${t.name}</span>
+                <span class="font-bold text-xs" style="color:${idx === 0 ? '#fbbf24' : '#94a3b8'}">#${idx + 1}</span>
+                <span class="font-bold text-white">${escapeHtml(t.name)}</span>
             </div>
-            <span class="font-black text-indigo-400">${t.score} PTS</span>
+            <span class="font-black" style="color:${color.text}">${t.score} PTS</span>
         `;
         summary.appendChild(item);
     });
-
     broadcastState();
 }
 
 function resetToSetup() {
+    destroyPeer();
+    initPeerHost();
     document.getElementById("gameOverView").classList.add("hidden");
     document.getElementById("setupView").classList.remove("hidden");
 }
 
-/* ----------------------------------------------------
-   4. ZERO-CONFIG PEERJS MULTIPLAYER SYNC
-   ---------------------------------------------------- */
-function generate4DigitCode() {
-    return Math.floor(1000 + Math.random() * 9000).toString();
+/* ============================================================
+   4. PEERJS SYNC
+   ============================================================ */
+function generate4DigitCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
+
+function destroyPeer() {
+    if (appState.peer) {
+        try { appState.peer.destroy(); } catch(e) {}
+        appState.peer = null;
+    }
+    appState.peerConnections = [];
+    updatePeerCountUI();
 }
 
 function initPeerHost() {
+    destroyPeer();
     appState.roomCode = generate4DigitCode();
     const peerId = "taboo-room-" + appState.roomCode;
-    
-    appState.peer = new Peer(peerId);
-    
+    try { appState.peer = new Peer(peerId); }
+    catch (e) { console.error(e); return; }
+
     appState.peer.on('open', (id) => {
+        appState.hostRetryCount = 0;
         document.getElementById("displayRoomCode").innerText = appState.roomCode;
         document.getElementById("roomCodeBadge").innerText = `ROOM: ${appState.roomCode}`;
         document.getElementById("roomCodeBadge").classList.remove("hidden");
-        
         const joinUrl = window.location.origin + window.location.pathname + '?room=' + appState.roomCode;
         const qrImg = document.getElementById("roomQRCode");
-        if (qrImg) {
-            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=` + encodeURIComponent(joinUrl);
-        }
+        if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=` + encodeURIComponent(joinUrl);
     });
 
     appState.peer.on('connection', (conn) => {
         appState.peerConnections.push(conn);
         updatePeerCountUI();
-
-        conn.on('open', () => { broadcastState(); });
+        conn.on('open', () => broadcastState());
         conn.on('close', () => {
             appState.peerConnections = appState.peerConnections.filter(c => c !== conn);
             updatePeerCountUI();
@@ -1488,59 +1335,77 @@ function initPeerHost() {
     });
 
     appState.peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') { initPeerHost(); }
+        if (err.type === 'unavailable-id') {
+            // FIX #8: capped retry instead of infinite recursion
+            if (appState.hostRetryCount < 3) {
+                appState.hostRetryCount++;
+                setTimeout(initPeerHost, 500);
+            } else {
+                console.error("Could not acquire room ID after 3 retries.");
+                appState.hostRetryCount = 0;
+            }
+        }
     });
 }
 
 function joinRoomAsPlayer() {
     const code = document.getElementById("joinRoomCodeInput").value.trim();
     if (code.length !== 4) return alert("Enter a valid 4-digit room code.");
-
     const statusText = document.getElementById("joinStatusText");
     statusText.innerText = "Connecting to host...";
+    destroyPeer();
+    try { appState.peer = new Peer(); }
+    catch (e) { statusText.innerText = "Could not start PeerJS."; return; }
 
-    if (appState.peer) appState.peer.destroy();
-    
-    appState.peer = new Peer();
     appState.peer.on('open', () => {
         const hostPeerId = "taboo-room-" + code;
         const conn = appState.peer.connect(hostPeerId);
-
         conn.on('open', () => {
             statusText.innerText = "Connected!";
             closeSyncModal();
             setRole('player');
+            conn.on('data', data => receiveSyncedGameState(data));
         });
-
-        conn.on('data', (data) => { receiveSyncedGameState(data); });
         conn.on('error', () => { statusText.innerText = "Failed to connect to room code."; });
+    });
+    appState.peer.on('error', (err) => {
+        statusText.innerText = "Connection error: " + (err.type || 'unknown');
     });
 }
 
 function updatePeerCountUI() {
     const count = appState.peerConnections.length;
-    document.getElementById("connectedPeerCount").innerText = count;
-    document.getElementById("modalConnectedCount").innerText = count;
+    const a = document.getElementById("connectedPeerCount");
+    const b = document.getElementById("modalConnectedCount");
+    if (a) a.innerText = count;
+    if (b) b.innerText = count;
 }
 
 function broadcastState() {
     if (appState.role !== 'host') return;
+    const winner = appState.gameState.currentRound > appState.config.totalRounds
+        ? [...appState.teams].sort((a, b) => b.score - a.score)[0].name : null;
     const data = {
         card: appState.currentCard,
         teams: appState.teams,
         currentTeamIndex: appState.gameState.currentTeamIndex,
         currentRound: appState.gameState.currentRound,
         timerSeconds: appState.gameState.timerSeconds,
-        isActive: appState.gameState.isActive
+        isActive: appState.gameState.isActive,
+        // FIX #4 & #6
+        hostTimestamp: Date.now(),
+        turnStartTime: appState.gameState.turnStartTime,
+        gameOver: appState.gameState.currentRound > appState.config.totalRounds,
+        winnerName: winner,
+        finalScores: appState.teams.map(t => ({ name: t.name, score: t.score, colorIdx: t.colorIdx ?? 0 }))
     };
-    appState.peerConnections.forEach(conn => {
-        if (conn.open) conn.send(data);
-    });
+    appState.peerConnections.forEach(conn => { if (conn.open) conn.send(data); });
 }
 
+let playerTimerInterval = null;
 function receiveSyncedGameState(data) {
     if (!data) return;
-    
+
     if (data.card) {
         document.getElementById("playerTargetWord").innerText = data.card.target;
         const list = document.getElementById("playerForbiddenList");
@@ -1555,26 +1420,46 @@ function receiveSyncedGameState(data) {
 
     if (data.teams && data.teams[data.currentTeamIndex]) {
         const team = data.teams[data.currentTeamIndex];
-        const clueGiver = getActiveClueGiverFull(team);
-        document.getElementById("playerViewTeamTurn").innerText = `${clueGiver}'s Turn`;
+        document.getElementById("playerViewTeamTurn").innerText = getActiveClueGiverFull(team) + "'s Turn";
     }
 
-    document.getElementById("playerTimerDisplay").innerText = data.timerSeconds || 60;
+    // FIX #6: locally interpolate timer using hostTimestamp
+    const baseSeconds = data.timerSeconds ?? 60;
+    const drift = data.hostTimestamp ? Math.floor((Date.now() - data.hostTimestamp) / 1000) : 0;
+    const displaySeconds = Math.max(0, baseSeconds - drift);
+    document.getElementById("playerTimerDisplay").innerText = displaySeconds;
     document.getElementById("playerRoundDisplay").innerText = data.currentRound || 1;
 
     const board = document.getElementById("playerScoreboard");
     if (board && data.teams) {
         board.innerHTML = "";
-        data.teams.forEach(t => {
+        data.teams.forEach((t, idx) => {
+            const color = teamColor(t.colorIdx ?? idx);
             const el = document.createElement("div");
-            el.className = "bg-slate-950 p-2 rounded-lg border border-slate-800 text-xs flex justify-between";
-            el.innerHTML = `<span class="text-slate-300 font-bold">${t.name}</span> <span class="text-indigo-400 font-black">${t.score}</span>`;
+            el.className = "bg-slate-950 p-2 rounded-lg border text-xs flex justify-between";
+            el.style.borderColor = color.border;
+            el.innerHTML = `<span class="font-bold" style="color:${color.text}">${escapeHtml(t.name)}</span><span class="font-black" style="color:${color.text}">${t.score}</span>`;
             board.appendChild(el);
         });
+    }
+
+    // FIX #4: show game-over panel to players
+    const panel = document.getElementById("playerGameOverPanel");
+    if (data.gameOver) {
+        panel.classList.remove("hidden");
+        document.getElementById("playerWinnerName").innerText = data.winnerName || '—';
+        const scoresEl = document.getElementById("playerFinalScores");
+        scoresEl.innerHTML = (data.finalScores || [])
+            .map(s => `<div>${escapeHtml(s.name)}: <strong>${s.score}</strong></div>`).join('');
+    } else {
+        panel.classList.add("hidden");
     }
 }
 
 function setRole(role) {
+    // FIX #8: properly tear down the old peer on role switch
+    if (appState.role !== role) destroyPeer();
+
     appState.role = role;
     const hostBtn = document.getElementById("modeHostBtn");
     const playerBtn = document.getElementById("modePlayerBtn");
@@ -1587,7 +1472,10 @@ function setRole(role) {
         document.getElementById("hostSyncPanel").classList.remove("hidden");
         document.getElementById("playerSyncPanel").classList.add("hidden");
         document.getElementById("setupView").classList.remove("hidden");
+        document.getElementById("gameView").classList.add("hidden");
         document.getElementById("playerView").classList.add("hidden");
+        document.getElementById("gameOverView").classList.add("hidden");
+        initPeerHost();
     } else {
         playerBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow";
         hostBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
@@ -1596,11 +1484,12 @@ function setRole(role) {
         document.getElementById("hostSyncPanel").classList.add("hidden");
         document.getElementById("setupView").classList.add("hidden");
         document.getElementById("gameView").classList.add("hidden");
+        document.getElementById("gameOverView").classList.add("hidden");
         document.getElementById("playerView").classList.remove("hidden");
     }
 }
 
-/* Modal Helpers */
+/* ---------- MODALS ---------- */
 function openDeckModal() { document.getElementById("deckModal").classList.remove("hidden"); }
 function closeDeckModal() { document.getElementById("deckModal").classList.add("hidden"); }
 function openSyncModal() { document.getElementById("syncModal").classList.remove("hidden"); }
@@ -1609,10 +1498,11 @@ function openHelpModal() { document.getElementById("helpModal").classList.remove
 function closeHelpModal() { document.getElementById("helpModal").classList.add("hidden"); }
 
 function switchHelpTab(tab) {
-    const tabs = ['rules', 'usage', 'sync', 'faq'];
-    tabs.forEach(t => {
-        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        const content = document.getElementById(`helpContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    ['rules', 'usage', 'sync', 'faq'].forEach(t => {
+        const cap = t.charAt(0).toUpperCase() + t.slice(1);
+        const btn = document.getElementById(`tabBtn${cap}`);
+        const content = document.getElementById(`helpContent${cap}`);
+        if (!btn || !content) return;
         if (t === tab) {
             btn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-center font-bold";
             content.classList.remove("hidden");
@@ -1623,8 +1513,9 @@ function switchHelpTab(tab) {
     });
 }
 
+/* ---------- SAVE / RESUME ---------- */
 function saveGameState() {
-    const gameStateData = {
+    const data = {
         teams: appState.teams,
         config: appState.config,
         gameState: {
@@ -1636,36 +1527,27 @@ function saveGameState() {
         currentCard: appState.currentCard,
         unplayedIndices: appState.unplayedIndices
     };
-    localStorage.setItem("taboo_saved_game", JSON.stringify(gameStateData));
+    localStorage.setItem("taboo_saved_game", JSON.stringify(data));
 }
-
 function checkSavedGame() {
     const saved = localStorage.getItem("taboo_saved_game");
-    const resumeBtn = document.getElementById("resumeGameBtn");
-    if (saved && resumeBtn) {
-        resumeBtn.classList.remove("hidden");
-    } else if (resumeBtn) {
-        resumeBtn.classList.add("hidden");
-    }
+    const btn = document.getElementById("resumeGameBtn");
+    if (saved && btn) btn.classList.remove("hidden");
+    else if (btn) btn.classList.add("hidden");
 }
-
 function showConfirmModal(title, message, onYes) {
-    document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${title}`;
+    document.getElementById("confirmTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> ${escapeHtml(title)}`;
     document.getElementById("confirmMessage").innerText = message;
-    const yesBtn = document.getElementById("confirmYesBtn");
-    const newYesBtn = yesBtn.cloneNode(true);
-    yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
-    
-    newYesBtn.onclick = function() {
-        closeConfirmModal();
-        if (typeof onYes === 'function') onYes();
-    };
+    const oldBtn = document.getElementById("confirmYesBtn");
+    const newBtn = oldBtn.cloneNode(true);
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+    newBtn.onclick = function() { closeConfirmModal(); if (typeof onYes === 'function') onYes(); };
     document.getElementById("confirmModal").classList.remove("hidden");
 }
-
 function closeConfirmModal() { document.getElementById("confirmModal").classList.add("hidden"); }
-function confirmResumeGame() { showConfirmModal("Resume Last Game?", "Do you want to continue your previous saved game?", executeResumeGame); }
-
+function confirmResumeGame() {
+    showConfirmModal("Resume Last Game?", "Do you want to continue your previous saved game?", executeResumeGame);
+}
 function executeResumeGame() {
     const saved = localStorage.getItem("taboo_saved_game");
     if (!saved) return alert("No saved game found.");
@@ -1679,17 +1561,15 @@ function executeResumeGame() {
         appState.gameState.timerSeconds = data.gameState.timerSeconds;
         appState.currentCard = data.currentCard;
         appState.unplayedIndices = data.unplayedIndices;
-
-        document.getElementById("penaltyBtnLabel").innerText = appState.config.tabooPenalty;
         document.getElementById("totalRoundsDisplay").innerText = appState.config.totalRounds;
         document.getElementById("setupView").classList.add("hidden");
         document.getElementById("gameOverView").classList.add("hidden");
         document.getElementById("gameView").classList.remove("hidden");
         prepTurn();
-    } catch (err) {
-        alert("Error loading saved game data.");
-    }
+        broadcastState(); // FIX #7: immediately re-sync players
+    } catch (err) { alert("Error loading saved game data."); }
 }
 </script>
 </body>
 </html>
+```
