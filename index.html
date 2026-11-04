@@ -250,7 +250,7 @@
                     <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">YOUR TEAMMATE IS GIVING CLUES</p>
                     <h3 id="clueGiverNameHidden" class="text-xl font-black text-white mt-1">—</h3>
                 </div>
-                <p class="text-[11px] text-slate-400 max-w-[220px]">The card is hidden from you. Listen and shout your guesses!</p>
+                <p id="teammateHintText" class="text-[11px] text-slate-400 max-w-[220px]">The card is hidden from you. Listen and shout your guesses!</p>
             </div>
 
             <!-- OPPOSING TEAM CARD -->
@@ -264,10 +264,10 @@
                     <div id="opposingForbiddenList" class="space-y-1.5"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="playerSendAction('taboo')" class="py-3 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs">
+                    <button id="opposingTabooBtn" onclick="playerSendAction('taboo')" class="py-3 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs">
                         <i class="fa-solid fa-ban mr-1"></i> TABOO
                     </button>
-                    <button onclick="playerSendAction('correct')" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs">
+                    <button id="opposingCorrectBtn" onclick="playerSendAction('correct')" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs">
                         <i class="fa-solid fa-check mr-1"></i> CORRECT
                     </button>
                 </div>
@@ -454,7 +454,7 @@
                 </div>
             </div>
 
-            <!-- PLAYER SYNC PANEL (NEW LOOKUP LOGIC) -->
+            <!-- PLAYER SYNC PANEL -->
             <div id="playerSyncPanel" class="hidden space-y-3">
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
                     <label class="text-xs text-slate-400 font-semibold block text-center">ENTER HOST 4-DIGIT CODE</label>
@@ -582,7 +582,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — v3 (fixed team lookup)
+   TABOO MASTER ENGINE — v4 (Host-as-player fixed, waiting states)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -695,7 +695,6 @@ window.onload = function() {
     if (roomParam && roomParam.length === 4) {
         setRole('player');
         document.getElementById('joinRoomCodeInput').value = roomParam;
-        // Auto lookup if param exists
         setTimeout(() => lookupRoomTeams(), 800);
     } else {
         initPeerHost();
@@ -1097,6 +1096,16 @@ function startGameHost() {
     if (appState.hostIsPlaying) {
         document.getElementById("gameView").classList.add("hidden");
         document.getElementById("playerView").classList.remove("hidden");
+        receiveSyncedState({
+            teams: appState.teams,
+            currentTeamIndex: 0,
+            currentRound: 1,
+            timerSeconds: appState.config.turnTimerSec,
+            isActive: false,
+            currentClueGiverId: null,
+            currentClueGiverName: null,
+            skipsRemaining: appState.config.maxSkips
+        });
     } else {
         document.getElementById("gameView").classList.remove("hidden");
         document.getElementById("playerView").classList.add("hidden");
@@ -1113,6 +1122,7 @@ function prepTurn() {
 
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     const teamPlayers = appState.players.filter(p => p.teamIndex === appState.gameState.currentTeamIndex);
+    
     if (teamPlayers.length === 0) {
         appState.gameState.currentClueGiverId = null;
     } else {
@@ -1141,6 +1151,20 @@ function prepTurn() {
     }
 
     broadcastState();
+
+    if (appState.hostIsPlaying) {
+        receiveSyncedState({
+            teams: appState.teams,
+            currentTeamIndex: appState.gameState.currentTeamIndex,
+            currentRound: appState.gameState.currentRound,
+            timerSeconds: appState.gameState.timerSeconds,
+            isActive: false,
+            card: null,
+            currentClueGiverId: appState.gameState.currentClueGiverId,
+            currentClueGiverName: currentClueGiverName(),
+            skipsRemaining: appState.gameState.skipsRemaining
+        });
+    }
 }
 
 function currentClueGiverName() {
@@ -1228,7 +1252,9 @@ function hostAction(action) {
 }
 
 function applyAction(action, byPlayerId) {
-    if (!appState.gameState.isActive || appState.gameState.isPaused) return;
+    if (!appState.gameState.isActive && action !== 'startTurn') return;
+    if (appState.gameState.isPaused) return;
+
     const key = `${byPlayerId}_${action}`;
     const now = Date.now();
     if (appState.gameState.recentActions[key] && now - appState.gameState.recentActions[key] < 200) return;
@@ -1236,9 +1262,18 @@ function applyAction(action, byPlayerId) {
 
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     const byPlayer = appState.players.find(p => p.id === byPlayerId);
-    const isOpposing = byPlayer && byPlayer.teamIndex !== appState.gameState.currentTeamIndex;
+    
     const isClueGiver = byPlayerId === appState.gameState.currentClueGiverId;
+    const isOpposing = byPlayer && byPlayer.teamIndex !== appState.gameState.currentTeamIndex;
     const isReferee = appState.role === 'host' && !appState.hostIsPlaying && !byPlayer;
+
+    if (action === 'startTurn') {
+        if (!isClueGiver) return;
+        beginTurn();
+        return;
+    }
+
+    if (!appState.gameState.isActive) return;
 
     if (action === 'correct') {
         if (!isOpposing && !isReferee) return;
@@ -1256,11 +1291,8 @@ function applyAction(action, byPlayerId) {
         soundEngine.play('skip');
         appState.gameState.skipsRemaining--;
         drawNextCard();
-    } else if (action === 'startTurn') {
-        if (!isClueGiver) return;
-        beginTurn();
-        return;
     }
+    
     renderScoreboard();
     updateSkipsUI();
     saveGameState();
@@ -1452,7 +1484,6 @@ function handleIncomingPlayerMessage(conn, data) {
     }
 }
 
-/* ---------- LOOKUP / JOIN (NEW) ---------- */
 let lookupPeer = null;
 let lookupConn = null;
 let discoveredTeams = [];
@@ -1604,18 +1635,27 @@ function receiveSyncedState(data) {
 
     const myId = appState.myPlayerId;
     const myTeam = appState.myTeamIndex;
+    
+    // Determine my role
     const myRole = data.gameOver ? 'gameover' :
         (data.currentClueGiverId === myId ? 'cluegiver' :
         (myTeam === data.currentTeamIndex ? 'teammate' : 'opposing'));
 
     const currentTeamName = data.teams?.[data.currentTeamIndex]?.name || '—';
-    document.getElementById("playerRoleLabel").innerText =
-        myRole === 'cluegiver' ? '🎯 YOUR TURN — CLUE-GIVER' :
-        myRole === 'teammate' ? '⏳ YOUR TEAMMATE IS GIVING CLUES' :
-        myRole === 'opposing' ? '👁 JUDGE MODE — OPPOSING TEAM' :
-        myRole === 'gameover' ? 'MATCH FINISHED' : 'WAITING';
+    
     document.getElementById("playerTurnLine").innerText = `${currentTeamName}'s Turn`;
+    
+    if (myRole === 'cluegiver') {
+        document.getElementById("playerRoleLabel").innerText = '🎯 YOUR TURN — CLUE-GIVER';
+    } else if (myRole === 'teammate') {
+        document.getElementById("playerRoleLabel").innerText = '⏳ YOUR TEAMMATE IS GIVING CLUES';
+    } else if (myRole === 'opposing') {
+        document.getElementById("playerRoleLabel").innerText = '👁 JUDGE MODE — OPPOSING TEAM';
+    } else {
+        document.getElementById("playerRoleLabel").innerText = 'WAITING';
+    }
 
+    // Timer
     const baseSeconds = data.timerSeconds ?? 60;
     const drift = data.hostTimestamp ? Math.floor((Date.now() - data.hostTimestamp) / 1000) : 0;
     document.getElementById("playerTimerDisplay").innerText = Math.max(0, baseSeconds - drift);
@@ -1634,35 +1674,55 @@ function receiveSyncedState(data) {
 
     if (myRole === 'cluegiver') {
         document.getElementById("clueGiverCard").classList.remove("hidden");
-        if (data.card) {
-            cardTarget.innerText = data.card.target;
-            cardForbidden.innerHTML = data.card.forbidden.map(w =>
-                `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
-            ).join('');
+        
+        if (!data.isActive) {
+            cardTarget.innerText = "GET READY";
+            cardForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Tap START to reveal the card and begin the timer.</p>`;
+            document.getElementById("playerStartBtn").style.display = 'block';
+            document.getElementById("playerSkipBtn").style.display = 'none';
         } else {
-            cardTarget.innerText = "READY?";
-            cardForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Tap START when ready</p>`;
+            if (data.card) {
+                cardTarget.innerText = data.card.target;
+                cardForbidden.innerHTML = data.card.forbidden.map(w =>
+                    `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
+                ).join('');
+            }
+            document.getElementById("playerStartBtn").style.display = 'none';
+            document.getElementById("playerSkipBtn").style.display = 'block';
+            document.getElementById("playerSkipCount").innerText = data.skipsRemaining ?? 0;
+            const skipBtn = document.getElementById("playerSkipBtn");
+            if (skipBtn) skipBtn.disabled = (data.skipsRemaining ?? 0) <= 0;
         }
-        const startBtn = document.getElementById("playerStartBtn");
-        if (startBtn) startBtn.style.display = data.isActive ? 'none' : 'block';
-        document.getElementById("playerSkipCount").innerText = data.skipsRemaining ?? 0;
-        const skipBtn = document.getElementById("playerSkipBtn");
-        if (skipBtn) skipBtn.disabled = !data.isActive || (data.skipsRemaining ?? 0) <= 0;
-    } else if (myRole === 'teammate') {
+    } 
+    else if (myRole === 'teammate') {
         document.getElementById("teammateCard").classList.remove("hidden");
         document.getElementById("clueGiverNameHidden").innerText = data.currentClueGiverName || 'Your teammate';
-    } else if (myRole === 'opposing') {
-        document.getElementById("opposingCard").classList.remove("hidden");
-        if (data.card) {
-            oppTarget.innerText = data.card.target;
-            oppForbidden.innerHTML = data.card.forbidden.map(w =>
-                `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
-            ).join('');
+        
+        const teammateHint = document.getElementById("teammateHintText");
+        if (!data.isActive) {
+            teammateHint.innerText = `Waiting for ${data.currentClueGiverName || 'your teammate'} to start...`;
         } else {
-            oppTarget.innerText = "WAITING";
-            oppForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Waiting for turn to start…</p>`;
+            teammateHint.innerText = "Listen and shout your guesses!";
         }
-    } else if (myRole === 'gameover' && myTeam === undefined) {
+    } 
+    else if (myRole === 'opposing') {
+        document.getElementById("opposingCard").classList.remove("hidden");
+        
+        if (!data.isActive) {
+            oppTarget.innerText = "WAITING";
+            oppForbidden.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Waiting for ${data.currentClueGiverName || 'the clue-giver'} to start...</p>`;
+            document.querySelectorAll("#opposingCard button").forEach(b => b.disabled = true);
+        } else {
+            if (data.card) {
+                oppTarget.innerText = data.card.target;
+                oppForbidden.innerHTML = data.card.forbidden.map(w =>
+                    `<div class="forbidden-card-item p-2 rounded-xl font-extrabold text-center text-xs text-slate-200 uppercase">${escapeHtml(w)}</div>`
+                ).join('');
+            }
+            document.querySelectorAll("#opposingCard button").forEach(b => b.disabled = false);
+        }
+    }
+    else if (myRole === 'gameover' && myTeam === undefined) {
         document.getElementById("refereeCard").classList.remove("hidden");
         if (data.card) {
             document.getElementById("refereeCardSummary").classList.remove("hidden");
