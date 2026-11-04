@@ -442,7 +442,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — Pass & Play (Bulletproof)
+   TABOO MASTER ENGINE — Pass & Play (Final)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -527,7 +527,7 @@ const appState = {
         isActive:false
     },
     editingTeamIndex: null,
-    saveTimeout: null // For debouncing
+    saveTimeout: null
 };
 
 /* ---------- INIT ---------- */
@@ -1005,7 +1005,6 @@ function getActiveClueGiverPlayer(team) {
 function startGameHost() {
     if (appState.cards.length === 0) return alert("Database empty. Load a deck first.");
 
-    // FIX 3: Sanitize numeric inputs to prevent broken game states
     const roundsVal = parseInt(document.getElementById("cfgRounds").value);
     const timerVal = parseInt(document.getElementById("cfgTimer").value);
     const skipsVal = parseInt(document.getElementById("cfgMaxSkips").value);
@@ -1143,7 +1142,7 @@ function drawNextCard() {
 function handleCardAction(action) {
     if (!appState.gameState.isActive || appState.gameState.isPaused) return;
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
-    saveGameState(); // Debounced internally
+    saveGameState();
 
     if (action === 'correct') {
         soundEngine.play('correct');
@@ -1231,7 +1230,6 @@ function showGameOver() {
 }
 
 function resetToSetup() {
-    // FIX 1: Reset pause state and button
     appState.gameState.isPaused = false;
     const pBtn = document.getElementById("pauseBtn");
     if (pBtn) pBtn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
@@ -1276,35 +1274,27 @@ function switchHelpTab(tab) {
 }
 
 /* ---------- SAVE / RESUME ---------- */
-// FIX 2: Debounce saves to prevent micro-stutter during fast button taps
 function saveGameState() {
     if (appState.saveTimeout) clearTimeout(appState.saveTimeout);
     
-    const doSave = () => {
-        localStorage.setItem("taboo_saved_game", JSON.stringify({
-            teams: appState.teams,
-            config: appState.config,
-            gameState: {
-                currentRound: appState.gameState.currentRound,
-                currentTeamIndex: appState.gameState.currentTeamIndex,
-                skipsRemaining: appState.gameState.skipsRemaining,
-                timerSeconds: appState.gameState.timerSeconds
-            },
-            currentCard: appState.currentCard,
-            unplayedIndices: appState.unplayedIndices
-        }));
-        appState.saveTimeout = null;
-    };
+    localStorage.setItem("taboo_saved_game", JSON.stringify({
+        teams: appState.teams,
+        config: appState.config,
+        gameState: {
+            currentRound: appState.gameState.currentRound,
+            currentTeamIndex: appState.gameState.currentTeamIndex,
+            skipsRemaining: appState.gameState.skipsRemaining,
+            timerSeconds: appState.gameState.timerSeconds
+        },
+        currentCard: appState.currentCard,
+        unplayedIndices: appState.unplayedIndices
+    }));
 
-    // If a save was scheduled less than 2 seconds ago, wait for it to complete
-    // otherwise, save immediately (which happens on the first action or turn end)
-    if (appState.saveTimeout) {
-        appState.saveTimeout = setTimeout(doSave, 2000);
-    } else {
-        doSave();
-        appState.saveTimeout = setTimeout(() => { appState.saveTimeout = null; }, 2000);
-    }
+    appState.saveTimeout = setTimeout(() => { 
+        appState.saveTimeout = null; 
+    }, 500);
 }
+
 function checkSavedGame() {
     const s = localStorage.getItem("taboo_saved_game");
     const b = document.getElementById("resumeGameBtn");
