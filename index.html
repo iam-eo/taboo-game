@@ -29,7 +29,6 @@
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); 
         }
         
-        /* Tablet / Desktop improvements */
         @media (min-width: 768px) {
             .app-container {
                 max-width: 640px;
@@ -127,7 +126,6 @@
                             <i class="fa-solid fa-plus mr-1"></i> Add Team
                         </button>
                     </div>
-                    <p class="text-[10px] md:text-xs text-slate-400">Enter player names separated by commas (e.g. Alice, Bob). They will rotate as the clue-giver.</p>
                     <div id="teamsContainer" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
                 </div>
             </div>
@@ -235,7 +233,6 @@
                 <button onclick="closeDeckModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg md:text-xl"></i></button>
             </div>
             <div class="space-y-3 md:space-y-4 flex-1 overflow-y-auto text-xs md:text-sm pr-1">
-                <!-- Content remains identical, just slightly larger on md screens -->
                 <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 flex justify-between items-center">
                     <div>
                         <span class="text-slate-400 block text-xs md:text-sm">Cards in DB</span>
@@ -338,6 +335,22 @@
         </div>
     </div>
 
+    <!-- ===== EDIT PLAYERS MODAL (NEW) ===== -->
+    <div id="playersModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-5 md:p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 id="playersModalTitle" class="font-bold text-white text-base md:text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-users text-indigo-400"></i> Edit Players
+                </h3>
+                <button onclick="closePlayersModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg md:text-xl"></i></button>
+            </div>
+            <div id="playersModalInputs" class="space-y-3">
+                <!-- Dynamic inputs generated here -->
+            </div>
+            <button onclick="savePlayersModal()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs md:text-sm shadow-lg transition">Save Names</button>
+        </div>
+    </div>
+
     <!-- ===== HELP MODAL ===== -->
     <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 md:p-6 space-y-4 max-h-[85vh] flex flex-col">
@@ -389,11 +402,7 @@
                 <div id="helpContentUsage" class="hidden space-y-3 md:space-y-4 text-slate-300">
                     <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-gear"></i> Teams & Players</h4>
-                        <p class="text-[11px] md:text-xs text-slate-400">Under Teams, type the player names separated by commas (e.g., <em>Alice, Bob, Charlie</em>). The app automatically rotates them as the clue-giver each round.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> Parameters</h4>
-                        <p class="text-[11px] md:text-xs text-slate-400">Set the number of rounds, the timer length (e.g., 60s), and how many skips a clue-giver is allowed per turn.</p>
+                        <p class="text-[11px] md:text-xs text-slate-400">For each team, select the number of players and click "Edit" to type their names. The app automatically rotates them as the clue-giver each round.</p>
                     </div>
                 </div>
 
@@ -402,15 +411,6 @@
                     <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-play"></i> During the Turn</h4>
                         <p class="text-[11px] md:text-xs text-slate-400">Hand the phone to the active Clue-Giver. They tap <strong>START TURN</strong>. The timer starts and the card reveals.</p>
-                        <ul class="list-disc list-inside text-[11px] md:text-xs text-slate-400 space-y-1 mt-1">
-                            <li><span class="text-emerald-400 font-bold">CORRECT (+1):</span> Next card.</li>
-                            <li><span class="text-amber-400 font-bold">SKIP:</span> Next card (uses 1 skip).</li>
-                            <li><span class="text-rose-400 font-bold">TABOO:</span> Loses points, next card.</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-rotate"></i> End of Turn</h4>
-                        <p class="text-[11px] md:text-xs text-slate-400">When the timer hits 0, the screen locks. The app will announce who is next. Pass the phone to the next clue-giver!</p>
                     </div>
                 </div>
 
@@ -419,10 +419,6 @@
                     <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
                         <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-robot"></i> AI Builder</h4>
                         <p class="text-[11px] md:text-xs text-slate-400">Tap the database icon at the top right to open decks. You can use the AI Builder to generate 50 fresh cards for any category using a free Gemini API key.</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 space-y-1.5">
-                        <h4 class="font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-file-csv"></i> Custom Decks</h4>
-                        <p class="text-[11px] md:text-xs text-slate-400">Import your own CSV or JSON files, or just select one of the preset decks to reload the game database.</p>
                     </div>
                 </div>
             </div>
@@ -447,7 +443,7 @@
 
 <script>
 /* ============================================================
-   TABOO MASTER ENGINE — Pass & Play (Responsive)
+   TABOO MASTER ENGINE — Pass & Play (v6)
    ============================================================ */
 
 const TEAM_COLORS = [
@@ -518,8 +514,8 @@ const appState = {
     unplayedIndices: [],
     currentCard: null,
     teams: [
-        { name:'Team Alpha', players:'Player 1, Player 2', score:0, playerIndex:0 },
-        { name:'Team Beta',  players:'Player 3, Player 4', score:0, playerIndex:0 }
+        { name:'Team Alpha', playerCount: 2, playersArray: ['Player 1', 'Player 2'], score:0, playerIndex:0 },
+        { name:'Team Beta',  playerCount: 2, playersArray: ['Player 3', 'Player 4'], score:0, playerIndex:0 }
     ],
     config: { totalRounds:3, turnTimerSec:60, maxSkips:3, tabooPenalty:-1, correctPoint:1 },
     gameState: {
@@ -530,7 +526,8 @@ const appState = {
         timerInterval:null,
         isPaused:false,
         isActive:false
-    }
+    },
+    editingTeamIndex: null
 };
 
 /* ---------- INIT ---------- */
@@ -840,16 +837,17 @@ function builderExportAndSave() {
 }
 
 /* ============================================================
-   TEAMS / SETUP UI
+   TEAMS / SETUP UI (UPDATED)
    ============================================================ */
 function renderTeamInputs() {
     const c = document.getElementById("teamsContainer");
     c.innerHTML = "";
     document.getElementById("teamCountDisplay").innerText = appState.teams.length;
+    
     appState.teams.forEach((t, i) => {
         const col = teamColor(i);
         const div = document.createElement("div");
-        div.className = "bg-slate-950 p-3 md:p-4 rounded-xl border space-y-2 md:space-y-3";
+        div.className = "bg-slate-950 p-3 md:p-4 rounded-xl border space-y-3 md:space-y-4";
         div.style.borderColor = col.border;
         
         const header = document.createElement("div");
@@ -864,45 +862,100 @@ function renderTeamInputs() {
         }
         div.appendChild(header);
 
-        const grid = document.createElement("div");
-        grid.className = "grid grid-cols-1 gap-2 md:gap-3";
-
         const nameInput = document.createElement("input");
         nameInput.type = "text"; nameInput.value = t.name;
-        nameInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 md:py-2 text-xs md:text-sm text-white w-full";
+        nameInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 md:py-2 text-xs md:text-sm text-white w-full mb-3";
         nameInput.placeholder = "Team Name";
         nameInput.onchange = () => { appState.teams[i].name = nameInput.value; renderTeamInputs(); };
-        
-        const playersInput = document.createElement("input");
-        playersInput.type = "text"; playersInput.value = t.players;
-        playersInput.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 md:py-2 text-xs md:text-sm text-white w-full";
-        playersInput.placeholder = "Players (comma separated)";
-        playersInput.onchange = () => { appState.teams[i].players = playersInput.value; };
+        div.appendChild(nameInput);
 
-        grid.appendChild(nameInput);
-        grid.appendChild(playersInput);
-        div.appendChild(grid);
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-2";
+        
+        const countSelect = document.createElement("select");
+        countSelect.className = "bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 md:py-2 text-xs md:text-sm text-white flex-1 outline-none";
+        countSelect.innerHTML = Array.from({length: 10}, (_, k) => k+1).map(num => 
+            `<option value="${num}" ${t.playerCount === num ? 'selected' : ''}>${num} Player${num > 1 ? 's' : ''}</option>`
+        ).join('');
+        countSelect.onchange = () => {
+            appState.teams[i].playerCount = parseInt(countSelect.value);
+            // Adjust array length if necessary
+            if (appState.teams[i].playersArray.length !== appState.teams[i].playerCount) {
+                if (appState.teams[i].playersArray.length < appState.teams[i].playerCount) {
+                    for (let k = appState.teams[i].playersArray.length; k < appState.teams[i].playerCount; k++) {
+                        appState.teams[i].playersArray.push(`Player ${k + 1}`);
+                    }
+                } else {
+                    appState.teams[i].playersArray = appState.teams[i].playersArray.slice(0, appState.teams[i].playerCount);
+                }
+            }
+        };
+        
+        const editBtn = document.createElement("button");
+        editBtn.className = "bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 font-semibold rounded-lg px-4 py-1.5 md:py-2 text-xs md:text-sm transition whitespace-nowrap";
+        editBtn.innerHTML = '<i class="fa-solid fa-pen mr-1"></i> Edit';
+        editBtn.onclick = () => openPlayersModal(i);
+
+        row.appendChild(countSelect);
+        row.appendChild(editBtn);
+        div.appendChild(row);
         c.appendChild(div);
     });
 }
 function addTeamInput() {
     if (appState.teams.length >= 8) return alert("Max 8 teams.");
-    appState.teams.push({ name: `Team ${String.fromCharCode(65 + appState.teams.length)}`, players:'Player 1, Player 2', score:0, playerIndex:0 });
+    appState.teams.push({ 
+        name: `Team ${String.fromCharCode(65 + appState.teams.length)}`, 
+        playerCount: 2, 
+        playersArray: ['Player 1', 'Player 2'], 
+        score:0, 
+        playerIndex:0 
+    });
     renderTeamInputs();
 }
 function removeTeamInput(i) {
     if (appState.teams.length > 2) { appState.teams.splice(i, 1); renderTeamInputs(); }
 }
 
-function getActiveClueGiverPlayer(team) {
-    if (!team.players || !team.players.trim()) return team.name;
-    const list = team.players.split(',').map(p => p.trim()).filter(p => p.length > 0);
-    if (list.length === 0) return team.name;
-    return list[(team.playerIndex || 0) % list.length];
+function openPlayersModal(teamIdx) {
+    appState.editingTeamIndex = teamIdx;
+    const team = appState.teams[teamIdx];
+    
+    document.getElementById("playersModalTitle").innerHTML = `<i class="fa-solid fa-users text-indigo-400"></i> Edit ${escapeHtml(team.name)} Players`;
+    
+    const container = document.getElementById("playersModalInputs");
+    container.innerHTML = "";
+    for (let k = 0; k < team.playerCount; k++) {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = `<label class="text-xs text-slate-400 mb-1 block">Player ${k+1} Name</label>`;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm mb-2";
+        input.value = team.playersArray[k] || `Player ${k + 1}`;
+        input.id = `playerNameInput_${k}`;
+        wrapper.appendChild(input);
+        container.appendChild(wrapper);
+    }
+    document.getElementById("playersModal").classList.remove("hidden");
 }
-function getActiveClueGiverFull(team) {
-    const p = getActiveClueGiverPlayer(team);
-    return p === team.name ? team.name : `${p} (${team.name})`;
+function closePlayersModal() {
+    document.getElementById("playersModal").classList.add("hidden");
+    appState.editingTeamIndex = null;
+}
+function savePlayersModal() {
+    const idx = appState.editingTeamIndex;
+    if (idx === null) return;
+    const team = appState.teams[idx];
+    for (let k = 0; k < team.playerCount; k++) {
+        const val = document.getElementById(`playerNameInput_${k}`).value.trim();
+        team.playersArray[k] = val || `Player ${k + 1}`;
+    }
+    closePlayersModal();
+}
+
+function getActiveClueGiverPlayer(team) {
+    if (!team.playersArray || team.playersArray.length === 0) return team.name;
+    return team.playersArray[(team.playerIndex || 0) % team.playersArray.length];
 }
 
 /* ============================================================
@@ -937,7 +990,6 @@ function prepTurn() {
 
     const currentTeam = appState.teams[appState.gameState.currentTeamIndex];
     const clueGiverPlayer = getActiveClueGiverPlayer(currentTeam);
-    const clueGiverFull = getActiveClueGiverFull(currentTeam);
     
     document.getElementById("currentRoundDisplay").innerText = appState.gameState.currentRound;
     
@@ -956,12 +1008,13 @@ function prepTurn() {
     document.getElementById("forbiddenWordsLabel").classList.add("hidden");
     document.getElementById("activeClueGiverArea").classList.add("hidden");
     
-    // Show the Handoff Message with BIGGER fonts
+    // Show the Handoff Message with bigger player name and smaller team name below it
     document.getElementById("forbiddenList").innerHTML = `
         <div class="py-8 md:py-12 flex flex-col items-center justify-center text-center">
-            <span class="text-slate-400 text-sm md:text-lg font-bold mb-2">Pass phone to</span>
-            <span class="text-2xl md:text-4xl font-black tracking-wide mb-3 md:mb-4" style="color:${col.text}">${escapeHtml(clueGiverFull)}</span>
-            <span class="text-xs md:text-base text-slate-500 font-medium bg-slate-800/50 py-1.5 px-4 rounded-full border border-slate-700">Tap 'START TURN' when ready</span>
+            <span class="text-slate-400 text-sm md:text-lg font-bold mb-1 md:mb-2">Pass phone to</span>
+            <span class="text-3xl md:text-5xl font-black tracking-wide" style="color:${col.text}">${escapeHtml(clueGiverPlayer)}</span>
+            <span class="text-base md:text-xl font-bold text-slate-500 mt-1 md:mt-2">${escapeHtml(currentTeam.name)}</span>
+            <span class="text-xs md:text-base text-slate-500 font-medium bg-slate-800/50 py-1.5 px-4 rounded-full border border-slate-700 mt-4 md:mt-6">Tap 'START TURN' when ready</span>
         </div>
     `;
 
